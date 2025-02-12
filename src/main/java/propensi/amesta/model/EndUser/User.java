@@ -13,7 +13,6 @@ import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.annotations.Where;
 
 @Getter
 @Setter
@@ -23,7 +22,6 @@ import org.hibernate.annotations.Where;
 @Inheritance(strategy = InheritanceType.JOINED) 
 @DiscriminatorColumn(name = "role", discriminatorType = DiscriminatorType.STRING) 
 @Table(name = "end_user")
-@Where(clause = "deleted_at IS NULL")
 public class User{
 
     @Id

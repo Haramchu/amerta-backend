@@ -1,4 +1,4 @@
-package propensi.amesta.dto.response;
+package propensi.amesta.payload.response;
 
 import java.util.UUID;
 
