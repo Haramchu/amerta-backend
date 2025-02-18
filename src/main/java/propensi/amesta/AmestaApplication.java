@@ -17,6 +17,7 @@ import propensi.amesta.model.EndUser.Direktur;
 import propensi.amesta.model.EndUser.Sales;
 import propensi.amesta.model.EndUser.GeneralManager;
 import propensi.amesta.model.EndUser.KepalaGudang;
+import propensi.amesta.model.EndUser.Komisaris;
 
 
 @SpringBootApplication
@@ -89,7 +90,7 @@ public class AmestaApplication {
 					userDb.save(user);
 				}
 				if (userDb.findByUsername("komisaris") != null) {
-					user = new Administrasi();
+					user = new Komisaris();
 					user.setName("komisaris");
 					user.setUsername("komisaris");
 					user.setPassword(userService.hashPassword("komisaris"));
