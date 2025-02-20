@@ -8,17 +8,15 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
 import jakarta.transaction.Transactional;
-
-import propensi.amesta.repository.EndUser.UserDb;
-import propensi.amesta.service.UserService;
-import propensi.amesta.model.EndUser.User;
 import propensi.amesta.model.EndUser.Administrasi;
 import propensi.amesta.model.EndUser.Direktur;
-import propensi.amesta.model.EndUser.Sales;
 import propensi.amesta.model.EndUser.GeneralManager;
 import propensi.amesta.model.EndUser.KepalaGudang;
 import propensi.amesta.model.EndUser.Komisaris;
-
+import propensi.amesta.model.EndUser.Sales;
+import propensi.amesta.model.EndUser.User;
+import propensi.amesta.repository.EndUser.UserDb;
+import propensi.amesta.service.UserService;
 
 @SpringBootApplication
 public class AmestaApplication {
