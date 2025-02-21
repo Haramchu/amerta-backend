@@ -4,9 +4,9 @@ spring:
   application:
     name: amesta
   datasource:
-    url: jdbc:postgresql://localhost:15001/amesta
-    username: amesta
-    password: amestaadmin
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
   jpa:
     properties:
       hibernate:
@@ -16,9 +16,11 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: create
+
 amesta:
   app:
     jwtSecret: zEzLSiQIoOSlwlzVzEyghFCXwyMSbOsBdaLU
     jwtExpirationMs: 86400000
+    
 server:
   port: 8080
