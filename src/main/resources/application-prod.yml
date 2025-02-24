@@ -1,3 +1,4 @@
+prod:
 spring:
   datasource:
     url: ${JDBC_DATABASE_URL}
@@ -5,9 +6,8 @@ spring:
     password: ${JDBC_DATABASE_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-    show-sql: true

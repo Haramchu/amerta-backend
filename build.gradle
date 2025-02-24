@@ -53,13 +53,21 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
+tasks.test {
+   useJUnitPlatform()
+   finalizedBy(tasks.jacocoTestReport) // report is always generated after tests run
 }
 
-jacocoTestReport {
-    reports {
-        xml.required = true
-		html.required = true
-    }
+tasks.jacocoTestReport {
+   afterEvaluate {
+       classDirectories.setFrom(files(classDirectories.files.collect {
+           fileTree(dir: it, exclude: ['*/*Application*'])
+       }))
+   }
+   dependsOn(tasks.test) // tests are required to run before generating the report
+   reports {
+       xml.required.set(false)
+       csv.required.set(false)
+       html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
+   }
 }
