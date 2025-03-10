@@ -1,4 +1,4 @@
-package propensi.amesta.model;
+package propensi.amesta.model.Finance;
 
 import java.util.UUID;
 
