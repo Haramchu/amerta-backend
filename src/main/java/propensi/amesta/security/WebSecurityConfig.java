@@ -38,12 +38,6 @@ public class WebSecurityConfig {
             .authorizeHttpRequests(requests -> requests
                 .requestMatchers("/api/user/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/admin/**").hasAnyAuthority("admin")
-                .requestMatchers("/api/doctor/**").hasAnyAuthority("admin", "doctor")
-                .requestMatchers("/api/nurse/**").hasAnyAuthority("admin", "nurse")
-                .requestMatchers("/api/patient/**").hasAnyAuthority("admin", "patient")
-                .requestMatchers("/api/pharmacist/**").hasAnyAuthority("admin", "pharmacist")
-
                 .anyRequest().authenticated()    
             )
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

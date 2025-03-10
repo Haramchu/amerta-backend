@@ -1,5 +1,5 @@
 package propensi.amesta.service;
 
-public interface ReimburseService {
+public interface TunjanganService {
 
 }

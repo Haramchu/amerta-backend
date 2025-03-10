@@ -1,7 +1,9 @@
 package propensi.amesta.service;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -40,6 +42,17 @@ public class UserServiceImpl implements UserService {
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         return passwordEncoder.encode(password);
     }  
+
+    @Override
+    public List<UserResponseDTO> getUserByRole(String role) {
+        List<User> userList;
+        if (role.equals("all")) {
+            userList = userDb.findAll();
+        } else {
+            userList = userDb.findByRole(role);
+        }
+        return userList.stream().map(this::userToUserResponseDTO).toList();
+    }
 
     public UserResponseDTO userToUserResponseDTO(User user) {
         return new UserResponseDTO(

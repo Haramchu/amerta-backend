@@ -1,18 +1,27 @@
 package propensi.amesta.model.EndUser;
 
-import jakarta.persistence.*;
+import java.util.Date;
+import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorColumn;
+import jakarta.persistence.DiscriminatorType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.Date;
-import java.util.UUID;
-
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 @Getter
 @Setter
@@ -22,7 +31,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Inheritance(strategy = InheritanceType.JOINED) 
 @DiscriminatorColumn(name = "role", discriminatorType = DiscriminatorType.STRING) 
 @Table(name = "end_user")
-public class User{
+public class User {
 
     @Id
     private UUID id = UUID.randomUUID();
@@ -31,6 +40,9 @@ public class User{
     @Size(max = 100)
     @Column(name = "name", nullable = false)
     private String name;
+
+    @Column(name = "role", insertable = false, updatable = false)
+    private String role;
 
     @NotNull
     @Size(max = 100)
@@ -64,9 +76,7 @@ public class User{
     @Column(name = "deleted_at")
     private Date deletedAt;
 
-    @Transient
     public String getRole() {
-        return this.getClass().getAnnotation(DiscriminatorValue.class).value();
+        return this.role;
     }
-
 }
