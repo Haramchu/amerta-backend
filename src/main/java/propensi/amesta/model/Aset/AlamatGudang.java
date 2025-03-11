@@ -19,34 +19,26 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "barang")
-public class Barang {
+@Table(name = "alamat_gudang")
+public class AlamatGudang {
 
     @Id
-    private String id;
+    private UUID id = UUID.randomUUID();
 
-    @NotNull(message = "Nama barang harus diisi")
-    private String nama;
+    @NotNull(message = "Alamat gudang harus diisi")
+    private String alamat;
 
-    @NotNull(message = "Jumlah barang harus diisi")
-    private int stock;
+    @NotNull(message = "Kota gudang harus diisi")
+    private String kota;
 
-    @NotNull(message = "Kategori barang harus diisi")
-    private String kategori;
+    @NotNull(message = "Provinsi gudang harus diisi")
+    private String provinsi;
 
-    @NotNull(message = "Kondisi barang harus diisi")
-    private boolean isActive;
+    @NotNull(message = "Kode Pos gudang harus diisi")
+    private String kodePos;
 
-    @NotNull(message = "Merk barang harus diisi")
-    private String merk;
-
-    @ManyToMany
-    @JoinTable(
-        name = "barang_gudang",
-        joinColumns = @JoinColumn(name = "barang_id"),
-        inverseJoinColumns = @JoinColumn(name = "gudang_id")
-    )
-    private Set<Gudang> gudang;
+    @OneToOne(mappedBy = "alamatGudang", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Gudang gudang;
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
@@ -57,4 +49,5 @@ public class Barang {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "updatedDate", nullable = false)
     private Date updatedDate;
+    
 }
