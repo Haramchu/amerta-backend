@@ -17,6 +17,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
 import propensi.amesta.security.jwt.JwtTokenFilter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,6 +41,22 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/user/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .anyRequest().authenticated()    
+            )
+            .formLogin(form -> form
+                .loginPage("/login")
+                .loginProcessingUrl("/login")
+                .permitAll()
+                .defaultSuccessUrl("/")
+            )
+
+            .logout(logout -> logout
+                .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+                .logoutSuccessUrl("/login")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+            )
+            .exceptionHandling(exceptionHandling -> exceptionHandling
+                .accessDeniedHandler(accessDeniedHandler()) // Tambahkan handler khusus
             )
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
@@ -65,4 +83,15 @@ public class WebSecurityConfig {
     public BCryptPasswordEncoder encoder(){
         return new BCryptPasswordEncoder();
     }   
+
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        return new AccessDeniedHandler() {
+            @Override
+            public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException ex)
+                    throws IOException, ServletException {
+                response.sendRedirect("/access-denied"); // Redirect ke halaman custom
+            }
+        };
+    }
 }
