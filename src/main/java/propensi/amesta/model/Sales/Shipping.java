@@ -1,4 +1,4 @@
-package propensi.amesta.model;
+package propensi.amesta.model.Sales;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -7,10 +7,10 @@ import lombok.Setter;
 @Setter
 @Getter
 @Entity
-@Table(name = "aset")
-public class Aset {
+@Table(name = "shipping")
+public class Shipping {
 
     @Id
-    private String nama;
+    private String Id;
 
 }
