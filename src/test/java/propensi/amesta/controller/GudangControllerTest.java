@@ -58,6 +58,7 @@ class GudangControllerTest {
         
         // Setup test data
         UUID kepalaGudangId = UUID.randomUUID();
+        UUID alamatGudangId = UUID.randomUUID();
   
         gudangRequestDTO = new GudangRequestDTO();
         gudangRequestDTO.setNama("Gudang Test");
@@ -70,7 +71,17 @@ class GudangControllerTest {
         gudangRequestDTO.setKodePos("12345");
 
         KepalaGudangResponseDTO kepalaGudangResponseDTO = new KepalaGudangResponseDTO();
+        kepalaGudangResponseDTO.setId(kepalaGudangId);
+        kepalaGudangResponseDTO.setName("Kepala Gudang Test");
+        kepalaGudangResponseDTO.setUsername("kepala_gudang_test");
+        kepalaGudangResponseDTO.setEmail("kg@example.com");
+
         AlamatGudangResponseDTO alamatGudangResponseDTO = new AlamatGudangResponseDTO();
+        alamatGudangResponseDTO.setId(alamatGudangId);
+        alamatGudangResponseDTO.setAlamat("Jalan Test No. 123");
+        alamatGudangResponseDTO.setKota("Jakarta");
+        alamatGudangResponseDTO.setProvinsi("DKI Jakarta");
+        alamatGudangResponseDTO.setKodePos("12345");
         
         gudangResponseDTO = new GudangResponseDTO();
         gudangResponseDTO.setNama("Gudang Test");
@@ -146,40 +157,34 @@ class GudangControllerTest {
 
     @Test
     void testCreateGudangValidationFailure() throws Exception {
-        // Create a test validator that will fail
         mockMvc = MockMvcBuilders.standaloneSetup(gudangController)
-                .setControllerAdvice(new GlobalExceptionHandler()) // Add your exception handler if available
+                .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
                 
         GudangRequestDTO invalidRequest = new GudangRequestDTO();
-        // Missing required fields
 
         mockMvc.perform(post("/api/gudang/add")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());
 
-        // Verify that service was not called with invalid data
         verify(gudangService, times(0)).addGudang(any(GudangRequestDTO.class));
     }
 
     @Test
     void testUpdateGudangValidationFailure() throws Exception {
-        // Create a test validator that will fail
         mockMvc = MockMvcBuilders.standaloneSetup(gudangController)
-                .setControllerAdvice(new GlobalExceptionHandler()) // Add your exception handler if available
+                .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
                 
         String gudangName = "Gudang Test";
         GudangRequestDTO invalidRequest = new GudangRequestDTO();
-        // Missing required fields
 
         mockMvc.perform(put("/api/gudang/update/{namaGudang}", gudangName)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());
 
-        // Verify that service was not called with invalid data
         verify(gudangService, times(0)).updateGudang(eq(gudangName), any(GudangRequestDTO.class));
     }
 }
