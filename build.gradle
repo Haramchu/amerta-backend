@@ -20,7 +20,7 @@ sonar {
     property "sonar.projectKey", "amerta-backend"
 	property "sonar.projectName", "amerta-backend"
     property "sonar.host.url", "https://sonarqube.cs.ui.ac.id"
-	property "sonar.coverageReportPaths", "build/reports/jacoco/tests/test/index.html"
+	property "sonar.coverageReportPaths", "build/reports/tests/test/index.html"
   }
 }
 
