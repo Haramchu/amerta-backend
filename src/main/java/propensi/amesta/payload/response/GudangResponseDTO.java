@@ -1,7 +1,6 @@
 package propensi.amesta.payload.response;
 
 import java.util.Date;
-import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -25,25 +24,4 @@ public class GudangResponseDTO {
     
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Jakarta")
     private Date updatedDate;
-    
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class KepalaGudangResponseDTO {
-        private UUID id;
-        private String name;
-        private String username;
-        private String email;
-    }
-    
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class AlamatGudangResponseDTO {
-        private UUID id;
-        private String alamat;
-        private String kota;
-        private String provinsi;
-        private String kodePos;
-    }
 }
