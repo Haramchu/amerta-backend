@@ -1,0 +1,9 @@
+package propensi.amesta.repository.Aset;
+
+import java.util.UUID;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import propensi.amesta.model.Aset.AlamatGudang;
+
+public interface AlamatGudangDb extends JpaRepository<AlamatGudang, UUID> {}
