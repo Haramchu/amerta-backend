@@ -98,29 +98,6 @@ public class GudangServiceImpl implements GudangService {
         return gudangToGudangResponseDTO(gudang);
     }
 
-    // public GudangResponseDTO gudangToGudangResponseDTO(Gudang gudang, KepalaGudang kepalaGudang, AlamatGudang alamatGudang) {
-    //     return new GudangResponseDTO(
-    //         gudang.getNama(),
-    //         gudang.getDeskripsi(),
-    //         gudang.getKapasitas(),
-    //         new KepalaGudangResponseDTO(
-    //             kepalaGudang.getId(),
-    //             kepalaGudang.getName(),
-    //             kepalaGudang.getUsername(),
-    //             kepalaGudang.getEmail()
-    //         ),
-    //         new AlamatGudangResponseDTO(
-    //             alamatGudang.getId(),
-    //             alamatGudang.getAlamat(),
-    //             alamatGudang.getKota(),
-    //             alamatGudang.getProvinsi(),
-    //             alamatGudang.getKodePos()
-    //         ),
-    //         gudang.getCreatedDate(),
-    //         gudang.getUpdatedDate()
-    //     );
-    // }
-
     public GudangResponseDTO gudangToGudangResponseDTO(Gudang gudang) {
         KepalaGudang kepalaGudang = gudang.getKepalaGudang();
         AlamatGudang alamatGudang = gudang.getAlamatGudang();
