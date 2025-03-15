@@ -100,7 +100,7 @@ public class BarangController {
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<?> updateBarang(@PathVariable String id, 
+    public ResponseEntity<?> transferBarang(@PathVariable String id, 
     @Valid @RequestBody UpdateBarangRequestDTO barangRequestDTO, BindingResult bindingResult) {
         BaseResponseDTO<BarangResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
         

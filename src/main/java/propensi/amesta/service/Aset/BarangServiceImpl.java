@@ -122,9 +122,9 @@ public class BarangServiceImpl implements BarangService {
         Barang barang = barangDb.findById(id)
             .orElseThrow(() -> new RuntimeException("Barang dengan ID " + id + " tidak ditemukan"));
     
-        if (!barang.isActive()) {
-            throw new RuntimeException("Barang dengan ID " + id + " tidak aktif");
-        }
+        // if (!barang.isActive()) {
+        //     throw new RuntimeException("Barang dengan ID " + id + " tidak aktif");
+        // }
     
         for (StockBarangRequestDTO stockBarangRequestDTO : barangRequestDTO.getListStockBarang()) {
             gudangDb.findById(stockBarangRequestDTO.getNamaGudang())
@@ -177,6 +177,11 @@ public class BarangServiceImpl implements BarangService {
                 throw new RuntimeException("Kapasitas gudang " + gudang.getNama() + " tidak mencukupi. Tidak ada perubahan yang dilakukan.");
             }
         }
+
+        barang.setNama(barangRequestDTO.getNama());
+        barang.setKategori(barangRequestDTO.getKategori());
+        barang.setMerk(barangRequestDTO.getMerk());
+        barang.setActive(barangRequestDTO.isActive());
     
         return barangToBarangResponseDTO(barangDb.save(barang));
     }
@@ -262,6 +267,5 @@ public class BarangServiceImpl implements BarangService {
 
         barang.setActive(!barang.isActive());
         return barangToBarangResponseDTO(barangDb.save(barang));
-    }
-    
+    }    
 }
