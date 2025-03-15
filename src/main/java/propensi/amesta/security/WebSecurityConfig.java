@@ -38,8 +38,8 @@ public class WebSecurityConfig {
         http.securityMatcher("/api/**")
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(requests -> requests
-                .requestMatchers("/api/user/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/user/**").hasAnyAuthority("administrasi", "direktur")
                 .anyRequest().authenticated()    
             )
             .formLogin(form -> form
@@ -56,7 +56,7 @@ public class WebSecurityConfig {
                 .deleteCookies("JSESSIONID")
             )
             .exceptionHandling(exceptionHandling -> exceptionHandling
-                .accessDeniedHandler(accessDeniedHandler()) // Tambahkan handler khusus
+                .accessDeniedHandler(accessDeniedHandler())
             )
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
@@ -90,7 +90,7 @@ public class WebSecurityConfig {
             @Override
             public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException ex)
                     throws IOException, ServletException {
-                response.sendRedirect("/access-denied"); // Redirect ke halaman custom
+                response.sendRedirect("/access-denied");
             }
         };
     }
