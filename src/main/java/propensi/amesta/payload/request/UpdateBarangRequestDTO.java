@@ -33,7 +33,7 @@ public class UpdateBarangRequestDTO {
     @AssertTrue(message = "Stok barang harus merupakan angka yang valid")
     private boolean isQuantityValid() {
         for (StockBarangRequestDTO barang : listStockBarang) {
-            if (barang.getStock() < 1) {
+            if (barang.getStock() < 0) {
                 return false;
             }
         }

@@ -174,6 +174,13 @@ public class BarangServiceImpl implements BarangService {
             }
         }
 
+        Barang existingBarang = barangDb.findByNamaAndMerk(barangRequestDTO.getNama(), barangRequestDTO.getMerk()).size() > 0
+            ? barangDb.findByNamaAndMerk(barangRequestDTO.getNama(), barangRequestDTO.getMerk()).get(0)
+            : null;
+        if (existingBarang != null && !existingBarang.getId().equals(id)) {
+            throw new RuntimeException("Barang dengan nama dan merk yang sama sudah ada.");
+        }
+
         barang.setNama(barangRequestDTO.getNama());
         barang.setKategori(barangRequestDTO.getKategori());
         barang.setMerk(barangRequestDTO.getMerk());
