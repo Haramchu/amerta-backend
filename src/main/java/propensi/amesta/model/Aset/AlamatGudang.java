@@ -1,7 +1,6 @@
 package propensi.amesta.model.Aset;
 
 import java.util.Date;
-import java.util.Set;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;

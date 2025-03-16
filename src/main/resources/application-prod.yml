@@ -1,4 +1,3 @@
-prod:
 spring:
   datasource:
     url: ${JDBC_DATABASE_URL}

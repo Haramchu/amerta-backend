@@ -1,7 +1,7 @@
 package propensi.amesta.model.Aset;
 
 import java.util.Date;
-import java.util.Set;
+import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -31,8 +31,8 @@ public class Gudang {
     @NotNull(message = "Kapasitas gudang harus diisi")
     private int kapasitas;
 
-    @ManyToMany(mappedBy = "gudang")
-    private Set<Barang> listBarang;
+    @OneToMany(mappedBy = "gudang", cascade = CascadeType.ALL)
+    private List<StockBarangPerGudang> listBarang;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "alamat_id", referencedColumnName = "id", unique = true)
