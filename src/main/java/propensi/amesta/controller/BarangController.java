@@ -18,10 +18,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import propensi.amesta.payload.request.BarangRequestDTO;
+import propensi.amesta.payload.request.TransferBarangRequestDTO;
 import propensi.amesta.payload.request.UpdateBarangRequestDTO;
 import propensi.amesta.payload.response.BarangResponseDTO;
 import propensi.amesta.payload.response.BaseResponseDTO;
+import propensi.amesta.payload.response.TransferBarangResponseDTO;
 import propensi.amesta.service.Aset.BarangService;
+import propensi.amesta.service.Aset.TransferBarangService;
 
 
 @RestController
@@ -30,6 +33,9 @@ public class BarangController {
     
     @Autowired
     private BarangService barangService;
+
+     @Autowired
+    private TransferBarangService transferBarangService;
 
     @PostMapping("/add")
     public ResponseEntity<?> addBarang(@Valid @RequestBody BarangRequestDTO barangRequestDTO, BindingResult bindingResult) {
@@ -143,6 +149,36 @@ public class BarangController {
             baseResponseDTO.setData(barangResponseDTO);
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+        } catch (Exception e) {
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/transfer")
+    public ResponseEntity<?> transferBarang(@Valid @RequestBody TransferBarangRequestDTO transferRequest, BindingResult bindingResult) {
+        BaseResponseDTO<TransferBarangResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
+
+        if (bindingResult.hasErrors()) {
+            StringBuilder errorMessages = new StringBuilder();
+            for (FieldError error : bindingResult.getFieldErrors()) {
+                errorMessages.append(error.getDefaultMessage()).append("; ");
+            }
+            baseResponseDTO.setStatus(HttpStatus.BAD_REQUEST.value());
+            baseResponseDTO.setMessage(errorMessages.toString());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.BAD_REQUEST);
+        }
+
+        try {
+            TransferBarangResponseDTO transferResponse = transferBarangService.addTransferBarang(transferRequest);
+            baseResponseDTO.setStatus(HttpStatus.CREATED.value());
+            baseResponseDTO.setMessage("Pemindahan barang berhasil dicatat.");
+            baseResponseDTO.setData(transferResponse);
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.CREATED);
         } catch (Exception e) {
             baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
             baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + e.getMessage());
