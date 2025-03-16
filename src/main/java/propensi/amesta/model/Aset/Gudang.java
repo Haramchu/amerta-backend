@@ -38,6 +38,12 @@ public class Gudang {
     @JoinColumn(name = "alamat_id", referencedColumnName = "id", unique = true)
     private AlamatGudang alamatGudang;
 
+    @OneToMany(mappedBy = "gudangAsal")
+    private List<TransferBarang> listTransferAsal;
+
+    @OneToMany(mappedBy = "gudangTujuan")
+    private List<TransferBarang> listTransferTujuan;
+
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "createdDate", updatable = false, nullable = false)

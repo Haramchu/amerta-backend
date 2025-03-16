@@ -1,6 +1,7 @@
 package propensi.amesta.model.Aset;
 
 import java.util.Date;
+import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 import jakarta.persistence.*;
@@ -21,20 +22,30 @@ public class TransferBarang {
     @Id
     private String id;
 
-    @NotNull(message = "Nama Barang harus diisi")
-    private String namaBarang;
+    @NotNull(message = "Tanggal pemindahan harus diisi")
+    @Temporal(TemporalType.DATE)
+    private Date tanggalPemindahan;
 
-    @NotNull(message = "Alamat gudang harus diisi")
-    private String gudangTujuan;
+    @NotNull(message = "Gudang asal harus diisi")
+    @ManyToOne
+    @JoinColumn(name = "gudang_asal_id", referencedColumnName = "nama")
+    private Gudang gudangAsal;
 
-    @NotNull(message = "Alamat gudang harus diisi")
-    private String gudangAsal;
+    @NotNull(message = "Gudang tujuan harus diisi")
+    @ManyToOne
+    @JoinColumn(name = "gudang_tujuan_id", referencedColumnName = "nama")
+    private Gudang gudangTujuan;
 
-    @NotNull(message = "Tipe Proses harus dipilih")
-    private int tipeProses; // 0 = Kirim, 1 = Terima
+    @NotNull(message = "Barang yang dipindah harus diisi")
+    @ManyToMany(mappedBy = "listTransferBarang", fetch = FetchType.LAZY)
+    private List<Barang> listBarang;
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "createdDate", updatable = false, nullable = false)
     private Date createdDate;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "deletedDate")
+    private Date deletedDate;
 }
