@@ -126,12 +126,6 @@ public class BarangServiceImpl implements BarangService {
             gudangDb.findById(stockBarangRequestDTO.getNamaGudang())
                 .orElseThrow(() -> new RuntimeException("Gudang dengan ID " + stockBarangRequestDTO.getNamaGudang() + " tidak tersedia"));
         }
-
-        for (StockBarangRequestDTO stockBarangRequestDTO : barangRequestDTO.getListStockBarang()) {
-           if (barang.getListStockBarang().stream().noneMatch(stock -> stock.getGudang().getNama().equals(stockBarangRequestDTO.getNamaGudang()))) {
-                throw new RuntimeException("Barang ini tidak disimpan di Gudang dengan ID " + stockBarangRequestDTO.getNamaGudang());
-            }
-        }
     
         List<StockBarangPerGudang> existingList = barang.getListStockBarang();
 
