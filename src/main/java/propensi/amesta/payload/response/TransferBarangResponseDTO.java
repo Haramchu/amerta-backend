@@ -5,6 +5,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import propensi.amesta.payload.request.BarangTransferDTO;
 
 @Data
 @NoArgsConstructor
@@ -15,6 +16,6 @@ public class TransferBarangResponseDTO {
     private Date tanggalPemindahan;
     private String gudangAsal;
     private String gudangTujuan;
-    private List<String> listBarang;
+    private List<BarangTransferDTO> listBarang;
     private Date createdDate;
 }

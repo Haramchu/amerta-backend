@@ -3,6 +3,7 @@ package propensi.amesta.payload.request;
 import java.util.Date;
 import java.util.List;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,5 +24,6 @@ public class TransferBarangRequestDTO {
     private String gudangTujuan;
 
     @NotNull(message = "Barang yang dipindah harus diisi")
-    private List<String> listBarang;
+    @Valid
+    private List<BarangTransferDTO> listBarang;
 }
