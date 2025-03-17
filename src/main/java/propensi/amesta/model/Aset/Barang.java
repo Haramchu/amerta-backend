@@ -42,13 +42,8 @@ public class Barang {
     @OneToMany(mappedBy = "barang", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StockBarangPerGudang> listStockBarang;
 
-    @ManyToMany
-    @JoinTable(
-        name = "transfer_barang_detail",
-        joinColumns = @JoinColumn(name = "barang_id"),
-        inverseJoinColumns = @JoinColumn(name = "transfer_id")
-    )
-    private List<TransferBarang> listTransferBarang;
+    @OneToMany(mappedBy = "barang", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<KuantitasBarangPerTransfer> listKuantitasBarangPerTransfer;
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
