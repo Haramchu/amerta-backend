@@ -9,12 +9,17 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import propensi.amesta.model.EndUser.Administrasi;
+import propensi.amesta.model.EndUser.Direktur;
+import propensi.amesta.model.EndUser.GeneralManager;
+import propensi.amesta.model.EndUser.KepalaGudang;
+import propensi.amesta.model.EndUser.Komisaris;
+import propensi.amesta.model.EndUser.Sales;
 import propensi.amesta.model.EndUser.User;
+import propensi.amesta.payload.request.TambahKaryawanRequestDTO;
 import propensi.amesta.payload.response.UserResponseDTO;
 import propensi.amesta.repository.EndUser.UserDb;
 import propensi.amesta.security.service.UserDetailsServiceImpl;
-
-
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -24,7 +29,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDTO getCurrentUser() {
-        UserDetailsServiceImpl authentication = (UserDetailsServiceImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserDetailsServiceImpl authentication = (UserDetailsServiceImpl) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
         Optional<User> userFromDb = userDb.findByEmail(authentication.getJwtClaims().getSubject());
         User user = userFromDb.orElseThrow(() -> new NoSuchElementException("User not found"));
 
@@ -41,7 +47,7 @@ public class UserServiceImpl implements UserService {
     public String hashPassword(String password) {
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         return passwordEncoder.encode(password);
-    }  
+    }
 
     @Override
     public List<UserResponseDTO> getUserByRole(String role) {
@@ -56,15 +62,66 @@ public class UserServiceImpl implements UserService {
 
     public UserResponseDTO userToUserResponseDTO(User user) {
         return new UserResponseDTO(
-            user.getId(),
-            user.getName(),
-            user.getUsername(),
-            user.getEmail(),
-            user.isGender(),
-            user.getCreatedDate(),
-            user.getUpdatedAt(),
-            user.getRole()
-        );
+                user.getId(),
+                user.getName(),
+                user.getUsername(),
+                user.getEmail(),
+                user.isGender(),
+                user.getPhone(),
+                user.getHomePhone(),
+                user.getBusinessPhone(),
+                user.getWhatsappNumber(),
+                user.getEntryDate(),
+                user.getKtpNumber(),
+                user.getNotes(),
+                user.getCreatedDate(),
+                user.getUpdatedAt(),
+                user.getRole());
+    }
+
+    @Override
+    public User addEmployee(TambahKaryawanRequestDTO userRequest) {
+        if (userDb.findByEmail(userRequest.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("Email sudah terdaftar.");
+        }
+        User newUser;
+        switch (userRequest.getRole().toLowerCase()) {
+            case "administrasi":
+                newUser = new Administrasi();
+                break;
+            case "direktur":
+                newUser = new Direktur();
+                break;
+            case "sales":
+                newUser = new Sales();
+                break;
+            case "general_manager":
+                newUser = new GeneralManager();
+                break;
+            case "kepala_gudang":
+                newUser = new KepalaGudang();
+                break;
+            case "komisaris":
+                newUser = new Komisaris();
+                break;
+            default:
+                throw new IllegalArgumentException("Role tidak valid: " + userRequest.getRole());
+        }
+        newUser.setName(userRequest.getName());
+        newUser.setUsername(userRequest.getUsername());
+        newUser.setEmail(userRequest.getEmail());
+        newUser.setPassword(hashPassword(userRequest.getPassword()));
+        newUser.setGender(userRequest.isGender());
+        newUser.setPhone(userRequest.getPhone());
+        newUser.setHomePhone(userRequest.getHomePhone());
+        newUser.setBusinessPhone(userRequest.getBusinessPhone());
+        newUser.setWhatsappNumber(userRequest.getWhatsappNumber());
+        newUser.setEntryDate(userRequest.getEntryDate());
+        newUser.setKtpNumber(userRequest.getKtpNumber());
+        newUser.setNotes(userRequest.getNotes());
+        newUser.setRole(userRequest.getRole());
+
+        return userDb.save(newUser);
     }
 
 }
