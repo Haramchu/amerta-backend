@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import propensi.amesta.model.Aset.Barang;
 import propensi.amesta.model.Aset.Gudang;
+import propensi.amesta.model.Aset.KuantitasBarangPerTransfer;
 import propensi.amesta.model.Aset.StockBarangPerGudang;
 import propensi.amesta.model.Aset.TransferBarang;
 import propensi.amesta.payload.request.BarangTransferDTO;
@@ -20,6 +21,7 @@ import propensi.amesta.payload.request.TransferBarangRequestDTO;
 import propensi.amesta.payload.response.TransferBarangResponseDTO;
 import propensi.amesta.repository.Aset.BarangDb;
 import propensi.amesta.repository.Aset.GudangDb;
+import propensi.amesta.repository.Aset.KuantitasBarangPerTransferDb;
 import propensi.amesta.repository.Aset.StockBarangPerGudangDb;
 import propensi.amesta.repository.Aset.TransferBarangDb;
 
@@ -38,21 +40,22 @@ public class TransferBarangServiceImpl implements TransferBarangService {
     @Autowired
     private StockBarangPerGudangDb stockBarangPerGudangDb;
 
+    @Autowired
+    private KuantitasBarangPerTransferDb kuantitasBarangPerTransferDb;
+
+
     @Override
     public TransferBarangResponseDTO addTransferBarang(TransferBarangRequestDTO request) {
 
-        Optional<Gudang> gudangAsalOpt = gudangDb.findById(request.getGudangAsal());
-        if (gudangAsalOpt.isEmpty()) {
-            throw new RuntimeException("Gudang asal tidak ditemukan: " + request.getGudangAsal());
-        }
-        Gudang gudangAsal = gudangAsalOpt.get();
+        // Validasi Gudang Asal
+        Gudang gudangAsal = gudangDb.findById(request.getGudangAsal())
+            .orElseThrow(() -> new RuntimeException("Gudang asal tidak ditemukan: " + request.getGudangAsal()));
 
-        Optional<Gudang> gudangTujuanOpt = gudangDb.findById(request.getGudangTujuan());
-        if (gudangTujuanOpt.isEmpty()) {
-            throw new RuntimeException("Gudang tujuan tidak ditemukan: " + request.getGudangTujuan());
-        }
-        Gudang gudangTujuan = gudangTujuanOpt.get();
+        // Validasi Gudang Tujuan
+        Gudang gudangTujuan = gudangDb.findById(request.getGudangTujuan())
+            .orElseThrow(() -> new RuntimeException("Gudang tujuan tidak ditemukan: " + request.getGudangTujuan()));
 
+        // Generate ID berdasarkan Tahun dan Bulan
         SimpleDateFormat yearFormat = new SimpleDateFormat("yyyy");
         SimpleDateFormat monthFormat = new SimpleDateFormat("MM");
         int year = Integer.parseInt(yearFormat.format(request.getTanggalPemindahan()));
@@ -61,55 +64,58 @@ public class TransferBarangServiceImpl implements TransferBarangService {
         String sequence = String.format("%05d", count);
         String id = "IT." + year + "." + month + "." + sequence;
 
-        List<Barang> listBarang = request.getListBarang().stream().map(barangTransferDTO -> {
-            Optional<Barang> barangOpt = barangDb.findById(barangTransferDTO.getId());
-            if (barangOpt.isEmpty()) {
-                throw new RuntimeException("Barang tidak ditemukan: " + barangTransferDTO.getId());
-            }
-            Barang barang = barangOpt.get();
-            
-            StockBarangPerGudang stockAsal = stockBarangPerGudangDb.findByBarangAndGudang(barang, gudangAsal)
-                    .orElseThrow(() -> new RuntimeException("Stok barang tidak ditemukan di gudang asal: " + barang.getNama()));
-
-            if (stockAsal.getStock() < barangTransferDTO.getJumlah()) {
-                throw new RuntimeException("Stok barang di gudang asal tidak mencukupi untuk pemindahan: " + barang.getNama());
-            }
-
-            stockAsal.setStock(stockAsal.getStock() - barangTransferDTO.getJumlah());
-            stockBarangPerGudangDb.save(stockAsal);
-
-            Optional<StockBarangPerGudang> stockTujuanOpt = stockBarangPerGudangDb.findByBarangAndGudang(barang, gudangTujuan);
-            StockBarangPerGudang stockTujuan;
-
-            if (stockTujuanOpt.isPresent()) {
-                stockTujuan = stockTujuanOpt.get();
-                stockTujuan.setStock(stockTujuan.getStock() + barangTransferDTO.getJumlah());
-            } else {
-                stockTujuan = new StockBarangPerGudang();
-                stockTujuan.setBarang(barang);
-                stockTujuan.setGudang(gudangTujuan);
-                stockTujuan.setStock(barangTransferDTO.getJumlah());
-            }
-
-            stockBarangPerGudangDb.save(stockTujuan);
-
-            return barang;
-        }).collect(Collectors.toList());
-
+        // Simpan TransferBarang
         TransferBarang transferBarang = new TransferBarang();
         transferBarang.setId(id);
         transferBarang.setTanggalPemindahan(request.getTanggalPemindahan());
         transferBarang.setGudangAsal(gudangAsal);
         transferBarang.setGudangTujuan(gudangTujuan);
-        transferBarang.setListBarang(listBarang);
         transferBarang.setCreatedDate(new Date());
 
+        List<KuantitasBarangPerTransfer> listKuantitasBarang = new ArrayList<>();
+
+        for (BarangTransferDTO barangDTO : request.getListBarang()) {
+            Barang barang = barangDb.findById(barangDTO.getId())
+                .orElseThrow(() -> new RuntimeException("Barang tidak ditemukan: " + barangDTO.getId()));
+
+            // Kurangi stok dari Gudang Asal
+            StockBarangPerGudang stockAsal = stockBarangPerGudangDb.findByBarangAndGudang(barang, gudangAsal)
+                .orElseThrow(() -> new RuntimeException("Stok barang tidak ditemukan di gudang asal: " + barang.getNama()));
+
+            if (stockAsal.getStock() < barangDTO.getJumlah()) {
+                throw new RuntimeException("Stok barang di gudang asal tidak mencukupi untuk pemindahan: " + barang.getNama());
+            }
+            stockAsal.setStock(stockAsal.getStock() - barangDTO.getJumlah());
+            stockBarangPerGudangDb.save(stockAsal);
+
+            // Tambahkan stok ke Gudang Tujuan
+            StockBarangPerGudang stockTujuan = stockBarangPerGudangDb.findByBarangAndGudang(barang, gudangTujuan)
+                .orElseGet(() -> new StockBarangPerGudang());
+            stockTujuan.setBarang(barang);
+            stockTujuan.setGudang(gudangTujuan);
+            stockTujuan.setStock(stockTujuan.getStock() + barangDTO.getJumlah());
+            stockBarangPerGudangDb.save(stockTujuan);
+
+            // Simpan kuantitas barang per transfer
+            KuantitasBarangPerTransfer kuantitasBarang = new KuantitasBarangPerTransfer();
+            kuantitasBarang.setTransferBarang(transferBarang);
+            kuantitasBarang.setBarang(barang);
+            kuantitasBarang.setJumlah(barangDTO.getJumlah());
+
+            listKuantitasBarang.add(kuantitasBarang);
+        }
+
+        transferBarang.setKuantitasBarang(listKuantitasBarang);
         TransferBarang savedTransfer = transferBarangDb.save(transferBarang);
 
-        return transferBarangToTransferBarangResponseDTO(savedTransfer, request.getListBarang());
+        return transferBarangToTransferBarangResponseDTO(savedTransfer);
     }
 
-    private TransferBarangResponseDTO transferBarangToTransferBarangResponseDTO(TransferBarang transferBarang, List<BarangTransferDTO> listBarangDTO) {
+    private TransferBarangResponseDTO transferBarangToTransferBarangResponseDTO(TransferBarang transferBarang) {
+        List<BarangTransferDTO> listBarangDTO = transferBarang.getKuantitasBarang().stream()
+            .map(kbt -> new BarangTransferDTO(kbt.getBarang().getId(), kbt.getJumlah()))
+            .collect(Collectors.toList());
+
         return new TransferBarangResponseDTO(
             transferBarang.getId(),
             transferBarang.getTanggalPemindahan(),
@@ -120,47 +126,19 @@ public class TransferBarangServiceImpl implements TransferBarangService {
         );
     }
 
+
     @Override
     public List<TransferBarangResponseDTO> getAllTransferBarang() {
-        var listTransferBarang = transferBarangDb.findAll();
-        var listTransferBarangResponseDTO = new ArrayList<TransferBarangResponseDTO>();
-        listTransferBarang.forEach(transferBarang -> {
-            var listBarangDTO = transferBarang.getListBarang().stream()
-                .map(barang -> {
-                    var barangDTO = new BarangTransferDTO();
-                    barangDTO.setId(barang.getId());
-                    var stockOpt = stockBarangPerGudangDb.findByBarangAndGudang(barang, transferBarang.getGudangTujuan());
-                    if (stockOpt.isPresent()) {
-                        barangDTO.setJumlah(stockOpt.get().getStock());
-                    } else {
-                        barangDTO.setJumlah(0);
-                    }
-                    return barangDTO;
-                })
-                .collect(Collectors.toList());
-            var transferBarangResponseDTO = transferBarangToTransferBarangResponseDTO(transferBarang, listBarangDTO);
-            listTransferBarangResponseDTO.add(transferBarangResponseDTO);
-        });
-        return listTransferBarangResponseDTO;
+        return transferBarangDb.findAll().stream()
+            .map(this::transferBarangToTransferBarangResponseDTO)
+            .collect(Collectors.toList());
     }
 
     @Override
     public TransferBarangResponseDTO getTransferBarangByID(String id) {
-        var transferBarang = transferBarangDb.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Transfer Barang with ID " + id + " not found"));
-        var listBarangDTO = transferBarang.getListBarang().stream()
-                .map(barang -> {
-                    var barangDTO = new BarangTransferDTO();
-                    barangDTO.setId(barang.getId());
-                    var stockOpt = stockBarangPerGudangDb.findByBarangAndGudang(barang, transferBarang.getGudangTujuan());
-                    if (stockOpt.isPresent()) {
-                        barangDTO.setJumlah(stockOpt.get().getStock());
-                    } else {
-                        barangDTO.setJumlah(0);
-                    }
-                    return barangDTO;
-                })
-                .collect(Collectors.toList());
-        return transferBarangToTransferBarangResponseDTO(transferBarang, listBarangDTO);
+        TransferBarang transferBarang = transferBarangDb.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Transfer Barang dengan ID " + id + " tidak ditemukan"));
+        return transferBarangToTransferBarangResponseDTO(transferBarang);
     }
+
 }

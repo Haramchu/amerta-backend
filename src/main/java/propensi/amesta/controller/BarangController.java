@@ -187,7 +187,7 @@ public class BarangController {
         }
     }
 
-    @GetMapping("/viewalltransfer")
+    @GetMapping("/transfer/viewall")
     public ResponseEntity<BaseResponseDTO<List<TransferBarangResponseDTO>>> getAllTransferBarang() {
         BaseResponseDTO<List<TransferBarangResponseDTO>> baseResponseDTO = new BaseResponseDTO<>();
         try {
@@ -205,7 +205,7 @@ public class BarangController {
         }
     }
 
-    @GetMapping("/viewtransfer/{id}")
+    @GetMapping("/transfer/{id}")
     public ResponseEntity<?> getTransferBarangById(@PathVariable String id) {
         BaseResponseDTO<TransferBarangResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
         try {

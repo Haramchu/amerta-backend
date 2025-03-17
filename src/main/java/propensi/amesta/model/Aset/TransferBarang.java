@@ -36,9 +36,8 @@ public class TransferBarang {
     @JoinColumn(name = "gudang_tujuan_id", referencedColumnName = "nama")
     private Gudang gudangTujuan;
 
-    @NotNull(message = "Barang yang dipindah harus diisi")
-    @ManyToMany(mappedBy = "listTransferBarang", fetch = FetchType.LAZY)
-    private List<Barang> listBarang;
+    @OneToMany(mappedBy = "transferBarang", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<KuantitasBarangPerTransfer> kuantitasBarang;
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
