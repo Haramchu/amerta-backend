@@ -1,6 +1,7 @@
 package propensi.amesta.service.Aset;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -117,5 +118,49 @@ public class TransferBarangServiceImpl implements TransferBarangService {
             listBarangDTO,
             transferBarang.getCreatedDate()
         );
+    }
+
+    @Override
+    public List<TransferBarangResponseDTO> getAllTransferBarang() {
+        var listTransferBarang = transferBarangDb.findAll();
+        var listTransferBarangResponseDTO = new ArrayList<TransferBarangResponseDTO>();
+        listTransferBarang.forEach(transferBarang -> {
+            var listBarangDTO = transferBarang.getListBarang().stream()
+                .map(barang -> {
+                    var barangDTO = new BarangTransferDTO();
+                    barangDTO.setId(barang.getId());
+                    var stockOpt = stockBarangPerGudangDb.findByBarangAndGudang(barang, transferBarang.getGudangTujuan());
+                    if (stockOpt.isPresent()) {
+                        barangDTO.setJumlah(stockOpt.get().getStock());
+                    } else {
+                        barangDTO.setJumlah(0);
+                    }
+                    return barangDTO;
+                })
+                .collect(Collectors.toList());
+            var transferBarangResponseDTO = transferBarangToTransferBarangResponseDTO(transferBarang, listBarangDTO);
+            listTransferBarangResponseDTO.add(transferBarangResponseDTO);
+        });
+        return listTransferBarangResponseDTO;
+    }
+
+    @Override
+    public TransferBarangResponseDTO getTransferBarangByID(String id) {
+        var transferBarang = transferBarangDb.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Transfer Barang with ID " + id + " not found"));
+        var listBarangDTO = transferBarang.getListBarang().stream()
+                .map(barang -> {
+                    var barangDTO = new BarangTransferDTO();
+                    barangDTO.setId(barang.getId());
+                    var stockOpt = stockBarangPerGudangDb.findByBarangAndGudang(barang, transferBarang.getGudangTujuan());
+                    if (stockOpt.isPresent()) {
+                        barangDTO.setJumlah(stockOpt.get().getStock());
+                    } else {
+                        barangDTO.setJumlah(0);
+                    }
+                    return barangDTO;
+                })
+                .collect(Collectors.toList());
+        return transferBarangToTransferBarangResponseDTO(transferBarang, listBarangDTO);
     }
 }
