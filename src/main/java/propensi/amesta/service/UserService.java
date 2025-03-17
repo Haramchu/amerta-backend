@@ -15,5 +15,5 @@ public interface UserService {
 
     String hashPassword(String password);
 
-    User addEmployee (TambahKaryawanRequestDTO karyawan); 
+    UserResponseDTO addEmployee (TambahKaryawanRequestDTO karyawan); 
 }

@@ -3,6 +3,7 @@ package propensi.amesta.service;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -80,7 +81,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User addEmployee(TambahKaryawanRequestDTO userRequest) {
+    public UserResponseDTO addEmployee(TambahKaryawanRequestDTO userRequest) {
         if (userDb.findByEmail(userRequest.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Email sudah terdaftar.");
         }
@@ -120,8 +121,10 @@ public class UserServiceImpl implements UserService {
         newUser.setKtpNumber(userRequest.getKtpNumber());
         newUser.setNotes(userRequest.getNotes());
         newUser.setRole(userRequest.getRole());
+         
+        User userNew = userDb.save(newUser);
 
-        return userDb.save(newUser);
+        return userToUserResponseDTO(userNew);
     }
 
 }
