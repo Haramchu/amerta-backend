@@ -18,7 +18,10 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "barang")
+@Table(
+    name = "barang",
+    uniqueConstraints = @UniqueConstraint(columnNames = {"nama", "merk"})
+)
 public class Barang {
 
     @Id
@@ -26,9 +29,6 @@ public class Barang {
 
     @NotNull(message = "Nama barang harus diisi")
     private String nama;
-
-    // @NotNull(message = "Jumlah barang harus diisi")
-    // private int stock;
 
     @NotNull(message = "Kategori barang harus diisi")
     private String kategori;

@@ -122,10 +122,6 @@ public class BarangServiceImpl implements BarangService {
         Barang barang = barangDb.findById(id)
             .orElseThrow(() -> new RuntimeException("Barang dengan ID " + id + " tidak ditemukan"));
     
-        // if (!barang.isActive()) {
-        //     throw new RuntimeException("Barang dengan ID " + id + " tidak aktif");
-        // }
-    
         for (StockBarangRequestDTO stockBarangRequestDTO : barangRequestDTO.getListStockBarang()) {
             gudangDb.findById(stockBarangRequestDTO.getNamaGudang())
                 .orElseThrow(() -> new RuntimeException("Gudang dengan ID " + stockBarangRequestDTO.getNamaGudang() + " tidak tersedia"));
@@ -176,6 +172,13 @@ public class BarangServiceImpl implements BarangService {
             if (gudang.getKapasitas() < totalStock) {
                 throw new RuntimeException("Kapasitas gudang " + gudang.getNama() + " tidak mencukupi. Tidak ada perubahan yang dilakukan.");
             }
+        }
+
+        Barang existingBarang = barangDb.findByNamaAndMerk(barangRequestDTO.getNama(), barangRequestDTO.getMerk()).size() > 0
+            ? barangDb.findByNamaAndMerk(barangRequestDTO.getNama(), barangRequestDTO.getMerk()).get(0)
+            : null;
+        if (existingBarang != null && !existingBarang.getId().equals(id)) {
+            throw new RuntimeException("Barang dengan nama dan merk yang sama sudah ada.");
         }
 
         barang.setNama(barangRequestDTO.getNama());

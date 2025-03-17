@@ -12,4 +12,5 @@ public interface BarangDb extends JpaRepository<Barang, String> {
     List<Barang> findByKategori(String kategori);
     boolean existsByNamaAndMerk(String nama, String merk);
     List<Barang> findByMerk(String merk);
+    List<Barang> findByNamaAndMerk(String nama, String merk);
 }
