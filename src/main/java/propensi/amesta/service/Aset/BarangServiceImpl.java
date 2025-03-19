@@ -42,9 +42,9 @@ public class BarangServiceImpl implements BarangService {
         }
 
         Barang barang = new Barang();
-        barang.setNama(barangRequestDTO.getNama());
-        barang.setKategori(barangRequestDTO.getKategori());
-        barang.setMerk(barangRequestDTO.getMerk());
+        barang.setNama(barangRequestDTO.getNama().strip());
+        barang.setKategori(barangRequestDTO.getKategori().strip());
+        barang.setMerk(barangRequestDTO.getMerk().strip());
         barang.setActive(barangRequestDTO.isActive());
         barang.setId(generateId());
 
@@ -181,9 +181,9 @@ public class BarangServiceImpl implements BarangService {
             throw new RuntimeException("Barang dengan nama dan merk yang sama sudah ada.");
         }
 
-        barang.setNama(barangRequestDTO.getNama());
-        barang.setKategori(barangRequestDTO.getKategori());
-        barang.setMerk(barangRequestDTO.getMerk());
+        barang.setNama(barangRequestDTO.getNama().strip());
+        barang.setKategori(barangRequestDTO.getKategori().strip());
+        barang.setMerk(barangRequestDTO.getMerk().strip());
         barang.setActive(barangRequestDTO.isActive());
     
         return barangToBarangResponseDTO(barangDb.save(barang));
