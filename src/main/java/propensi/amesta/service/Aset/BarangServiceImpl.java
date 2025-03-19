@@ -59,8 +59,8 @@ public class BarangServiceImpl implements BarangService {
         }
 
         for (Map.Entry<Gudang, Integer> entry : gudangStockMap.entrySet()) {
-            if (entry.getValue() <= 0) {
-                throw new IllegalArgumentException("Total stok barang untuk gudang " + entry.getKey().getNama() + " harus lebih besar dari 0");
+            if (entry.getValue() < 0) {
+                throw new IllegalArgumentException("Total stok barang untuk gudang " + entry.getKey().getNama() + " harus lebih besar atau sama dengan 0");
             }
 
             StockBarangPerGudang stockBarangPerGudang = new StockBarangPerGudang();
