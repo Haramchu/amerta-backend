@@ -17,27 +17,23 @@ public class PenerimaanController {
     @Autowired
     private PenerimaanService penerimaanService;
 
-    // ✅ Endpoint untuk menambahkan penerimaan
     @PostMapping
     public ResponseEntity<Penerimaan> createPenerimaan(@RequestBody Penerimaan penerimaan) {
         Penerimaan savedPenerimaan = penerimaanService.createPenerimaan(penerimaan);
         return ResponseEntity.ok(savedPenerimaan);
     }
 
-    // ✅ Endpoint untuk mengambil semua penerimaan
     @GetMapping
     public ResponseEntity<List<Penerimaan>> getAllPenerimaan() {
         return ResponseEntity.ok(penerimaanService.getAllPenerimaan());
     }
 
-    // ✅ Endpoint untuk mengambil penerimaan berdasarkan ID
     @GetMapping("/{id}")
     public ResponseEntity<Penerimaan> getPenerimaanById(@PathVariable UUID id) {
         Optional<Penerimaan> penerimaan = penerimaanService.getPenerimaanById(id);
         return penerimaan.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // ✅ Endpoint untuk mengupdate penerimaan
     @PutMapping("/{id}")
     public ResponseEntity<Penerimaan> updatePenerimaan(@PathVariable UUID id, @RequestBody Penerimaan newData) {
         try {
@@ -48,7 +44,6 @@ public class PenerimaanController {
         }
     }
 
-    // ✅ Endpoint untuk menghapus penerimaan
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePenerimaan(@PathVariable UUID id) {
         try {

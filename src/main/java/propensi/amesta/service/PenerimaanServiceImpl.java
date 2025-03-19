@@ -15,25 +15,21 @@ public class PenerimaanServiceImpl implements PenerimaanService {
     @Autowired
     private PenerimaanDb penerimaanRepository;
 
-    // ✅ Menambahkan penerimaan baru
     @Override
     public Penerimaan createPenerimaan(Penerimaan penerimaan) {
         return penerimaanRepository.save(penerimaan);
     }
 
-    // ✅ Mengambil semua penerimaan
     @Override
     public List<Penerimaan> getAllPenerimaan() {
         return penerimaanRepository.findAll();
     }
 
-    // ✅ Mengambil penerimaan berdasarkan ID
     @Override
     public Optional<Penerimaan> getPenerimaanById(UUID id) {
         return penerimaanRepository.findById(id);
     }
 
-    // ✅ Mengupdate penerimaan berdasarkan ID
     @Override
     public Penerimaan updatePenerimaan(UUID id, Penerimaan newData) {
         return penerimaanRepository.findById(id).map(penerimaan -> {
@@ -47,7 +43,6 @@ public class PenerimaanServiceImpl implements PenerimaanService {
         }).orElseThrow(() -> new RuntimeException("Penerimaan tidak ditemukan"));
     }
 
-    // ✅ Menghapus penerimaan berdasarkan ID
     @Override
     public void deletePenerimaan(UUID id) {
         if (!penerimaanRepository.existsById(id)) {
