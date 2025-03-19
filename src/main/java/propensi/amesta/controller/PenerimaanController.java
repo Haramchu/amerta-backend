@@ -17,24 +17,24 @@ public class PenerimaanController {
     @Autowired
     private PenerimaanService penerimaanService;
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<Penerimaan> createPenerimaan(@RequestBody Penerimaan penerimaan) {
         Penerimaan savedPenerimaan = penerimaanService.createPenerimaan(penerimaan);
         return ResponseEntity.ok(savedPenerimaan);
     }
 
-    @GetMapping
+    @GetMapping("/viewall")
     public ResponseEntity<List<Penerimaan>> getAllPenerimaan() {
         return ResponseEntity.ok(penerimaanService.getAllPenerimaan());
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/view/{id}")
     public ResponseEntity<Penerimaan> getPenerimaanById(@PathVariable UUID id) {
         Optional<Penerimaan> penerimaan = penerimaanService.getPenerimaanById(id);
         return penerimaan.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/view/{id}")
     public ResponseEntity<Penerimaan> updatePenerimaan(@PathVariable UUID id, @RequestBody Penerimaan newData) {
         try {
             Penerimaan updatedPenerimaan = penerimaanService.updatePenerimaan(id, newData);
@@ -44,7 +44,7 @@ public class PenerimaanController {
         }
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/view/{id}")
     public ResponseEntity<Void> deletePenerimaan(@PathVariable UUID id) {
         try {
             penerimaanService.deletePenerimaan(id);
