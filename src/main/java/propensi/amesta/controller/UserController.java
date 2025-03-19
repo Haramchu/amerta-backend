@@ -13,13 +13,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
 import propensi.amesta.model.EndUser.User;
+import propensi.amesta.payload.request.TambahKaryawanRequestDTO;
 import propensi.amesta.payload.response.BaseResponseDTO;
 import propensi.amesta.payload.response.LoginJwtResponseDTO;
 import propensi.amesta.payload.response.UserResponseDTO;
 import propensi.amesta.service.UserService;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/api/user")
@@ -41,7 +45,7 @@ public class UserController {
             @RequestParam(value = "role", required = false) String role) {
         var baseResponseDTO = new BaseResponseDTO<List<UserResponseDTO>>();
         List<UserResponseDTO> userList = userService.getUserByRole(role);
-        if (role.equals("")){
+        if (role.equals("")) {
             userList = userService.getUserByRole("all");
         } else {
             userList = userService.getUserByRole(role);
@@ -51,6 +55,28 @@ public class UserController {
         baseResponseDTO.setMessage("User successfully retrieved!");
         baseResponseDTO.setTimestamp(new Date());
         return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody @Valid TambahKaryawanRequestDTO userRequest) {
+        var baseResponseDTO = new BaseResponseDTO<TambahKaryawanRequestDTO>();
+
+        try {
+            userService.addEmployee(userRequest);
+            baseResponseDTO.setStatus(HttpStatus.CREATED.value());
+            baseResponseDTO.setData(userRequest);
+            baseResponseDTO.setMessage("Registrasi berhasil!");
+            baseResponseDTO.setTimestamp(new Date());
+
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new BaseResponseDTO<>(HttpStatus.BAD_REQUEST.value(), e.getMessage(), new Date(), null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new BaseResponseDTO<>(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            "Terjadi kesalahan saat registrasi!", new Date(), null));
+        }
     }
 
 }

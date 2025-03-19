@@ -1,6 +1,7 @@
 package propensi.amesta.security;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -17,6 +18,11 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
 import propensi.amesta.security.jwt.JwtTokenFilter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,9 +42,34 @@ public class WebSecurityConfig {
         http.securityMatcher("/api/**")
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(requests -> requests
-                .requestMatchers("/api/user/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/user/**").hasAnyAuthority("administrasi", "direktur")
+                .requestMatchers("/api/barang/add").hasAnyAuthority("direktur", "general_manager")
+                .requestMatchers("/api/barang/update/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang")
+                .requestMatchers("/api/barang/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang")
+                .requestMatchers("/api/barang/change-status/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang")
+                .requestMatchers("/api/barang/viewall").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/barang/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/barang/transfer").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi")
+                .requestMatchers("/api/barang/transfer/viewall").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
+                .requestMatchers("/api/barang/transfer/view/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
                 .anyRequest().authenticated()    
+            )
+            .formLogin(form -> form
+                .loginPage("/login")
+                .loginProcessingUrl("/login")
+                .permitAll()
+                .defaultSuccessUrl("/")
+            )
+
+            .logout(logout -> logout
+                .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+                .logoutSuccessUrl("/login")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+            )
+            .exceptionHandling(exceptionHandling -> exceptionHandling
+                .accessDeniedHandler(accessDeniedHandler())
             )
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
@@ -65,4 +96,15 @@ public class WebSecurityConfig {
     public BCryptPasswordEncoder encoder(){
         return new BCryptPasswordEncoder();
     }   
+
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        return new AccessDeniedHandler() {
+            @Override
+            public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException ex)
+                    throws IOException, ServletException {
+                response.sendRedirect("/access-denied");
+            }
+        };
+    }
 }

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
+import propensi.amesta.payload.response.ExtractJwtResponseDTO;
  
 @Component
 public class JwtUtils {
@@ -69,6 +70,28 @@ public class JwtUtils {
     }
 
     public Claims getPayload(String token) {
+        JwtParser jwtParser = Jwts.parser().verifyWith(Keys.hmacShaKeyFor(jwtSecret.getBytes())).build();
+        Claims claims = jwtParser.parse(token).accept(Jws.CLAIMS).getPayload();
+        return claims;
+    }
+
+    public ExtractJwtResponseDTO extractJwt(String token) {
+        ExtractJwtResponseDTO jwtResponse = new ExtractJwtResponseDTO();
+        Claims result = this.extractAllClaims(token);
+
+        jwtResponse.setUsername(result.getSubject());
+        jwtResponse.setNama((String) result.get("nama"));
+        jwtResponse.setId(UUID.fromString((String) result.get("id")));
+        jwtResponse.setEmail((String) result.get("email"));
+        jwtResponse.setUsername((String) result.get("username"));
+        jwtResponse.setRole((String) result.get("role"));
+
+        jwtResponse.setToken(token);
+
+        return jwtResponse;
+    }
+
+    private Claims extractAllClaims(String token) {
         JwtParser jwtParser = Jwts.parser().verifyWith(Keys.hmacShaKeyFor(jwtSecret.getBytes())).build();
         Claims claims = jwtParser.parse(token).accept(Jws.CLAIMS).getPayload();
         return claims;

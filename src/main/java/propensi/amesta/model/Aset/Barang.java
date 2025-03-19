@@ -1,8 +1,7 @@
 package propensi.amesta.model.Aset;
 
 import java.util.Date;
-import java.util.Set;
-import java.util.UUID;
+import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -19,7 +18,10 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "barang")
+@Table(
+    name = "barang",
+    uniqueConstraints = @UniqueConstraint(columnNames = {"nama", "merk"})
+)
 public class Barang {
 
     @Id
@@ -27,9 +29,6 @@ public class Barang {
 
     @NotNull(message = "Nama barang harus diisi")
     private String nama;
-
-    @NotNull(message = "Jumlah barang harus diisi")
-    private int stock;
 
     @NotNull(message = "Kategori barang harus diisi")
     private String kategori;
@@ -40,13 +39,11 @@ public class Barang {
     @NotNull(message = "Merk barang harus diisi")
     private String merk;
 
-    @ManyToMany
-    @JoinTable(
-        name = "barang_gudang",
-        joinColumns = @JoinColumn(name = "barang_id"),
-        inverseJoinColumns = @JoinColumn(name = "gudang_id")
-    )
-    private Set<Gudang> gudang;
+    @OneToMany(mappedBy = "barang", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<StockBarangPerGudang> listStockBarang;
+
+    @OneToMany(mappedBy = "barang", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<KuantitasBarangPerTransfer> listKuantitasBarangPerTransfer;
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)

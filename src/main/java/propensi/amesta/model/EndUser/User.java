@@ -63,6 +63,36 @@ public class User {
     @Column(name = "gender", nullable = false)
     private boolean gender;
 
+    @Size(max = 20)
+    @Column(name = "phone")
+    private String phone;
+
+    @Size(max = 20)
+    @Column(name = "home_phone")
+    private String homePhone;
+
+    @Size(max = 20)
+    @Column(name = "business_phone")
+    private String businessPhone;
+
+    @Size(max = 20)
+    @Column(name = "whatsapp_number")
+    private String whatsappNumber;
+
+    @NotNull
+    @Column(name = "entry_date")
+    @Temporal(TemporalType.DATE)
+    private Date entryDate;
+
+    @NotNull
+    @Size(max = 50)
+    @Column(name = "ktp_number")
+    private String ktpNumber;
+
+    @Size(max = 500)
+    @Column(name = "notes")
+    private String notes;
+
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at", columnDefinition = "TIMESTAMP", updatable = false, nullable = false)
