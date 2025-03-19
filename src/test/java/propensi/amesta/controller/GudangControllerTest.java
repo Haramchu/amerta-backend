@@ -28,6 +28,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import propensi.amesta.exceptions.GlobalExceptionHandler;
+import propensi.amesta.payload.request.AlamatGudangRequestDTO;
 import propensi.amesta.payload.request.GudangRequestDTO;
 import propensi.amesta.payload.response.AlamatGudangResponseDTO;
 import propensi.amesta.payload.response.GudangResponseDTO;
@@ -47,6 +48,7 @@ class GudangControllerTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    private AlamatGudangRequestDTO alamatGudangRequestDTO;
     private GudangRequestDTO gudangRequestDTO;
     private GudangResponseDTO gudangResponseDTO;
     private List<GudangResponseDTO> gudangList;
@@ -60,15 +62,18 @@ class GudangControllerTest {
         UUID kepalaGudangId = UUID.randomUUID();
         UUID alamatGudangId = UUID.randomUUID();
   
+        alamatGudangRequestDTO = new AlamatGudangRequestDTO();
+        alamatGudangRequestDTO.setAlamat("Jalan Test No. 123");
+        alamatGudangRequestDTO.setKota("Jakarta");
+        alamatGudangRequestDTO.setProvinsi("DKI Jakarta");
+        alamatGudangRequestDTO.setKodePos("12345");
+
         gudangRequestDTO = new GudangRequestDTO();
         gudangRequestDTO.setNama("Gudang Test");
         gudangRequestDTO.setDeskripsi("Deskripsi Gudang Test");
         gudangRequestDTO.setKapasitas(100);
         gudangRequestDTO.setKepalaGudangId(kepalaGudangId);
-        gudangRequestDTO.setAlamat("Jalan Test No. 123");
-        gudangRequestDTO.setKota("Jakarta");
-        gudangRequestDTO.setProvinsi("DKI Jakarta");
-        gudangRequestDTO.setKodePos("12345");
+        gudangRequestDTO.setAlamatGudang(alamatGudangRequestDTO);
 
         KepalaGudangResponseDTO kepalaGudangResponseDTO = new KepalaGudangResponseDTO();
         kepalaGudangResponseDTO.setId(kepalaGudangId);
@@ -97,7 +102,7 @@ class GudangControllerTest {
 
     @Test
     void testCreateGudang() throws Exception {
-        when(gudangService.addGudang(any(GudangRequestDTO.class))).thenReturn(gudangResponseDTO);
+        when(gudangService.addGudang(any(GudangRequestDTO.class), any(AlamatGudangRequestDTO.class))).thenReturn(gudangResponseDTO);
 
         mockMvc.perform(post("/api/gudang/add")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -107,7 +112,7 @@ class GudangControllerTest {
                 .andExpect(jsonPath("$.message").value("Gudang berhasil dibuat!"))
                 .andExpect(jsonPath("$.data.nama").value("Gudang Test"));
 
-        verify(gudangService, times(1)).addGudang(any(GudangRequestDTO.class));
+        verify(gudangService, times(1)).addGudang(any(GudangRequestDTO.class), any(AlamatGudangRequestDTO.class));
     }
 
     @Test
@@ -142,7 +147,7 @@ class GudangControllerTest {
     @Test
     void testUpdateGudang() throws Exception {
         String gudangName = "Gudang Test";
-        when(gudangService.updateGudang(eq(gudangName), any(GudangRequestDTO.class))).thenReturn(gudangResponseDTO);
+        when(gudangService.updateGudang(eq(gudangName), any(GudangRequestDTO.class), any(AlamatGudangRequestDTO.class))).thenReturn(gudangResponseDTO);
 
         mockMvc.perform(put("/api/gudang/update/{namaGudang}", gudangName)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -152,7 +157,7 @@ class GudangControllerTest {
                 .andExpect(jsonPath("$.message").value("Gudang berhasil diperbarui!"))
                 .andExpect(jsonPath("$.data.nama").value("Gudang Test"));
 
-        verify(gudangService, times(1)).updateGudang(eq(gudangName), any(GudangRequestDTO.class));
+        verify(gudangService, times(1)).updateGudang(eq(gudangName), any(GudangRequestDTO.class), any(AlamatGudangRequestDTO.class));
     }
 
     @Test
@@ -168,7 +173,7 @@ class GudangControllerTest {
                 .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());
 
-        verify(gudangService, times(0)).addGudang(any(GudangRequestDTO.class));
+        verify(gudangService, times(0)).addGudang(any(GudangRequestDTO.class), any(AlamatGudangRequestDTO.class));
     }
 
     @Test
@@ -185,6 +190,6 @@ class GudangControllerTest {
                 .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());
 
-        verify(gudangService, times(0)).updateGudang(eq(gudangName), any(GudangRequestDTO.class));
+        verify(gudangService, times(0)).updateGudang(eq(gudangName), any(GudangRequestDTO.class), any(AlamatGudangRequestDTO.class));
     }
 }

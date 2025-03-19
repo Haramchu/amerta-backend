@@ -22,6 +22,7 @@ import org.mockito.MockitoAnnotations;
 import propensi.amesta.model.Aset.AlamatGudang;
 import propensi.amesta.model.Aset.Gudang;
 import propensi.amesta.model.EndUser.KepalaGudang;
+import propensi.amesta.payload.request.AlamatGudangRequestDTO;
 import propensi.amesta.payload.request.GudangRequestDTO;
 import propensi.amesta.payload.response.AlamatGudangResponseDTO;
 import propensi.amesta.payload.response.GudangResponseDTO;
@@ -76,20 +77,23 @@ class GudangServiceTest {
 
     @Test
     void testAddGudang_Success() {
+        AlamatGudangRequestDTO alamatGudangRequestDTO = new AlamatGudangRequestDTO();
+        alamatGudangRequestDTO.setAlamat("Alamat Gudang 1");
+        alamatGudangRequestDTO.setKota("Kota 1");
+        alamatGudangRequestDTO.setProvinsi("Provinsi 1");
+        alamatGudangRequestDTO.setKodePos("12345");
+
         GudangRequestDTO gudangRequestDTO = new GudangRequestDTO();
         gudangRequestDTO.setNama("Gudang 1");
         gudangRequestDTO.setDeskripsi("Deskripsi Gudang 1");
         gudangRequestDTO.setKapasitas(100);
-        gudangRequestDTO.setAlamat("Alamat Gudang 1");
-        gudangRequestDTO.setKota("Kota 1");
-        gudangRequestDTO.setProvinsi("Provinsi 1");
-        gudangRequestDTO.setKodePos("12345");
+        gudangRequestDTO.setAlamatGudang(alamatGudangRequestDTO);
         gudangRequestDTO.setKepalaGudangId(kepalaGudang.getId());
 
         when(kepalaGudangDb.findById(kepalaGudang.getId())).thenReturn(Optional.of(kepalaGudang));
         when(gudangDb.save(any(Gudang.class))).thenReturn(gudang);
 
-        GudangResponseDTO result = gudangService.addGudang(gudangRequestDTO);
+        GudangResponseDTO result = gudangService.addGudang(gudangRequestDTO, alamatGudangRequestDTO);
 
         assertNotNull(result);
         assertEquals("Gudang 1", result.getNama());
@@ -100,20 +104,23 @@ class GudangServiceTest {
 
     @Test
     void testAddGudang_KepalaGudangNotFound() {
+        AlamatGudangRequestDTO alamatGudangRequestDTO = new AlamatGudangRequestDTO();
+        alamatGudangRequestDTO.setAlamat("Alamat Gudang 1");
+        alamatGudangRequestDTO.setKota("Kota 1");
+        alamatGudangRequestDTO.setProvinsi("Provinsi 1");
+        alamatGudangRequestDTO.setKodePos("12345");
+
         GudangRequestDTO gudangRequestDTO = new GudangRequestDTO();
         gudangRequestDTO.setNama("Gudang 1");
         gudangRequestDTO.setDeskripsi("Deskripsi Gudang 1");
         gudangRequestDTO.setKapasitas(100);
-        gudangRequestDTO.setAlamat("Alamat Gudang 1");
-        gudangRequestDTO.setKota("Kota 1");
-        gudangRequestDTO.setProvinsi("Provinsi 1");
-        gudangRequestDTO.setKodePos("12345");
+        gudangRequestDTO.setAlamatGudang(alamatGudangRequestDTO);
         gudangRequestDTO.setKepalaGudangId(UUID.randomUUID());  // Invalid ID
 
         when(kepalaGudangDb.findById(any(UUID.class))).thenReturn(Optional.empty());
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            gudangService.addGudang(gudangRequestDTO);
+            gudangService.addGudang(gudangRequestDTO, alamatGudangRequestDTO);
         });
 
         assertEquals("Kepala Gudang tidak ditemukan", exception.getMessage());
@@ -121,20 +128,23 @@ class GudangServiceTest {
 
     @Test
     void testAddGudang_KepalaGudangNull() {
+        AlamatGudangRequestDTO alamatGudangRequestDTO = new AlamatGudangRequestDTO();
+        alamatGudangRequestDTO.setAlamat("Alamat Gudang 1");
+        alamatGudangRequestDTO.setKota("Kota 1");
+        alamatGudangRequestDTO.setProvinsi("Provinsi 1");
+        alamatGudangRequestDTO.setKodePos("12345");
+
         GudangRequestDTO gudangRequestDTO = new GudangRequestDTO();
         gudangRequestDTO.setNama("Gudang 1");
         gudangRequestDTO.setDeskripsi("Deskripsi Gudang 1");
         gudangRequestDTO.setKapasitas(100);
-        gudangRequestDTO.setAlamat("Alamat Gudang 1");
-        gudangRequestDTO.setKota("Kota 1");
-        gudangRequestDTO.setProvinsi("Provinsi 1");
-        gudangRequestDTO.setKodePos("12345");
+        gudangRequestDTO.setAlamatGudang(alamatGudangRequestDTO);
         gudangRequestDTO.setKepalaGudangId(null);  // KepalaGudangId null
 
         // Skip the KepalaGudang lookup
         when(gudangDb.save(any(Gudang.class))).thenReturn(gudang);
 
-        GudangResponseDTO result = gudangService.addGudang(gudangRequestDTO);
+        GudangResponseDTO result = gudangService.addGudang(gudangRequestDTO, alamatGudangRequestDTO);
 
         assertNotNull(result);
         assertEquals("Gudang 1", result.getNama());
@@ -177,21 +187,24 @@ class GudangServiceTest {
 
     @Test
     void testUpdateGudang_Success() {
+        AlamatGudangRequestDTO alamatGudangRequestDTO = new AlamatGudangRequestDTO();
+        alamatGudangRequestDTO.setAlamat("Alamat Gudang 1");
+        alamatGudangRequestDTO.setKota("Kota 1");
+        alamatGudangRequestDTO.setProvinsi("Provinsi 1");
+        alamatGudangRequestDTO.setKodePos("12345");
+
         GudangRequestDTO gudangRequestDTO = new GudangRequestDTO();
         gudangRequestDTO.setNama("Gudang Updated");
-        gudangRequestDTO.setDeskripsi("Deskripsi Updated");
-        gudangRequestDTO.setKapasitas(150);
-        gudangRequestDTO.setAlamat("Alamat Gudang Updated");
-        gudangRequestDTO.setKota("Kota Updated");
-        gudangRequestDTO.setProvinsi("Provinsi Updated");
-        gudangRequestDTO.setKodePos("54321");
+        gudangRequestDTO.setDeskripsi("Deskripsi Gudang 1");
+        gudangRequestDTO.setKapasitas(100);
+        gudangRequestDTO.setAlamatGudang(alamatGudangRequestDTO);
         gudangRequestDTO.setKepalaGudangId(kepalaGudang.getId());
 
         when(gudangDb.findById("Gudang 1")).thenReturn(Optional.of(gudang));
         when(kepalaGudangDb.findById(kepalaGudang.getId())).thenReturn(Optional.of(kepalaGudang));
         when(gudangDb.save(any(Gudang.class))).thenReturn(gudang);
 
-        GudangResponseDTO result = gudangService.updateGudang("Gudang 1", gudangRequestDTO);
+        GudangResponseDTO result = gudangService.updateGudang("Gudang 1", gudangRequestDTO, alamatGudangRequestDTO);
 
         assertNotNull(result);
         assertEquals("Gudang Updated", result.getNama());
@@ -200,13 +213,16 @@ class GudangServiceTest {
 
     @Test
     void testUpdateGudang_NotFound() {
+        AlamatGudangRequestDTO alamatGudangRequestDTO = new AlamatGudangRequestDTO();
+        alamatGudangRequestDTO.setAlamat("Alamat Gudang Updated");
+
         GudangRequestDTO gudangRequestDTO = new GudangRequestDTO();
         gudangRequestDTO.setNama("Gudang Updated");
 
         when(gudangDb.findById("Gudang 1")).thenReturn(Optional.empty());
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            gudangService.updateGudang("Gudang 1", gudangRequestDTO);
+            gudangService.updateGudang("Gudang 1", gudangRequestDTO, alamatGudangRequestDTO);
         });
 
         assertEquals("Gudang tidak ditemukan", exception.getMessage());
