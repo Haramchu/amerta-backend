@@ -1,5 +1,6 @@
 package propensi.amesta.service.Aset;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -8,9 +9,12 @@ import org.springframework.stereotype.Service;
 
 import propensi.amesta.model.Aset.AlamatGudang;
 import propensi.amesta.model.Aset.Gudang;
+import propensi.amesta.model.Aset.StockBarangPerGudang;
 import propensi.amesta.model.EndUser.KepalaGudang;
+import propensi.amesta.payload.request.AlamatGudangRequestDTO;
 import propensi.amesta.payload.request.GudangRequestDTO;
 import propensi.amesta.payload.response.AlamatGudangResponseDTO;
+import propensi.amesta.payload.response.BarangResponseDTO;
 import propensi.amesta.payload.response.GudangResponseDTO;
 import propensi.amesta.payload.response.KepalaGudangResponseDTO;
 import propensi.amesta.repository.Aset.GudangDb;
@@ -25,8 +29,11 @@ public class GudangServiceImpl implements GudangService {
     @Autowired
     private KepalaGudangDb kepalaGudangDb;
 
+    @Autowired
+    private BarangServiceImpl barangService;
+
     @Override
-    public GudangResponseDTO addGudang(GudangRequestDTO gudangRequestDTO) {
+    public GudangResponseDTO addGudang(GudangRequestDTO gudangRequestDTO, AlamatGudangRequestDTO alamatGudangRequestDTO) {
         KepalaGudang kepalaGudang = null;
         if (gudangRequestDTO.getKepalaGudangId() != null) {
             kepalaGudang = kepalaGudangDb.findById(gudangRequestDTO.getKepalaGudangId())
@@ -34,10 +41,10 @@ public class GudangServiceImpl implements GudangService {
         }
 
         AlamatGudang alamatGudang = new AlamatGudang();
-        alamatGudang.setAlamat(gudangRequestDTO.getAlamat());
-        alamatGudang.setKota(gudangRequestDTO.getKota());
-        alamatGudang.setProvinsi(gudangRequestDTO.getProvinsi());
-        alamatGudang.setKodePos(gudangRequestDTO.getKodePos());
+        alamatGudang.setAlamat(alamatGudangRequestDTO.getAlamat());
+        alamatGudang.setKota(alamatGudangRequestDTO.getKota());
+        alamatGudang.setProvinsi(alamatGudangRequestDTO.getProvinsi());
+        alamatGudang.setKodePos(alamatGudangRequestDTO.getKodePos());
 
         Gudang gudang = new Gudang();
         gudang.setNama(gudangRequestDTO.getNama());
@@ -72,7 +79,7 @@ public class GudangServiceImpl implements GudangService {
     }
 
     @Override
-    public GudangResponseDTO updateGudang(String namaGudang, GudangRequestDTO gudangRequestDTO) {
+    public GudangResponseDTO updateGudang(String namaGudang, GudangRequestDTO gudangRequestDTO, AlamatGudangRequestDTO alamatGudangRequestDTO) {
         Gudang gudang = gudangDb.findById(namaGudang)
             .orElseThrow(() -> new RuntimeException("Gudang tidak ditemukan"));
 
@@ -88,10 +95,10 @@ public class GudangServiceImpl implements GudangService {
         }
         
         AlamatGudang alamatGudang = gudang.getAlamatGudang();
-        alamatGudang.setAlamat(gudangRequestDTO.getAlamat());
-        alamatGudang.setKota(gudangRequestDTO.getKota());
-        alamatGudang.setProvinsi(gudangRequestDTO.getProvinsi());
-        alamatGudang.setKodePos(gudangRequestDTO.getKodePos());
+        alamatGudang.setAlamat(alamatGudangRequestDTO.getAlamat());
+        alamatGudang.setKota(alamatGudangRequestDTO.getKota());
+        alamatGudang.setProvinsi(alamatGudangRequestDTO.getProvinsi());
+        alamatGudang.setKodePos(alamatGudangRequestDTO.getKodePos());
 
         gudangDb.save(gudang);
 
@@ -122,6 +129,14 @@ public class GudangServiceImpl implements GudangService {
                 alamatGudang.getKodePos()
             );
         }
+
+        List<BarangResponseDTO> listBarangDTO = new ArrayList<>();
+        if (gudang.getListBarang() != null && !gudang.getListBarang().isEmpty()) {
+            for (StockBarangPerGudang stockBarang : gudang.getListBarang()) {
+                BarangResponseDTO barangDTO = barangService.barangToBarangResponseDTO(stockBarang.getBarang());
+                listBarangDTO.add(barangDTO);
+            }
+        }
         
         return new GudangResponseDTO(
             gudang.getNama(),
@@ -129,6 +144,7 @@ public class GudangServiceImpl implements GudangService {
             gudang.getKapasitas(),
             kepalaGudangDTO,
             alamatGudangDTO,
+            listBarangDTO,
             gudang.getCreatedDate(),
             gudang.getUpdatedDate()
         );

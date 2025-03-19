@@ -1,6 +1,7 @@
 package propensi.amesta.security;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -18,6 +19,9 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import propensi.amesta.security.jwt.JwtTokenFilter;
 import jakarta.servlet.ServletException;
@@ -55,6 +59,10 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/pengeluaran/create").hasAnyAuthority("direktur", "administrasi")
                 .requestMatchers("/api/pengeluaran/viewall").hasAnyAuthority("direktur", "komisaris")
                 .requestMatchers("/api/pengeluaran/view/{id}").hasAnyAuthority("direktur", "komisaris")
+                .requestMatchers("/api/gudang/add").hasAnyAuthority("direktur", "general_manager")
+                .requestMatchers("/api/gudang/").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
+                .requestMatchers("/api/gudang/{namaGudang}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
+                .requestMatchers("/api/gudang/update/{namaGudang}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang")
                 .anyRequest().authenticated()    
             )
             .formLogin(form -> form
