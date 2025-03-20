@@ -32,7 +32,7 @@ public class BarangServiceImpl implements BarangService {
     public BarangResponseDTO addBarang(BarangRequestDTO barangRequestDTO) {
         for (StockBarangRequestDTO stockBarangRequestDTO : barangRequestDTO.getListStockBarang()) {
             gudangDb.findById(stockBarangRequestDTO.getNamaGudang())
-                .orElseThrow(() -> new RuntimeException("Gudang dengan ID " + stockBarangRequestDTO.getNamaGudang() + " tidak tersedia"));
+                .orElseThrow(() -> new RuntimeException("Gudang dengan ID '" + stockBarangRequestDTO.getNamaGudang() + "' tidak tersedia"));
         }
 
         if(barangDb.findAll().size() > 0){
@@ -53,14 +53,14 @@ public class BarangServiceImpl implements BarangService {
 
         for (StockBarangRequestDTO stockBarangRequestDTO : barangRequestDTO.getListStockBarang()) {
             Gudang gudang = gudangDb.findById(stockBarangRequestDTO.getNamaGudang())
-                .orElseThrow(() -> new RuntimeException("Gudang dengan ID " + stockBarangRequestDTO.getNamaGudang() + " tidak tersedia"));
+                .orElseThrow(() -> new RuntimeException("Gudang dengan ID '" + stockBarangRequestDTO.getNamaGudang() + "' tidak tersedia"));
 
             gudangStockMap.put(gudang, gudangStockMap.getOrDefault(gudang, 0) + stockBarangRequestDTO.getStock());
         }
 
         for (Map.Entry<Gudang, Integer> entry : gudangStockMap.entrySet()) {
             if (entry.getValue() < 0) {
-                throw new IllegalArgumentException("Total stok barang untuk gudang " + entry.getKey().getNama() + " harus lebih besar atau sama dengan 0");
+                throw new IllegalArgumentException("Total stok barang untuk gudang '" + entry.getKey().getNama() + "' harus lebih besar atau sama dengan 0");
             }
 
             StockBarangPerGudang stockBarangPerGudang = new StockBarangPerGudang();
@@ -77,7 +77,7 @@ public class BarangServiceImpl implements BarangService {
                 : 0);
         
             if (gudang.getKapasitas() < totalStock) {
-                throw new RuntimeException("Kapasitas gudang " + gudang.getNama() + " tidak mencukupi");
+                throw new RuntimeException("Kapasitas gudang '" + gudang.getNama() + "' tidak mencukupi");
             }
         }
 
@@ -112,7 +112,7 @@ public class BarangServiceImpl implements BarangService {
     @Override
     public BarangResponseDTO getBarangById(String id) {
         Barang barang = barangDb.findById(id)
-            .orElseThrow(() -> new RuntimeException("Barang dengan ID " + id + " tidak ditemukan"));
+            .orElseThrow(() -> new RuntimeException("Barang dengan ID '" + id + "' tidak ditemukan"));
 
         return barangToBarangResponseDTO(barang);
     }
@@ -120,11 +120,11 @@ public class BarangServiceImpl implements BarangService {
     @Override
     public BarangResponseDTO updateBarang(String id, UpdateBarangRequestDTO barangRequestDTO) {
         Barang barang = barangDb.findById(id)
-            .orElseThrow(() -> new RuntimeException("Barang dengan ID " + id + " tidak ditemukan"));
+            .orElseThrow(() -> new RuntimeException("Barang dengan ID '" + id + " tidak ditemukan"));
     
         for (StockBarangRequestDTO stockBarangRequestDTO : barangRequestDTO.getListStockBarang()) {
             gudangDb.findById(stockBarangRequestDTO.getNamaGudang())
-                .orElseThrow(() -> new RuntimeException("Gudang dengan ID " + stockBarangRequestDTO.getNamaGudang() + " tidak tersedia"));
+                .orElseThrow(() -> new RuntimeException("Gudang dengan ID '" + stockBarangRequestDTO.getNamaGudang() + "' tidak tersedia"));
         }
     
         List<StockBarangPerGudang> existingList = barang.getListStockBarang();
@@ -147,7 +147,7 @@ public class BarangServiceImpl implements BarangService {
             int totalStock = entry.getValue();
     
             Gudang gudang = gudangDb.findById(namaGudang)
-                .orElseThrow(() -> new RuntimeException("Gudang dengan ID " + namaGudang + " tidak tersedia"));
+                .orElseThrow(() -> new RuntimeException("Gudang dengan ID '" + namaGudang + "' tidak tersedia"));
     
             if (existingStockMap.containsKey(namaGudang)) {
                 StockBarangPerGudang existingStock = existingStockMap.get(namaGudang);
@@ -170,7 +170,7 @@ public class BarangServiceImpl implements BarangService {
                 : 0);
     
             if (gudang.getKapasitas() < totalStock) {
-                throw new RuntimeException("Kapasitas gudang " + gudang.getNama() + " tidak mencukupi. Tidak ada perubahan yang dilakukan.");
+                throw new RuntimeException("Kapasitas gudang '" + gudang.getNama() + "' tidak mencukupi. Tidak ada perubahan yang dilakukan.");
             }
         }
 
@@ -195,7 +195,7 @@ public class BarangServiceImpl implements BarangService {
         List<BarangResponseDTO> barangResponseDTOList = new ArrayList<>();
         List<Barang> barangList = barangDb.findByKategori(kategori);
         if (barangList.isEmpty()) {
-            throw new RuntimeException("Barang dengan kategori " + kategori + " tidak ditemukan");
+            throw new RuntimeException("Barang dengan kategori '" + kategori + "' tidak ditemukan");
         }
 
         for (Barang barang : barangList) {
@@ -210,7 +210,7 @@ public class BarangServiceImpl implements BarangService {
         List<BarangResponseDTO> barangResponseDTOList = new ArrayList<>();
         List<Barang> barangList = barangDb.findByMerk(merk);
         if (barangList.isEmpty()) {
-            throw new RuntimeException("Barang dengan merk " + merk + " tidak ditemukan");
+            throw new RuntimeException("Barang dengan merk '" + merk + "' tidak ditemukan");
         }
 
         for (Barang barang : barangList) {
@@ -253,7 +253,7 @@ public class BarangServiceImpl implements BarangService {
         List<BarangResponseDTO> barangResponseDTOList = new ArrayList<>();
         List<Barang> barangList = barangDb.findAll();
         if (barangList.isEmpty()) {
-            throw new RuntimeException("Barang tidak ditemukan");
+            throw new RuntimeException("Tidak ada data barang yang tersedia");
         }
 
         for (Barang barang : barangList) {
@@ -266,7 +266,7 @@ public class BarangServiceImpl implements BarangService {
     @Override
     public BarangResponseDTO changeStatusBarang(String id) {
         Barang barang = barangDb.findById(id)
-            .orElseThrow(() -> new RuntimeException("Barang dengan ID " + id + " tidak ditemukan"));
+            .orElseThrow(() -> new RuntimeException("Barang dengan ID '" + id + "' tidak ditemukan"));
 
         barang.setActive(!barang.isActive());
         return barangToBarangResponseDTO(barangDb.save(barang));

@@ -103,7 +103,7 @@ public class AmestaApplication {
         Gudang gudang = new Gudang();
         gudang.setNama("Gudang 1");
         gudang.setDeskripsi("Gudang 1 Deskripsi");
-        gudang.setKapasitas(1000);
+        gudang.setKapasitas(100000);
         gudang.setKepalaGudang(kepalaGudang);
         gudang.setAlamatGudang(alamatGudang);
         gudang.setCreatedDate(new Date());
@@ -114,7 +114,7 @@ public class AmestaApplication {
     }
 
     private void createBarangDummy(Gudang gudang, BarangDb barangDb) {
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 50; i++) {
             String id = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd"))
             .replace("-01-", "-I-")
             .replace("-02-", "-II-")
