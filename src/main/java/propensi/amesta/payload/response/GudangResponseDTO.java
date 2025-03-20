@@ -1,6 +1,7 @@
 package propensi.amesta.payload.response;
 
 import java.util.Date;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -18,6 +19,7 @@ public class GudangResponseDTO {
     private Integer kapasitas;
     private KepalaGudangResponseDTO kepalaGudang;
     private AlamatGudangResponseDTO alamatGudang;
+    private List<BarangResponseDTO> listBarang;
     
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Jakarta")
     private Date createdDate;

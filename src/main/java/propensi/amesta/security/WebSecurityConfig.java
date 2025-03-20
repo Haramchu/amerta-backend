@@ -2,6 +2,7 @@ package propensi.amesta.security;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -59,6 +60,16 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/barang/transfer").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi")
                 .requestMatchers("/api/barang/transfer/viewall").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
                 .requestMatchers("/api/barang/transfer/view/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
+                .requestMatchers("/api/penerimaan/create").hasAnyAuthority("direktur", "administrasi")
+                .requestMatchers("/api/penerimaan/viewall").hasAnyAuthority("direktur", "komisaris")
+                .requestMatchers("/api/penerimaan/view/{id}").hasAnyAuthority("direktur", "komisaris")
+                .requestMatchers("/api/pengeluaran/create").hasAnyAuthority("direktur", "administrasi")
+                .requestMatchers("/api/pengeluaran/viewall").hasAnyAuthority("direktur", "komisaris")
+                .requestMatchers("/api/pengeluaran/view/{id}").hasAnyAuthority("direktur", "komisaris")
+                .requestMatchers("/api/gudang/add").hasAnyAuthority("direktur", "general_manager")
+                .requestMatchers("/api/gudang/").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
+                .requestMatchers("/api/gudang/{namaGudang}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
+                .requestMatchers("/api/gudang/update/{namaGudang}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang")
                 .anyRequest().authenticated()    
             )
             .formLogin(form -> form
