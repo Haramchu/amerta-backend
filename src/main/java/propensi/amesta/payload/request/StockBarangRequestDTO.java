@@ -18,9 +18,6 @@ public class StockBarangRequestDTO {
     @Digits(integer = 10, fraction = 0, message = "Stok harus merupakan angka yang valid.")
     private int stock;
 
-    // @NotEmpty(message = "Barang harus diisi")
-    // private String barangId;
-
     @NotEmpty(message = "Gudang harus diisi")
     private String namaGudang;
         
