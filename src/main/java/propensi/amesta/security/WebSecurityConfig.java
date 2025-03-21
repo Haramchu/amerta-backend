@@ -55,7 +55,6 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/user/**").hasAnyAuthority("administrasi", "direktur")
                 .requestMatchers("/api/barang/add").hasAnyAuthority("direktur", "general_manager")
                 .requestMatchers("/api/barang/update/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang")
-                .requestMatchers("/api/barang/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang")
                 .requestMatchers("/api/barang/change-status/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang")
                 .requestMatchers("/api/barang/viewall").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "sales", "administrasi", "komisaris")
                 .requestMatchers("/api/barang/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "sales", "administrasi", "komisaris")
