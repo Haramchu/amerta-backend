@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
@@ -43,8 +44,17 @@ public class GudangController {
     }
     
     @GetMapping("/")
-    public ResponseEntity<BaseResponseDTO<List<GudangResponseDTO>>> getAllGudang() {
-        List<GudangResponseDTO> gudangList = gudangService.getAllGudang();
+    public ResponseEntity<BaseResponseDTO<List<GudangResponseDTO>>> getAllGudang(
+        @RequestParam(required = false) String search
+    ) {
+        List<GudangResponseDTO> gudangList;
+        
+        if (search != null && !search.isEmpty()) {
+            gudangList = gudangService.filterGudang(search);
+        } else {
+            gudangList = gudangService.getAllGudang();
+        }
+        
         BaseResponseDTO<List<GudangResponseDTO>> response = new BaseResponseDTO<>(
             HttpStatus.OK.value(),
             "Daftar gudang berhasil diambil!",

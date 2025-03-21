@@ -9,6 +9,7 @@ import propensi.amesta.payload.response.GudangResponseDTO;
 public interface GudangService {
     GudangResponseDTO addGudang(GudangRequestDTO gudangRequestDTO, AlamatGudangRequestDTO alamatGudangRequestDTO);
     List<GudangResponseDTO> getAllGudang();
+    List<GudangResponseDTO> filterGudang(String keywords);
     GudangResponseDTO getGudangByName(String namaGudang);
     GudangResponseDTO updateGudang(String namaGudang, GudangRequestDTO gudangRequestDTO, AlamatGudangRequestDTO alamatGudangRequestDTO);
 }

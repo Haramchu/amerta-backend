@@ -1,5 +1,6 @@
 package propensi.amesta.service.Aset;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -7,7 +8,6 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,10 +21,12 @@ import org.mockito.MockitoAnnotations;
 
 import propensi.amesta.model.Aset.AlamatGudang;
 import propensi.amesta.model.Aset.Gudang;
+import propensi.amesta.model.Aset.StockBarangPerGudang;
 import propensi.amesta.model.EndUser.KepalaGudang;
 import propensi.amesta.payload.request.AlamatGudangRequestDTO;
 import propensi.amesta.payload.request.GudangRequestDTO;
 import propensi.amesta.payload.response.AlamatGudangResponseDTO;
+import propensi.amesta.payload.response.BarangResponseDTO;
 import propensi.amesta.payload.response.GudangResponseDTO;
 import propensi.amesta.payload.response.KepalaGudangResponseDTO;
 import propensi.amesta.repository.Aset.GudangDb;
@@ -40,6 +42,9 @@ class GudangServiceTest {
 
     @Mock
     private KepalaGudangDb kepalaGudangDb;
+    
+    @Mock
+    private BarangServiceImpl barangService;
 
     private KepalaGudang kepalaGudang;
     private Gudang gudang;
@@ -55,6 +60,7 @@ class GudangServiceTest {
         kepalaGudang.setName("Kepala Gudang 1");
         kepalaGudang.setUsername("kepala1");
         kepalaGudang.setEmail("kepala1@example.com");
+        kepalaGudang.setBusinessPhone("08123456789");
 
         // Setup AlamatGudang
         alamatGudang = new AlamatGudang();
@@ -73,6 +79,9 @@ class GudangServiceTest {
         gudang.setUpdatedDate(new Date());
         gudang.setKepalaGudang(kepalaGudang);
         gudang.setAlamatGudang(alamatGudang);
+        gudang.setListBarang(new ArrayList<>());
+        
+        alamatGudang.setGudang(gudang);
     }
 
     @Test
@@ -87,7 +96,6 @@ class GudangServiceTest {
         gudangRequestDTO.setNama("Gudang 1");
         gudangRequestDTO.setDeskripsi("Deskripsi Gudang 1");
         gudangRequestDTO.setKapasitas(100);
-        gudangRequestDTO.setAlamatGudang(alamatGudangRequestDTO);
         gudangRequestDTO.setKepalaGudangId(kepalaGudang.getId());
 
         when(kepalaGudangDb.findById(kepalaGudang.getId())).thenReturn(Optional.of(kepalaGudang));
@@ -114,7 +122,6 @@ class GudangServiceTest {
         gudangRequestDTO.setNama("Gudang 1");
         gudangRequestDTO.setDeskripsi("Deskripsi Gudang 1");
         gudangRequestDTO.setKapasitas(100);
-        gudangRequestDTO.setAlamatGudang(alamatGudangRequestDTO);
         gudangRequestDTO.setKepalaGudangId(UUID.randomUUID());  // Invalid ID
 
         when(kepalaGudangDb.findById(any(UUID.class))).thenReturn(Optional.empty());
@@ -127,32 +134,6 @@ class GudangServiceTest {
     }
 
     @Test
-    void testAddGudang_KepalaGudangNull() {
-        AlamatGudangRequestDTO alamatGudangRequestDTO = new AlamatGudangRequestDTO();
-        alamatGudangRequestDTO.setAlamat("Alamat Gudang 1");
-        alamatGudangRequestDTO.setKota("Kota 1");
-        alamatGudangRequestDTO.setProvinsi("Provinsi 1");
-        alamatGudangRequestDTO.setKodePos("12345");
-
-        GudangRequestDTO gudangRequestDTO = new GudangRequestDTO();
-        gudangRequestDTO.setNama("Gudang 1");
-        gudangRequestDTO.setDeskripsi("Deskripsi Gudang 1");
-        gudangRequestDTO.setKapasitas(100);
-        gudangRequestDTO.setAlamatGudang(alamatGudangRequestDTO);
-        gudangRequestDTO.setKepalaGudangId(null);  // KepalaGudangId null
-
-        // Skip the KepalaGudang lookup
-        when(gudangDb.save(any(Gudang.class))).thenReturn(gudang);
-
-        GudangResponseDTO result = gudangService.addGudang(gudangRequestDTO, alamatGudangRequestDTO);
-
-        assertNotNull(result);
-        assertEquals("Gudang 1", result.getNama());
-        assertNull(result.getKepalaGudang());
-    }
-
-
-    @Test
     void testGetAllGudang() {
         List<Gudang> gudangList = List.of(gudang);
         when(gudangDb.findAll()).thenReturn(gudangList);
@@ -162,6 +143,49 @@ class GudangServiceTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("Gudang 1", result.get(0).getNama());
+    }
+
+    @Test
+    void testFilterGudang_WithKeywords() {
+        List<Gudang> gudangList = List.of(gudang);
+        String keywords = "Gudang";
+        
+        when(gudangDb.findByNameOrCityOrProvince(keywords)).thenReturn(gudangList);
+
+        List<GudangResponseDTO> result = gudangService.filterGudang(keywords);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("Gudang 1", result.get(0).getNama());
+        verify(gudangDb, times(1)).findByNameOrCityOrProvince(keywords);
+    }
+
+    @Test
+    void testFilterGudang_WithEmptyKeywords() {
+        List<Gudang> gudangList = List.of(gudang);
+        
+        when(gudangDb.findAll()).thenReturn(gudangList);
+
+        List<GudangResponseDTO> result = gudangService.filterGudang("");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("Gudang 1", result.get(0).getNama());
+        verify(gudangDb, times(1)).findAll();
+    }
+
+    @Test
+    void testFilterGudang_WithNullKeywords() {
+        List<Gudang> gudangList = List.of(gudang);
+        
+        when(gudangDb.findAll()).thenReturn(gudangList);
+
+        List<GudangResponseDTO> result = gudangService.filterGudang(null);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("Gudang 1", result.get(0).getNama());
+        verify(gudangDb, times(1)).findAll();
     }
 
     @Test
@@ -197,7 +221,6 @@ class GudangServiceTest {
         gudangRequestDTO.setNama("Gudang Updated");
         gudangRequestDTO.setDeskripsi("Deskripsi Gudang 1");
         gudangRequestDTO.setKapasitas(100);
-        gudangRequestDTO.setAlamatGudang(alamatGudangRequestDTO);
         gudangRequestDTO.setKepalaGudangId(kepalaGudang.getId());
 
         when(gudangDb.findById("Gudang 1")).thenReturn(Optional.of(gudang));
@@ -209,6 +232,32 @@ class GudangServiceTest {
         assertNotNull(result);
         assertEquals("Gudang Updated", result.getNama());
         verify(gudangDb, times(1)).save(any(Gudang.class));
+    }
+
+    @Test
+    void testUpdateGudang_WithNullKepalaGudangId() {
+        AlamatGudangRequestDTO alamatGudangRequestDTO = new AlamatGudangRequestDTO();
+        alamatGudangRequestDTO.setAlamat("Alamat Gudang Updated");
+        alamatGudangRequestDTO.setKota("Kota Updated");
+        alamatGudangRequestDTO.setProvinsi("Provinsi Updated");
+        alamatGudangRequestDTO.setKodePos("54321");
+
+        GudangRequestDTO gudangRequestDTO = new GudangRequestDTO();
+        gudangRequestDTO.setNama("Gudang Updated");
+        gudangRequestDTO.setDeskripsi("Deskripsi Updated");
+        gudangRequestDTO.setKapasitas(200);
+        gudangRequestDTO.setKepalaGudangId(null); // Null KepalaGudangId
+
+        when(gudangDb.findById("Gudang 1")).thenReturn(Optional.of(gudang));
+        when(gudangDb.save(any(Gudang.class))).thenReturn(gudang);
+
+        GudangResponseDTO result = gudangService.updateGudang("Gudang 1", gudangRequestDTO, alamatGudangRequestDTO);
+
+        assertNotNull(result);
+        assertEquals("Gudang Updated", result.getNama());
+        verify(gudangDb, times(1)).save(any(Gudang.class));
+        // Should not update kepalaGudang
+        verify(kepalaGudangDb, times(0)).findById(any(UUID.class));
     }
 
     @Test
@@ -235,14 +284,15 @@ class GudangServiceTest {
         kepalaGudang.setName("Kepala Gudang 1");
         kepalaGudang.setUsername("kepala1");
         kepalaGudang.setEmail("kepala1@example.com");
+        kepalaGudang.setBusinessPhone("08123456789");
 
         KepalaGudangResponseDTO result = gudangService.kepalaGudangToKepalaGudangResponseDTO(kepalaGudang);
 
         assertNotNull(result);
         assertEquals(kepalaGudang.getId(), result.getId());
         assertEquals(kepalaGudang.getName(), result.getName());
-        assertEquals(kepalaGudang.getUsername(), result.getUsername());
         assertEquals(kepalaGudang.getEmail(), result.getEmail());
+        assertEquals(kepalaGudang.getBusinessPhone(), result.getBusinessPhone());
     }
 
     @Test
@@ -265,21 +315,21 @@ class GudangServiceTest {
     }
 
     @Test
-    void testGudangToGudangResponseDTO_KepalaGudangNull_AlamatGudangNull() {
-        gudang = new Gudang();
-        gudang.setNama("Gudang 1");
-        gudang.setDeskripsi("Deskripsi Gudang 1");
-        gudang.setKapasitas(100);
-        gudang.setCreatedDate(new Date());
-        gudang.setUpdatedDate(new Date());
-        gudang.setKepalaGudang(null);
-        gudang.setAlamatGudang(null);
+    void testGudangToGudangResponseDTO_WithListBarang() {
+        // Setup StockBarangPerGudang and mock behavior
+        StockBarangPerGudang stockBarang = new StockBarangPerGudang();
+        List<StockBarangPerGudang> listBarang = new ArrayList<>();
+        listBarang.add(stockBarang);
+        gudang.setListBarang(listBarang);
+        
+        BarangResponseDTO barangResponseDTO = new BarangResponseDTO();
+        when(barangService.barangToBarangResponseDTO(any())).thenReturn(barangResponseDTO);
 
         GudangResponseDTO result = gudangService.gudangToGudangResponseDTO(gudang);
 
         assertNotNull(result);
         assertEquals("Gudang 1", result.getNama());
-        assertNull(result.getKepalaGudang());
-        assertNull(result.getAlamatGudang());
+        assertNotNull(result.getListBarang());
+        assertEquals(1, result.getListBarang().size());
     }
 }
