@@ -2,6 +2,7 @@ package propensi.amesta.security;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -21,8 +22,6 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import propensi.amesta.security.jwt.JwtTokenFilter;
 import jakarta.servlet.ServletException;
@@ -41,6 +40,14 @@ public class WebSecurityConfig {
     @Order(1)
     public SecurityFilterChain jwtFilterChain(HttpSecurity http) throws Exception {
         http.securityMatcher("/api/**")
+             .cors(cors -> cors.configurationSource(request -> {
+                CorsConfiguration config = new CorsConfiguration();
+                config.setAllowedOrigins(List.of("http://localhost:3000"));
+                config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                config.setAllowedHeaders(List.of("*"));
+                config.setAllowCredentials(true);
+                return config;
+            }))
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(requests -> requests
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() 

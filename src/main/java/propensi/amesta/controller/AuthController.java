@@ -54,9 +54,9 @@ public class AuthController {
 
         String token = jwtUtils.generateJwtToken(user.getId(), user.getName(), user.getUsername(), user.getEmail(),
                 user.getRole());
-        String userType = user.getRole();
+        String userName = user.getName();
         baseResponseDTO.setStatus(HttpStatus.OK.value());
-        baseResponseDTO.setData(new LoginJwtResponseDTO(token, userType));
+        baseResponseDTO.setData(new LoginJwtResponseDTO(token, userName));
         baseResponseDTO.setMessage("Login berhasil!");
         baseResponseDTO.setTimestamp(new Date());
         return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
