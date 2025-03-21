@@ -55,8 +55,10 @@ class GudangControllerTest {
 
     @BeforeEach
     void setup() {
-        // Setup MockMvc
-        mockMvc = MockMvcBuilders.standaloneSetup(gudangController).build();
+        // Setup MockMvc with exception handler
+        mockMvc = MockMvcBuilders.standaloneSetup(gudangController)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
         
         // Setup test data
         UUID kepalaGudangId = UUID.randomUUID();
@@ -116,7 +118,7 @@ class GudangControllerTest {
     }
 
     @Test
-    void testGetAllGudang() throws Exception {
+    void testGetAllGudangWithoutSearchParam() throws Exception {
         when(gudangService.getAllGudang()).thenReturn(gudangList);
 
         mockMvc.perform(get("/api/gudang/")
@@ -127,6 +129,40 @@ class GudangControllerTest {
                 .andExpect(jsonPath("$.data[0].nama").value("Gudang Test"));
 
         verify(gudangService, times(1)).getAllGudang();
+        verify(gudangService, times(0)).filterGudang(any(String.class));
+    }
+
+    @Test
+    void testGetAllGudangWithSearchParam() throws Exception {
+        String searchKeyword = "Test";
+        when(gudangService.filterGudang(searchKeyword)).thenReturn(gudangList);
+
+        mockMvc.perform(get("/api/gudang/")
+                .param("search", searchKeyword)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.message").value("Daftar gudang berhasil diambil!"))
+                .andExpect(jsonPath("$.data[0].nama").value("Gudang Test"));
+
+        verify(gudangService, times(0)).getAllGudang();
+        verify(gudangService, times(1)).filterGudang(searchKeyword);
+    }
+
+    @Test
+    void testGetAllGudangWithEmptySearchParam() throws Exception {
+        String emptySearch = "";
+        when(gudangService.getAllGudang()).thenReturn(gudangList);
+
+        mockMvc.perform(get("/api/gudang/")
+                .param("search", emptySearch)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.message").value("Daftar gudang berhasil diambil!"));
+
+        verify(gudangService, times(1)).getAllGudang();
+        verify(gudangService, times(0)).filterGudang(any(String.class));
     }
 
     @Test
@@ -162,10 +198,6 @@ class GudangControllerTest {
 
     @Test
     void testCreateGudangValidationFailure() throws Exception {
-        mockMvc = MockMvcBuilders.standaloneSetup(gudangController)
-                .setControllerAdvice(new GlobalExceptionHandler())
-                .build();
-                
         GudangRequestDTO invalidRequest = new GudangRequestDTO();
 
         mockMvc.perform(post("/api/gudang/add")
@@ -178,10 +210,6 @@ class GudangControllerTest {
 
     @Test
     void testUpdateGudangValidationFailure() throws Exception {
-        mockMvc = MockMvcBuilders.standaloneSetup(gudangController)
-                .setControllerAdvice(new GlobalExceptionHandler())
-                .build();
-                
         String gudangName = "Gudang Test";
         GudangRequestDTO invalidRequest = new GudangRequestDTO();
 

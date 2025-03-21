@@ -1,17 +1,12 @@
 package propensi.amesta.payload.response;
 
-import java.util.UUID;
-
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
-public class KepalaGudangResponseDTO {
-    private UUID id;
-    private String name;
-    private String username;
-    private String email;
-}
+@SuperBuilder
+@EqualsAndHashCode(callSuper = true)
+public class KepalaGudangResponseDTO extends UserResponseDTO {}

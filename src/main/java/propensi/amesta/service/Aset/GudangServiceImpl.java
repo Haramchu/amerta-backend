@@ -71,6 +71,21 @@ public class GudangServiceImpl implements GudangService {
     }
 
     @Override
+    public List<GudangResponseDTO> filterGudang(String keywords) {
+        List<Gudang> gudangList;
+        
+        if (keywords == null || keywords.isEmpty()) {
+            gudangList = gudangDb.findAll();
+        } else {
+            gudangList = gudangDb.findByNameOrCityOrProvince(keywords);
+        }
+        
+        return gudangList.stream()
+                         .map(this::gudangToGudangResponseDTO)
+                         .toList();
+    }
+
+    @Override
     public GudangResponseDTO getGudangByName(String namaGudang) {
         Gudang gudang = gudangDb.findById(namaGudang)
             .orElseThrow(() -> new RuntimeException("Gudang tidak ditemukan"));
@@ -109,15 +124,13 @@ public class GudangServiceImpl implements GudangService {
         KepalaGudang kepalaGudang = gudang.getKepalaGudang();
         AlamatGudang alamatGudang = gudang.getAlamatGudang();
         
-        KepalaGudangResponseDTO kepalaGudangDTO = null;
-        if (kepalaGudang != null) {
-            kepalaGudangDTO = new KepalaGudangResponseDTO(
-                kepalaGudang.getId(),
-                kepalaGudang.getName(),
-                kepalaGudang.getUsername(),
-                kepalaGudang.getEmail()
-            );
-        }
+        KepalaGudangResponseDTO kepalaGudangDTO = KepalaGudangResponseDTO.builder()
+                                                                         .id(kepalaGudang.getId())
+                                                                         .name(kepalaGudang.getName())
+                                                                         .email(kepalaGudang.getEmail())
+                                                                         .businessPhone(kepalaGudang.getBusinessPhone())
+                                                                         .build();
+
         
         AlamatGudangResponseDTO alamatGudangDTO = null;
         if (alamatGudang != null) {
@@ -151,12 +164,12 @@ public class GudangServiceImpl implements GudangService {
     }
 
     public KepalaGudangResponseDTO kepalaGudangToKepalaGudangResponseDTO(KepalaGudang kepalaGudang) {
-        return new KepalaGudangResponseDTO(
-            kepalaGudang.getId(),
-            kepalaGudang.getName(),
-            kepalaGudang.getUsername(),
-            kepalaGudang.getEmail()
-        );
+        return KepalaGudangResponseDTO.builder()
+                                     .id(kepalaGudang.getId())
+                                     .name(kepalaGudang.getName())
+                                     .email(kepalaGudang.getEmail())
+                                     .businessPhone(kepalaGudang.getBusinessPhone())
+                                     .build();
     }
 
     public AlamatGudangResponseDTO alamatGudangToAlamatGudangResponseDTO(AlamatGudang alamatGudang) {
