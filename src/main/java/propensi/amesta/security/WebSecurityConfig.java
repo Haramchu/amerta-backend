@@ -1,6 +1,7 @@
 package propensi.amesta.security;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -37,6 +38,19 @@ public class WebSecurityConfig {
     public SecurityFilterChain jwtFilterChain(HttpSecurity http) throws Exception {
         http.securityMatcher("/api/**")
             .csrf(AbstractHttpConfigurer::disable)
+            .cors(cors -> cors.configurationSource(request -> {
+                var corsConfig = new org.springframework.web.cors.CorsConfiguration();
+                corsConfig.setAllowedOrigins(List.of(
+                    "http://localhost:3000",
+                    "http://localhost:3002",
+                    "https://amsesman-staging.vercel.app",
+                    "https://amerta-frontend-six.vercel.app"
+                ));
+                corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                corsConfig.setAllowedHeaders(List.of("*"));
+                corsConfig.setAllowCredentials(true);
+                return corsConfig;
+            }))
             .authorizeHttpRequests(requests -> requests
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() 
                 .requestMatchers("/api/auth/**").permitAll()

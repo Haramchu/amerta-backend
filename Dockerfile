@@ -1,18 +1,20 @@
-FROM gradle:jdk21-alpine
-ARG PRODUCTION
-ARG JDBC_DATABASE_PASSWORD
-ARG JDBC_DATABASE_URL
-ARG JDBC_DATABASE_USERNAME
-ARG JWT_SECRET_KEY
-
-ENV PRODUCTION ${PRODUCTION}
-ENV JDBC_DATABASE_PASSWORD ${JDBC_DATABASE_PASSWORD}
-ENV JDBC_DATABASE_URL ${JDBC_DATABASE_URL}
-ENV JDBC_DATABASE_USERNAME ${JDBC_DATABASE_USERNAME}
-ENV JWT_SECRET_KEY ${JWT_SECRET_KEY}
+# ---- STAGE 1: Build the JAR ----
+FROM gradle:8.5-jdk21-alpine as builder
 
 WORKDIR /app
-RUN ls -al
-COPY ./amesta-0.0.1-SNAPSHOT.jar /app
-EXPOSE 8080
-CMD ["java","-jar","amesta-0.0.1-SNAPSHOT.jar"]
+COPY . .
+
+RUN gradle bootJar
+
+# ---- STAGE 2: Run in lightweight container ----
+FROM eclipse-temurin:21-jdk-alpine
+
+WORKDIR /app
+
+# Let Cloud Run inject the PORT env var
+ENV PORT=8080
+
+COPY --from=builder /app/build/libs/*.jar app.jar
+
+# Use the PORT env var Spring Boot needs
+ENTRYPOINT ["sh", "-c", "java -Dserver.port=$PORT -jar app.jar"]
