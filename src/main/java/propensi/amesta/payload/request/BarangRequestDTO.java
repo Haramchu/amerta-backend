@@ -1,8 +1,10 @@
 package propensi.amesta.payload.request;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -26,6 +28,10 @@ public class BarangRequestDTO {
 
     @NotEmpty(message = "Merk barang harus diisi.")
     private String merk;
+
+    @NotNull(message = "Harga barang harus diisi.")
+    @DecimalMin(value = "1.0", message = "Harga barang minimal 1.")
+    private BigDecimal harga;
 
     @NotNull(message= "List stok barang harus diisi")
     @Size(min = 1, message = "Harus ada minimal satu stok barang")

@@ -90,7 +90,7 @@ public class AmestaApplication {
         Gudang gudang = new Gudang();
         gudang.setNama("Gudang 1");
         gudang.setDeskripsi("Gudang 1 Deskripsi");
-        gudang.setKapasitas(100000);
+        gudang.setKapasitas(1000000);
         gudang.setKepalaGudang(kepalaGudang);
         gudang.setAlamatGudang(alamatGudang);
         gudang.setCreatedDate(new Date());

@@ -46,6 +46,7 @@ public class BarangServiceImpl implements BarangService {
         barang.setKategori(barangRequestDTO.getKategori().strip());
         barang.setMerk(barangRequestDTO.getMerk().strip());
         barang.setActive(barangRequestDTO.isActive());
+        barang.setHarga(barangRequestDTO.getHarga());
         barang.setId(generateId());
 
         List<StockBarangPerGudang> listStockBarang = new ArrayList<>();
@@ -184,6 +185,7 @@ public class BarangServiceImpl implements BarangService {
         barang.setNama(barangRequestDTO.getNama().strip());
         barang.setKategori(barangRequestDTO.getKategori().strip());
         barang.setMerk(barangRequestDTO.getMerk().strip());
+        barang.setHarga(barangRequestDTO.getHarga());
         barang.setActive(barangRequestDTO.isActive());
     
         return barangToBarangResponseDTO(barangDb.save(barang));
@@ -230,6 +232,7 @@ public class BarangServiceImpl implements BarangService {
         barangResponseDTO.setMerk(barang.getMerk());
         barangResponseDTO.setStockBarang(stockBarangResponseDTO);
         barangResponseDTO.setTotalStock(stockBarangResponseDTO.stream().mapToInt(stock -> stock.getStock()).sum());
+        barangResponseDTO.setHarga(barang.getHarga());
         barangResponseDTO.setCreatedDate(barang.getCreatedDate());
         barangResponseDTO.setUpdatedDate(barang.getUpdatedDate());
         return barangResponseDTO;

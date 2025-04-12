@@ -43,7 +43,6 @@ public class Barang {
     @NotNull(message = "Harga barang harus diisi")
     private BigDecimal harga;
 
-
     @OneToMany(mappedBy = "barang", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StockBarangPerGudang> listStockBarang;
 
