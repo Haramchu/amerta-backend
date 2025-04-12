@@ -1,5 +1,6 @@
 package propensi.amesta;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -123,6 +124,7 @@ public class AmestaApplication {
             barang.setKategori("Kategori " + i);
             barang.setMerk("Merk " + i);
             barang.setActive(true);
+            barang.setHarga(BigDecimal.valueOf(10000 + (i * 500)));
 
             List<StockBarangPerGudang> listBarang = new ArrayList<>();
             StockBarangPerGudang stockBarang = new StockBarangPerGudang();
