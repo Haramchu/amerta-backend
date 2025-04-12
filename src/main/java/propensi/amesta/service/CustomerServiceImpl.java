@@ -1,9 +1,7 @@
 package propensi.amesta.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 import propensi.amesta.model.Customer;
 import propensi.amesta.payload.request.CustomerRequestDTO;
 import propensi.amesta.payload.response.CustomerResponseDTO;
@@ -20,7 +18,7 @@ public class CustomerServiceImpl implements CustomerService {
     public CustomerResponseDTO addCustomer(CustomerRequestDTO request) {
         Customer existing = customerDb.findByEmail(request.getEmail());
         if (existing != null) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Customer dengan email tersebut sudah terdaftar.");
+            throw new IllegalArgumentException("Email sudah terdaftar.");
         }
 
         Customer customer = new Customer();

@@ -19,6 +19,7 @@ public class SalesOrder {
     private String Id;
 
     private LocalDate orderDate;
+    
     private String status;
 
     @ManyToOne

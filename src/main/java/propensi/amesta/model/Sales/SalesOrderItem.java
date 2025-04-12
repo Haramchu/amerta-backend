@@ -28,5 +28,6 @@ public class SalesOrderItem {
     private Barang barang;
 
     private Integer quantity;
+    
     private BigDecimal unitPrice;
 }
