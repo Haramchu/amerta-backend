@@ -17,7 +17,16 @@ public class Customer {
     @Id
     private UUID id;
 
-    @OneToMany(mappedBy = "customer")
+    private String name;
+    private String phone;
+    private String handphone;
+    private String whatsapp;
+    private String email;
+    private String address;
+
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
     private List<SalesOrder> salesOrders;
+
+    private String role;
 
 }
