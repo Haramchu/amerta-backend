@@ -3,17 +3,11 @@ package propensi.amesta.model.Sales;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.UUID;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import propensi.amesta.model.Customer;
 
 @Setter
 @Getter
@@ -22,14 +16,15 @@ import lombok.Setter;
 public class SalesOrder {
 
     @Id
-    private String id;
+    private String Id;
 
     private LocalDate orderDate;
     
     private String status;
 
-    @Column(name = "customer_id")
-    private UUID customerId;
+    @ManyToOne
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
 
     @OneToMany(mappedBy = "salesOrder", cascade = CascadeType.ALL)
     private List<SalesOrderItem> items;
