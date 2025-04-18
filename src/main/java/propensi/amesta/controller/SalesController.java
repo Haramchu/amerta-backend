@@ -4,15 +4,21 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import propensi.amesta.payload.request.SalesOrderRequestDTO;
 import propensi.amesta.payload.response.BaseResponseDTO;
+import propensi.amesta.payload.response.SalesOrderDetailDTO;
+import propensi.amesta.payload.response.SalesOrderListDTO;
 import propensi.amesta.payload.response.SalesOrderResponseDTO;
 import propensi.amesta.service.SalesOrderService;
 
+import java.time.LocalDate;
 import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/sales-order")
@@ -23,8 +29,8 @@ public class SalesController {
     private SalesOrderService salesOrderService;
 
     @PostMapping("/add")
-    public ResponseEntity<?> createSalesOrder(@Valid @RequestBody SalesOrderRequestDTO requestDTO) {
-        BaseResponseDTO<SalesOrderResponseDTO> response = new BaseResponseDTO<>();
+    public ResponseEntity<BaseResponseDTO<SalesOrderResponseDTO>> createSalesOrder(@Valid @RequestBody SalesOrderRequestDTO requestDTO) {
+        BaseResponseDTO<SalesOrderResponseDTO> response = new BaseResponseDTO<SalesOrderResponseDTO>();
 
         try {
             SalesOrderResponseDTO result = salesOrderService.addSalesOrder(requestDTO);
@@ -37,12 +43,105 @@ public class SalesController {
             return new ResponseEntity<>(response, HttpStatus.CREATED);
 
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new BaseResponseDTO<>(HttpStatus.BAD_REQUEST.value(), e.getMessage(), new Date(), null));
+            BaseResponseDTO<SalesOrderResponseDTO> errorResponse = new BaseResponseDTO<SalesOrderResponseDTO>();
+            errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorResponse.setMessage(e.getMessage());
+            errorResponse.setTimestamp(new Date());
+            errorResponse.setData(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new BaseResponseDTO<>(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                            "Terjadi kesalahan saat membuat sales order", new Date(), null));
+            BaseResponseDTO<SalesOrderResponseDTO> errorResponse = new BaseResponseDTO<SalesOrderResponseDTO>();
+            errorResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            errorResponse.setMessage("Terjadi kesalahan saat membuat sales order");
+            errorResponse.setTimestamp(new Date());
+            errorResponse.setData(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<BaseResponseDTO<List<SalesOrderListDTO>>> getAllSalesOrders() {
+        try {
+            List<SalesOrderListDTO> salesOrders = salesOrderService.getAllSalesOrders();
+            
+            BaseResponseDTO<List<SalesOrderListDTO>> response = new BaseResponseDTO<List<SalesOrderListDTO>>();
+            response.setStatus(HttpStatus.OK.value());
+            response.setMessage("Daftar sales order berhasil diambil");
+            response.setTimestamp(new Date());
+            response.setData(salesOrders);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            BaseResponseDTO<List<SalesOrderListDTO>> errorResponse = new BaseResponseDTO<List<SalesOrderListDTO>>();
+            errorResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            errorResponse.setMessage("Terjadi kesalahan saat mengambil daftar sales order");
+            errorResponse.setTimestamp(new Date());
+            errorResponse.setData(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    @GetMapping("/filter")
+    public ResponseEntity<BaseResponseDTO<List<SalesOrderListDTO>>> getSalesOrdersWithFilters(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) UUID customerId) {
+        
+        try {
+            List<SalesOrderListDTO> salesOrders = salesOrderService.getSalesOrdersWithFilters(
+                    startDate, endDate, status, customerId);
+            
+            BaseResponseDTO<List<SalesOrderListDTO>> response = new BaseResponseDTO<List<SalesOrderListDTO>>();
+            response.setStatus(HttpStatus.OK.value());
+            response.setMessage("Daftar sales order berhasil difilter");
+            response.setTimestamp(new Date());
+            response.setData(salesOrders);
+            
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            BaseResponseDTO<List<SalesOrderListDTO>> errorResponse = new BaseResponseDTO<List<SalesOrderListDTO>>();
+            errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorResponse.setMessage(e.getMessage());
+            errorResponse.setTimestamp(new Date());
+            errorResponse.setData(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        } catch (Exception e) {
+            BaseResponseDTO<List<SalesOrderListDTO>> errorResponse = new BaseResponseDTO<List<SalesOrderListDTO>>();
+            errorResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            errorResponse.setMessage("Terjadi kesalahan saat memfilter daftar sales order");
+            errorResponse.setTimestamp(new Date());
+            errorResponse.setData(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<BaseResponseDTO<SalesOrderDetailDTO>> getSalesOrderDetail(@PathVariable String id) {
+        try {
+            SalesOrderDetailDTO salesOrderDetail = salesOrderService.getSalesOrderDetail(id);
+            
+            BaseResponseDTO<SalesOrderDetailDTO> response = new BaseResponseDTO<SalesOrderDetailDTO>();
+            response.setStatus(HttpStatus.OK.value());
+            response.setMessage("Detail sales order berhasil diambil");
+            response.setTimestamp(new Date());
+            response.setData(salesOrderDetail);
+            
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            BaseResponseDTO<SalesOrderDetailDTO> errorResponse = new BaseResponseDTO<SalesOrderDetailDTO>();
+            errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorResponse.setMessage(e.getMessage());
+            errorResponse.setTimestamp(new Date());
+            errorResponse.setData(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        } catch (Exception e) {
+            BaseResponseDTO<SalesOrderDetailDTO> errorResponse = new BaseResponseDTO<SalesOrderDetailDTO>();
+            errorResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            errorResponse.setMessage("Terjadi kesalahan saat mengambil detail sales order");
+            errorResponse.setTimestamp(new Date());
+            errorResponse.setData(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 }
