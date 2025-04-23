@@ -1,6 +1,7 @@
 package propensi.amesta.model.Purchase;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import jakarta.persistence.*;
 import lombok.Getter;

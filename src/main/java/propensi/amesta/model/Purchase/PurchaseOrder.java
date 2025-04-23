@@ -20,13 +20,13 @@ public class PurchaseOrder {
 
     private LocalDate purchaseDate;
     
-    private String status;
+    private String status; 
 
     private BigDecimal totalPrice;
 
     @ManyToOne
     @JoinColumn(name = "customer_id")
-    private Customer vendor;
+    private Customer customer;
 
     @OneToOne(mappedBy = "purchaseOrder", cascade = CascadeType.ALL)
     private PurchaseInvoice invoice;

@@ -1,6 +1,7 @@
 package propensi.amesta.model.Purchase;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -13,7 +14,7 @@ import lombok.Setter;
 public class PurchasePayment {
 
     @Id
-    private String Id;
+    private UUID Id;
 
     @OneToOne
     @JoinColumn(name = "purchase_order_id")
