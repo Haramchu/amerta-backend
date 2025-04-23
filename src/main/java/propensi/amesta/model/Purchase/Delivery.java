@@ -9,8 +9,8 @@ import lombok.Setter;
 @Setter
 @Getter
 @Entity
-@Table(name = "purchase_payment")
-public class PurchasePayment {
+@Table(name = "delivery")
+public class Delivery {
 
     @Id
     private String Id;
@@ -19,8 +19,8 @@ public class PurchasePayment {
     @JoinColumn(name = "purchase_order_id")
     private PurchaseOrder purchaseOrder;
 
-    private LocalDate paymentDate;
-    private String paymentMethod;
-    private String paymentStatus;
+    private LocalDate deliveryDate;
+    private String deliveryStatus;
+    private String trackingNumber;
 
 }
