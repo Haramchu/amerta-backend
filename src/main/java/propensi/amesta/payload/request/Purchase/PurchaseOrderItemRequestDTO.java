@@ -17,7 +17,7 @@ public class PurchaseOrderItemRequestDTO {
 
     @NotNull(message = "Kuantitas barang tidak boleh kosong")
     @Min(value = 1, message = "Kuantitas barang tidak boleh negatif.")
-    @Digits(integer = 10, fraction = 0, message = "Kuantitas barang harus merupakan angka yang valid.")
+    @Digits(integer = Integer.MAX_VALUE, fraction = 0, message = "Kuantitas barang harus merupakan angka yang valid.")
     private Integer quantity;
 
     @NotEmpty(message = "Gudang tujuan tidak boleh kosong")

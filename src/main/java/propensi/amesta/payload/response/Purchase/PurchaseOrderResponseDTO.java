@@ -16,9 +16,8 @@ public class PurchaseOrderResponseDTO {
     private String id;
     private UUID customerId;
     private LocalDate purchaseDate;
-    private LocalDate invoiceDate;
-    private LocalDate deliveryDate;
-    private BigDecimal totalPrice;
+    private PurchaseInvoiceResponseDTO invoice;
+    private DeliveryResponseDTO delivery;
     private PurchasePaymentResponseDTO payment;
     private String status;
     private List<PurchaseOrderItemResponseDTO> items;

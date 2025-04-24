@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 import propensi.amesta.model.Purchase.PurchasePayment;
 
 @Repository
-public interface PurchasePaymentDb extends JpaRepository<PurchasePayment, UUID> {
+public interface PurchasePaymentDb extends JpaRepository<PurchasePayment, String> {
 
 }

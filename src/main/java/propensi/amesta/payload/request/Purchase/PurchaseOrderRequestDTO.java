@@ -37,11 +37,11 @@ public class PurchaseOrderRequestDTO {
         return true;
     }
 
-    @NotNull(message = "Tanggal pengiriman tidak boleh kosong")
-    private LocalDate deliveryDate; // untuk Delivery
-
     @NotNull(message = "Detail pembayaran tidak boleh kosong")
     private PurchasePaymentRequestDTO payment; // untuk PurchasePayment
+
+    @NotNull(message = "Detail pengiriman tidak boleh kosong")
+    private DeliveryRequestDTO delivery; // untuk Delivery
     
     // PurchaseReceipt data diambil dari sini.
 }

@@ -17,4 +17,6 @@ public class PurchasePaymentRequestDTO {
 
     @NotNull(message = "Metode pembayaran tidak boleh kosong")
     private String paymentMethod;
+
+    // Total Amount Payed di DTO lain, karena di tahap awal belum ada diperlukan ini
 }

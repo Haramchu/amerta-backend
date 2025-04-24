@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import propensi.amesta.model.Customer;
@@ -18,11 +19,11 @@ public class PurchaseOrder {
     @Id
     private String Id;
 
+    @NotNull(message = "Tanggal pembelian tidak boleh kosong")
     private LocalDate purchaseDate;
     
+    @NotNull(message = "Status pembelian tidak boleh kosong")
     private String status; 
-
-    private BigDecimal totalPrice;
 
     @ManyToOne
     @JoinColumn(name = "customer_id")

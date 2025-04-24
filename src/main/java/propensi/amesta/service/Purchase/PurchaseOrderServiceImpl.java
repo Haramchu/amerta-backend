@@ -21,6 +21,8 @@ import propensi.amesta.model.Purchase.PurchaseOrderItem;
 import propensi.amesta.model.Purchase.PurchasePayment;
 import propensi.amesta.payload.request.Purchase.PurchaseOrderItemRequestDTO;
 import propensi.amesta.payload.request.Purchase.PurchaseOrderRequestDTO;
+import propensi.amesta.payload.response.Purchase.DeliveryResponseDTO;
+import propensi.amesta.payload.response.Purchase.PurchaseInvoiceResponseDTO;
 import propensi.amesta.payload.response.Purchase.PurchaseOrderItemResponseDTO;
 import propensi.amesta.payload.response.Purchase.PurchaseOrderResponseDTO;
 import propensi.amesta.payload.response.Purchase.PurchasePaymentResponseDTO;
@@ -51,7 +53,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 .orElseThrow(() -> new IllegalArgumentException("Customer tidak ditemukan"));
 
         if (!customer.getRole().equalsIgnoreCase("VENDOR")){
-            throw new IllegalArgumentException("Customer bukan merupakan vendor");
+            throw new IllegalArgumentException("Customer harus merupakan vendor");
         }
         
         // Validasi untuk tanggal pembelian tidak boleh di masa lalu
@@ -67,7 +69,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         }
 
         // Validasi untuk tanggal pengiriman tidak boleh sebelum tanggal pembelian atau tidak boleh di masa lalu
-        LocalDate deliveryDate = request.getDeliveryDate();
+        LocalDate deliveryDate = request.getDelivery().getDeliveryDate();
         if (deliveryDate.isBefore(purchaseDate) || deliveryDate.isBefore(LocalDate.now())) {
             throw new IllegalArgumentException("Tanggal pengiriman tidak boleh sebelum tanggal pembelian");
         }
@@ -145,28 +147,30 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         }
 
         purchaseOrder.setItems(items);
-        purchaseOrder.setTotalPrice(total);
 
         PurchasePayment payment = new PurchasePayment();
-        payment.setId(UUID.randomUUID());
+        payment.setId(generatePaymentId(customer.getName()));
         payment.setPaymentDate(paymentDate);
+        payment.setTotalAmountPayed(BigDecimal.valueOf(0)); // Belum ada total amount payed di tahap ini, karena belum ada pembayaran
         payment.setPaymentMethod(request.getPayment().getPaymentMethod());
-        payment.setPaymentStatus("UNPAID");
+        payment.setPaymentStatus("UNPAID"); // UNPAID, PAID, REFUNDED,
         payment.setPurchaseOrder(purchaseOrder);
         purchaseOrder.setPayment(payment);
 
         Delivery delivery = new Delivery();
         delivery.setId(generateDeliveryId(items)); // ID = UUID
         delivery.setDeliveryDate(deliveryDate);
-        delivery.setDeliveryStatus("PENDING");
+        delivery.setDeliveryStatus("PENDING"); // PENDING, IN_PROGRESS, DELIVERED, CANCELLED
         delivery.setTrackingNumber(generateTrackingNumber(items));
+        delivery.setDeliveryFee(request.getDelivery().getDeliveryFee());
         delivery.setPurchaseOrder(purchaseOrder);
         purchaseOrder.setDelivery(delivery);
 
         PurchaseInvoice invoice = new PurchaseInvoice();
         invoice.setId(generateInvoiceId());
         invoice.setInvoiceDate(invoiceDate);
-        invoice.setAmount(total);
+        invoice.setInvoiceStatus("DRAFT"); // DRAFT,ISSUED, PAID
+        invoice.setTotalAmount(total);
         invoice.setPurchaseOrder(purchaseOrder);
         purchaseOrder.setInvoice(invoice);
 
@@ -186,13 +190,16 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             items.add(purchaseOrderItemToPurchaseOrderItemResponseDTO(item));
         }
 
+        PurchaseInvoiceResponseDTO invoice = purchaseInvoiceToPurchaseInvoiceResponseDTO(purchaseOrder.getInvoice());
+
+        DeliveryResponseDTO delivery = deliveryToDeliveryResponseDTO(purchaseOrder.getDelivery());
+
         return new PurchaseOrderResponseDTO(
                 purchaseOrder.getId(),
                 purchaseOrder.getCustomer().getId(),
                 purchaseOrder.getPurchaseDate(),
-                purchaseOrder.getInvoice().getInvoiceDate(),
-                purchaseOrder.getDelivery().getDeliveryDate(),
-                purchaseOrder.getTotalPrice(),
+                invoice,
+                delivery,
                 payment,
                 purchaseOrder.getStatus(),
                 items
@@ -201,16 +208,44 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
     private PurchasePaymentResponseDTO purchasePaymentToPurchasePaymentResponseDTO(PurchasePayment purchasePayment) {
         return new PurchasePaymentResponseDTO(
+                purchasePayment.getId(),
+                purchasePayment.getPurchaseOrder().getId(),
                 purchasePayment.getPaymentDate(),
-                purchasePayment.getPaymentMethod()
+                purchasePayment.getPaymentMethod(),
+                purchasePayment.getPaymentStatus(),
+                purchasePayment.getTotalAmountPayed()
         );
     }
 
     private PurchaseOrderItemResponseDTO purchaseOrderItemToPurchaseOrderItemResponseDTO(PurchaseOrderItem purchaseOrderItem) {
         return new PurchaseOrderItemResponseDTO(
-                purchaseOrderItem.getGudangTujuan().getNama(),
+                purchaseOrderItem.getId(),
+                purchaseOrderItem.getPurchaseOrder().getId(),
                 purchaseOrderItem.getBarang().getId(),
-                purchaseOrderItem.getQuantity()
+                purchaseOrderItem.getQuantity(),
+                purchaseOrderItem.getGudangTujuan().getNama()
+
+        );
+    }
+
+    private DeliveryResponseDTO deliveryToDeliveryResponseDTO(Delivery delivery) {
+        return new DeliveryResponseDTO(
+                delivery.getId(),
+                delivery.getPurchaseOrder().getId(),
+                delivery.getDeliveryDate(),
+                delivery.getDeliveryStatus(),
+                delivery.getTrackingNumber(),
+                delivery.getDeliveryFee()
+        );
+    }
+
+    private PurchaseInvoiceResponseDTO purchaseInvoiceToPurchaseInvoiceResponseDTO(PurchaseInvoice purchaseInvoice) {
+        return new PurchaseInvoiceResponseDTO(
+                purchaseInvoice.getId(),
+                purchaseInvoice.getPurchaseOrder().getId(),
+                purchaseInvoice.getInvoiceDate(),
+                purchaseInvoice.getInvoiceStatus(),
+                purchaseInvoice.getTotalAmount()
         );
     }
     
@@ -295,6 +330,36 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         String randomPart = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 5).toUpperCase();
     
         return prefix + kodeBarang + "-" + tanggal + "-" + randomPart;
+    }
+
+    public String generatePaymentId(String customerName) {
+        String prefix = "PAY-";
+    
+        String kodeCustomer = customerName.replace(" ", "") .length() >= 3
+            ? customerName.replace(" ", "").substring(0, 3).toUpperCase()
+            : customerName.replace(" ", "").toUpperCase();
+    
+        String monthPart = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("MM"));
+        String romanMonth = switch (monthPart) {
+            case "01" -> "I";
+            case "02" -> "II";
+            case "03" -> "III";
+            case "04" -> "IV";
+            case "05" -> "V";
+            case "06" -> "VI";
+            case "07" -> "VII";
+            case "08" -> "VIII";
+            case "09" -> "IX";
+            case "10" -> "X";
+            case "11" -> "XI";
+            case "12" -> "XII";
+            default -> "";
+        };
+        String year = String.valueOf(java.time.LocalDate.now().getYear()).substring(2); // ambil 2 digit terakhir
+    
+        String randomPart = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 5).toUpperCase();
+    
+        return prefix + kodeCustomer + "-" + romanMonth + year + "-" + randomPart;
     }
     
 }
