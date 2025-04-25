@@ -1,6 +1,10 @@
 package propensi.amesta.model.Purchase;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,4 +17,16 @@ public class PurchaseInvoice {
     @Id
     private String Id;
 
+    @OneToOne
+    @JoinColumn(name = "purchase_order_id")
+    private PurchaseOrder purchaseOrder;
+
+    @NotNull(message = "Tanggal invoice tidak boleh kosong")
+    private LocalDate invoiceDate;
+
+    @NotNull(message = "Status invoice tidak boleh kosong")
+    private String invoiceStatus;
+
+    @NotNull(message = "Biaya invoice tidak boleh kosong")
+    private BigDecimal totalAmount; // Amount yang harus dibayar oleh customer, bukan amount yang sudah dibayar
 }

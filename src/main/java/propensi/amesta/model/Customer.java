@@ -10,6 +10,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import propensi.amesta.model.Purchase.PurchaseOrder;
 import propensi.amesta.model.Sales.SalesOrder;
 
 @Setter
@@ -30,6 +31,9 @@ public class Customer {
 
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
     private List<SalesOrder> salesOrders;
+
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
+    private List<PurchaseOrder> purchaseOrders;
 
     private String role;
 
