@@ -59,6 +59,10 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/gudang/").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
                 .requestMatchers("/api/gudang/{namaGudang}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
                 .requestMatchers("/api/gudang/update/{namaGudang}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang")
+                .requestMatchers("/api/sales-order/list").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/sales-order/filter").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/sales-order/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/sales-order/add").hasAnyAuthority("direktur", "sales", "administrasi")
                 .anyRequest().authenticated()    
             )
             .formLogin(form -> form

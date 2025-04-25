@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -12,6 +13,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
 import jakarta.transaction.Transactional;
+import propensi.amesta.model.Customer;
 import propensi.amesta.model.Aset.AlamatGudang;
 import propensi.amesta.model.Aset.Barang;
 import propensi.amesta.model.Aset.Gudang;
@@ -23,6 +25,7 @@ import propensi.amesta.model.EndUser.KepalaGudang;
 import propensi.amesta.model.EndUser.Komisaris;
 import propensi.amesta.model.EndUser.Sales;
 import propensi.amesta.model.EndUser.User;
+import propensi.amesta.repository.CustomerDb;
 import propensi.amesta.repository.Aset.BarangDb;
 import propensi.amesta.repository.Aset.GudangDb;
 import propensi.amesta.repository.EndUser.UserDb;
@@ -36,7 +39,7 @@ public class AmestaApplication {
 
 	@Bean
     @Transactional
-    CommandLineRunner run(UserDb userDb, UserService userService, GudangDb gudangDb, BarangDb barangDb) {
+    CommandLineRunner run(UserDb userDb, UserService userService, GudangDb gudangDb, BarangDb barangDb, CustomerDb customerDb) {
         return args -> {
             createUserIfNotExists(userDb, userService, new Administrasi(), "admin", "admin@example.com", "admin", "ADMIN");
             createUserIfNotExists(userDb, userService, new Direktur(), "direktur", "direktur@example.com", "direktur", "DIREKTUR");
@@ -51,6 +54,8 @@ public class AmestaApplication {
                 Gudang gud = createGudangDummy(kepalaGudang, gudangDb);
                 createBarangDummy(gud, barangDb);
             }
+
+            createCustomerDummy(customerDb);
         };
     }
 
@@ -137,5 +142,18 @@ public class AmestaApplication {
 
             barangDb.save(barang);
         }
+    }
+
+    private void createCustomerDummy(CustomerDb customerDb){
+        Customer customer = new Customer();
+        customer.setId(UUID.randomUUID());
+        customer.setName("Customer 1");
+        customer.setPhone("08123456789");
+        customer.setHandphone("08123456789");
+        customer.setWhatsapp("08123456789");
+        customer.setEmail("customer@example.com");
+        customer.setAddress("Jl. Customer No. 1");
+        customer.setRole("VENDOR");
+        customerDb.save(customer);
     }
 }

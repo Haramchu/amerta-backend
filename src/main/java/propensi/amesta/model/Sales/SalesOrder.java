@@ -16,11 +16,13 @@ import propensi.amesta.model.Customer;
 public class SalesOrder {
 
     @Id
-    private String Id;
+    private String id;
 
+    @Column(name = "order_date")
     private LocalDate orderDate;
     
-    private String status;
+    @Column(name = "status")
+    private String status; // CREATED, INVOICED, SHIPPED, COMPLETED, CANCELLED
 
     @ManyToOne
     @JoinColumn(name = "customer_id")
@@ -38,5 +40,6 @@ public class SalesOrder {
     @OneToOne(mappedBy = "salesOrder", cascade = CascadeType.ALL)
     private SalesReceipt receipt;
 
+    @Column(name = "total_price")
     private BigDecimal totalPrice;
 }

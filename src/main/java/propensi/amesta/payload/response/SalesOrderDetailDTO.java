@@ -15,20 +15,4 @@ public class SalesOrderDetailDTO {
     private String customerName;
     private BigDecimal totalPrice;
     private List<SalesOrderItemDTO> items;
-    
-    // Invoice details
-    private String invoiceId;
-    private LocalDate invoiceDate;
-    private BigDecimal invoiceAmount;
-    
-    // Shipping details
-    private String shippingId;
-    private LocalDate shippingDate;
-    private String shippingStatus;
-    private String trackingNumber;
-    
-    // Receipt details
-    private String receiptId;
-    private LocalDate receiptDate;
-    private BigDecimal amountReceived;
 }

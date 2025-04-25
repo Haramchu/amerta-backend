@@ -6,18 +6,14 @@ import java.util.UUID;
 
 import propensi.amesta.payload.request.SalesOrderRequestDTO;
 import propensi.amesta.payload.response.SalesOrderDetailDTO;
-import propensi.amesta.payload.response.SalesOrderListDTO;
 import propensi.amesta.payload.response.SalesOrderResponseDTO;
 
 public interface SalesOrderService {
     SalesOrderResponseDTO addSalesOrder(SalesOrderRequestDTO request);
-    
-    // Methods for viewing sales
-    List<SalesOrderListDTO> getAllSalesOrders();
-    List<SalesOrderListDTO> getSalesOrdersByDateRange(LocalDate startDate, LocalDate endDate);
-    List<SalesOrderListDTO> getSalesOrdersByStatus(String status);
-    List<SalesOrderListDTO> getSalesOrdersByCustomer(UUID customerId);
-    List<SalesOrderListDTO> getSalesOrdersWithFilters(
-        LocalDate startDate, LocalDate endDate, String status, UUID customerId);
+    List<SalesOrderResponseDTO> getAllSalesOrders();
+    List<SalesOrderResponseDTO> getSalesOrdersByDateRange(LocalDate startDate, LocalDate endDate);
+    List<SalesOrderResponseDTO> getSalesOrdersByStatus(String status);
+    List<SalesOrderResponseDTO> getSalesOrdersByCustomer(UUID customerId);
+    List<SalesOrderResponseDTO> getSalesOrdersWithFilters(LocalDate startDate, LocalDate endDate, String status, UUID customerId);
     SalesOrderDetailDTO getSalesOrderDetail(String salesOrderId);
 }
