@@ -1,4 +1,4 @@
-package propensi.amesta.payload.request;
+package propensi.amesta.payload.request.Sales;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;

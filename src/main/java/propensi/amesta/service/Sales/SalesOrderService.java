@@ -1,12 +1,12 @@
-package propensi.amesta.service;
+package propensi.amesta.service.Sales;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-import propensi.amesta.payload.request.SalesOrderRequestDTO;
-import propensi.amesta.payload.response.SalesOrderDetailDTO;
-import propensi.amesta.payload.response.SalesOrderResponseDTO;
+import propensi.amesta.payload.request.Sales.SalesOrderRequestDTO;
+import propensi.amesta.payload.response.Sales.SalesOrderDetailDTO;
+import propensi.amesta.payload.response.Sales.SalesOrderResponseDTO;
 
 public interface SalesOrderService {
     SalesOrderResponseDTO addSalesOrder(SalesOrderRequestDTO request);

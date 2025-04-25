@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
-import propensi.amesta.payload.request.AlamatGudangRequestDTO;
-import propensi.amesta.payload.request.GudangRequestDTO;
+import propensi.amesta.payload.request.Aset.AlamatGudangRequestDTO;
+import propensi.amesta.payload.request.Aset.GudangRequestDTO;
 import propensi.amesta.payload.response.BaseResponseDTO;
-import propensi.amesta.payload.response.GudangResponseDTO;
+import propensi.amesta.payload.response.Aset.GudangResponseDTO;
 import propensi.amesta.service.Aset.GudangService;
 
 @RestController

@@ -8,11 +8,12 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import propensi.amesta.payload.request.SalesOrderRequestDTO;
+
+import propensi.amesta.payload.request.Sales.SalesOrderRequestDTO;
 import propensi.amesta.payload.response.BaseResponseDTO;
-import propensi.amesta.payload.response.SalesOrderDetailDTO;
-import propensi.amesta.payload.response.SalesOrderResponseDTO;
-import propensi.amesta.service.SalesOrderService;
+import propensi.amesta.payload.response.Sales.SalesOrderDetailDTO;
+import propensi.amesta.payload.response.Sales.SalesOrderResponseDTO;
+import propensi.amesta.service.Sales.SalesOrderService;
 
 import java.time.LocalDate;
 import java.util.Date;
@@ -58,7 +59,7 @@ public class SalesController {
         }
     }
 
-    @GetMapping("/list")
+    @GetMapping("/")
     public ResponseEntity<BaseResponseDTO<List<SalesOrderResponseDTO>>> getAllSalesOrders() {
         try {
             List<SalesOrderResponseDTO> salesOrders = salesOrderService.getAllSalesOrders();

@@ -1,4 +1,4 @@
-package propensi.amesta.service;
+package propensi.amesta.service.Sales;
 
 import jakarta.transaction.Transactional;
 
@@ -7,11 +7,11 @@ import org.springframework.stereotype.Service;
 import propensi.amesta.model.Aset.Barang;
 import propensi.amesta.model.Customer;
 import propensi.amesta.model.Sales.*;
-import propensi.amesta.payload.request.SalesOrderItemRequestDTO;
-import propensi.amesta.payload.request.SalesOrderRequestDTO;
-import propensi.amesta.payload.response.SalesOrderDetailDTO;
-import propensi.amesta.payload.response.SalesOrderItemDTO;
-import propensi.amesta.payload.response.SalesOrderResponseDTO;
+import propensi.amesta.payload.request.Sales.SalesOrderItemRequestDTO;
+import propensi.amesta.payload.request.Sales.SalesOrderRequestDTO;
+import propensi.amesta.payload.response.Sales.SalesOrderDetailDTO;
+import propensi.amesta.payload.response.Sales.SalesOrderItemDTO;
+import propensi.amesta.payload.response.Sales.SalesOrderResponseDTO;
 import propensi.amesta.repository.Aset.BarangDb;
 import propensi.amesta.repository.CustomerDb;
 import propensi.amesta.repository.Sales.SalesOrderDb;

@@ -1,4 +1,4 @@
-package propensi.amesta.payload.response;
+package propensi.amesta.payload.response.Sales;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

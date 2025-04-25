@@ -1,11 +1,11 @@
-package propensi.amesta.payload.request;
-
-import jakarta.validation.constraints.NotNull;
-import lombok.Data;
+package propensi.amesta.payload.request.Sales;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
 
 @Data
 public class SalesOrderRequestDTO {
