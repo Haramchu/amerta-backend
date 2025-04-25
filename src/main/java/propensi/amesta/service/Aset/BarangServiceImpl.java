@@ -15,6 +15,7 @@ import propensi.amesta.payload.request.BarangRequestDTO;
 import propensi.amesta.payload.request.StockBarangRequestDTO;
 import propensi.amesta.payload.request.UpdateBarangRequestDTO;
 import propensi.amesta.payload.response.BarangResponseDTO;
+import propensi.amesta.payload.response.NamaGudangPerBarangResponseDTO;
 import propensi.amesta.payload.response.StockBarangResponseDTO;
 import propensi.amesta.repository.Aset.BarangDb;
 import propensi.amesta.repository.Aset.GudangDb;
@@ -273,5 +274,21 @@ public class BarangServiceImpl implements BarangService {
 
         barang.setActive(!barang.isActive());
         return barangToBarangResponseDTO(barangDb.save(barang));
+    }
+
+    @Override
+    public List<NamaGudangPerBarangResponseDTO> getAllNamaGudangPerBarang(String id) {
+        Barang barang = barangDb.findById(id)
+            .orElseThrow(() -> new RuntimeException("Barang dengan ID '" + id + "' tidak ditemukan"));
+
+        List<NamaGudangPerBarangResponseDTO> namaGudangList = new ArrayList<>();
+
+        for (StockBarangPerGudang stock : barang.getListStockBarang()) {
+            NamaGudangPerBarangResponseDTO namaGudang = new NamaGudangPerBarangResponseDTO();
+            namaGudang.setNamaGudang(stock.getGudang().getNama());
+            namaGudangList.add(namaGudang);
+        }
+
+        return namaGudangList;
     }    
 }

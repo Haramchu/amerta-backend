@@ -5,6 +5,7 @@ import java.util.List;
 import propensi.amesta.payload.request.BarangRequestDTO;
 import propensi.amesta.payload.request.UpdateBarangRequestDTO;
 import propensi.amesta.payload.response.BarangResponseDTO;
+import propensi.amesta.payload.response.NamaGudangPerBarangResponseDTO;
 
 public interface BarangService {
     BarangResponseDTO addBarang(BarangRequestDTO barangRequestDTO);
@@ -14,4 +15,5 @@ public interface BarangService {
     List<BarangResponseDTO> getBarangByMerk(String merk);
     List<BarangResponseDTO> getAllBarang();
     BarangResponseDTO changeStatusBarang(String id);
+    List<NamaGudangPerBarangResponseDTO> getAllNamaGudangPerBarang (String id);
 }

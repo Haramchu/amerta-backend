@@ -262,6 +262,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     }
 
     public String generatePoId(){
+        // Format: PO-YYYY-MM-DD-XXXXX, di mana YYYY adalah tahun, MM adalah bulan dalam angka romawi, DD adalah tanggal, dan XXXXX adalah 5 karakter acak
         String id = "PO-";
         String datePart = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd"))
         .replace("-01-", "-I-")
@@ -285,6 +286,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     }
 
     private String generateInvoiceId(){
+        // Format: INV-YYYY-MM-DD-XXXXX, di mana YYYY adalah tahun, MM adalah bulan dalam angka romawi, DD adalah tanggal, dan XXXXX adalah 5 karakter acak
         String id = "INV-";
         String datePart = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd"))
         .replace("-01-", "-I-")
@@ -308,6 +310,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     }
 
     public String generateDeliveryId(List<PurchaseOrderItem> items) {
+        // Format: DEL-XXX-DD-MM-XXXXX, di mana XXX adalah 3 huruf pertama dari nama barang, DD adalah tanggal dalam angka romawi, MM adalah bulan dalam angka romawi, dan XXXXX adalah 5 karakter acak
         String prefix = "DEL-";
     
         String namaBarang = items.get(0).getBarang().getNama();
@@ -333,9 +336,10 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     }
 
     public String generatePaymentId(String customerName) {
+        // Format: PAY-XXX-MM-YY-XXXXX, di mana XXX adalah 3 huruf pertama dari nama customer, MM adalah bulan dalam angka romawi, YY adalah tahun dalam 2 digit, dan XXXXX adalah 5 karakter acak
         String prefix = "PAY-";
     
-        String kodeCustomer = customerName.replace(" ", "") .length() >= 3
+        String kodeCustomer = customerName.replace(" ", "").length() >= 3
             ? customerName.replace(" ", "").substring(0, 3).toUpperCase()
             : customerName.replace(" ", "").toUpperCase();
     
@@ -355,11 +359,12 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             case "12" -> "XII";
             default -> "";
         };
-        String year = String.valueOf(java.time.LocalDate.now().getYear()).substring(2); // ambil 2 digit terakhir
+        String year = String.valueOf(java.time.LocalDate.now().getYear()).substring(2);
     
         String randomPart = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 5).toUpperCase();
     
         return prefix + kodeCustomer + "-" + romanMonth + year + "-" + randomPart;
     }
+    
     
 }
