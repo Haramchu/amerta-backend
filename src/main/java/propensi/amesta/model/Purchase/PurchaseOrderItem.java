@@ -24,16 +24,17 @@ public class PurchaseOrderItem {
 
     @ManyToOne
     @JoinColumn(name = "barang_id")
-    private Barang barang; // harga diambil dari sini
+    private Barang barang;
 
     private Integer quantity;
 
+    @Column(name = "unit_price")
+    private BigDecimal unitPrice;
+    
+    @Column(name = "subtotal")
+    private BigDecimal subtotal;
+
     @ManyToOne
     @JoinColumn(name = "gudang_nama", referencedColumnName = "nama")
-    private Gudang gudangTujuan;
-
-    // private String gudangTujuan;
-
-    // private BigDecimal unitPrice;
-    
+    private Gudang gudangTujuan;    
 }

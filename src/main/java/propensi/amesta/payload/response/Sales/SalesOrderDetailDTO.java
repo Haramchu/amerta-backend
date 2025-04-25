@@ -1,18 +1,18 @@
-package propensi.amesta.payload.response;
+package propensi.amesta.payload.response.Sales;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 import lombok.Data;
 
 @Data
-public class SalesOrderListDTO {
+public class SalesOrderDetailDTO {
     private String id;
     private LocalDate orderDate;
     private String status;
+    private String customerId;
     private String customerName;
     private BigDecimal totalPrice;
-    private Boolean hasInvoice;
-    private Boolean hasShipping;
-    private Boolean hasReceipt;
+    private List<SalesOrderItemDTO> items;
 }

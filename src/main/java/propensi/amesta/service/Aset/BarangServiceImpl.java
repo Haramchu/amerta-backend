@@ -11,11 +11,11 @@ import org.springframework.stereotype.Service;
 import propensi.amesta.model.Aset.Barang;
 import propensi.amesta.model.Aset.Gudang;
 import propensi.amesta.model.Aset.StockBarangPerGudang;
-import propensi.amesta.payload.request.BarangRequestDTO;
-import propensi.amesta.payload.request.StockBarangRequestDTO;
-import propensi.amesta.payload.request.UpdateBarangRequestDTO;
-import propensi.amesta.payload.response.BarangResponseDTO;
-import propensi.amesta.payload.response.StockBarangResponseDTO;
+import propensi.amesta.payload.request.Aset.BarangRequestDTO;
+import propensi.amesta.payload.request.Aset.StockBarangRequestDTO;
+import propensi.amesta.payload.request.Aset.UpdateBarangRequestDTO;
+import propensi.amesta.payload.response.Aset.BarangResponseDTO;
+import propensi.amesta.payload.response.Aset.StockBarangResponseDTO;
 import propensi.amesta.repository.Aset.BarangDb;
 import propensi.amesta.repository.Aset.GudangDb;
 

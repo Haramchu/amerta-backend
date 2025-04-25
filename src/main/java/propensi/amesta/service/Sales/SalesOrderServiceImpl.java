@@ -1,22 +1,20 @@
-package propensi.amesta.service;
+package propensi.amesta.service.Sales;
 
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import propensi.amesta.model.Aset.Barang;
 import propensi.amesta.model.Customer;
 import propensi.amesta.model.Sales.*;
-import propensi.amesta.payload.request.SalesOrderItemRequestDTO;
-import propensi.amesta.payload.request.SalesOrderRequestDTO;
-import propensi.amesta.payload.response.SalesOrderDetailDTO;
-import propensi.amesta.payload.response.SalesOrderItemDTO;
-import propensi.amesta.payload.response.SalesOrderListDTO;
-import propensi.amesta.payload.response.SalesOrderResponseDTO;
+import propensi.amesta.payload.request.Sales.SalesOrderItemRequestDTO;
+import propensi.amesta.payload.request.Sales.SalesOrderRequestDTO;
+import propensi.amesta.payload.response.Sales.SalesOrderDetailDTO;
+import propensi.amesta.payload.response.Sales.SalesOrderItemDTO;
+import propensi.amesta.payload.response.Sales.SalesOrderResponseDTO;
 import propensi.amesta.repository.Aset.BarangDb;
 import propensi.amesta.repository.CustomerDb;
-import propensi.amesta.repository.Sales.*;
+import propensi.amesta.repository.Sales.SalesOrderDb;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -26,7 +24,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class SalesOrderServiceImpl implements SalesOrderService {
 
     @Autowired
@@ -35,12 +32,6 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     private CustomerDb customerDb;
     @Autowired
     private BarangDb barangDb;
-    @Autowired
-    private SalesInvoiceDb salesInvoiceDb;
-    @Autowired
-    private SalesReceiptDb salesReceiptDb;
-    @Autowired
-    private ShippingDb shippingDb;
 
     @Override
     @Transactional
@@ -50,7 +41,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
         SalesOrder salesOrder = new SalesOrder();
         salesOrder.setId(UUID.randomUUID().toString());
-        salesOrder.setCustomerId(customer.getId());
+        salesOrder.setCustomer(customer);
         salesOrder.setOrderDate(request.getOrderDate());
         salesOrder.setStatus("CREATED");
 
@@ -91,25 +82,25 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     }
 
     @Override
-    public List<SalesOrderListDTO> getAllSalesOrders() {
+    public List<SalesOrderResponseDTO> getAllSalesOrders() {
         List<SalesOrder> salesOrders = salesOrderDb.findAll();
         return convertToSalesOrderListDTOs(salesOrders);
     }
 
     @Override
-    public List<SalesOrderListDTO> getSalesOrdersByDateRange(LocalDate startDate, LocalDate endDate) {
+    public List<SalesOrderResponseDTO> getSalesOrdersByDateRange(LocalDate startDate, LocalDate endDate) {
         List<SalesOrder> salesOrders = salesOrderDb.findByOrderDateBetween(startDate, endDate);
         return convertToSalesOrderListDTOs(salesOrders);
     }
 
     @Override
-    public List<SalesOrderListDTO> getSalesOrdersByStatus(String status) {
+    public List<SalesOrderResponseDTO> getSalesOrdersByStatus(String status) {
         List<SalesOrder> salesOrders = salesOrderDb.findByStatus(status);
         return convertToSalesOrderListDTOs(salesOrders);
     }
 
     @Override
-    public List<SalesOrderListDTO> getSalesOrdersByCustomer(UUID customerId) {
+    public List<SalesOrderResponseDTO> getSalesOrdersByCustomer(UUID customerId) {
         Customer customer = customerDb.findById(customerId)
                 .orElseThrow(() -> new IllegalArgumentException("Customer tidak ditemukan"));
         List<SalesOrder> salesOrders = salesOrderDb.findByCustomerId(customer.getId());
@@ -117,7 +108,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     }
 
     @Override
-    public List<SalesOrderListDTO> getSalesOrdersWithFilters(
+    public List<SalesOrderResponseDTO> getSalesOrdersWithFilters(
             LocalDate startDate, LocalDate endDate, String status, UUID customerId) {
 
         if (startDate == null && endDate == null && status == null && customerId == null) {
@@ -150,8 +141,10 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         SalesOrder salesOrder = salesOrderDb.findById(salesOrderId)
                 .orElseThrow(() -> new IllegalArgumentException("Sales order tidak ditemukan"));
         
-        Customer customer = customerDb.findById(salesOrder.getCustomerId())
-                .orElseThrow(() -> new IllegalArgumentException("Customer tidak ditemukan"));
+        Customer customer = salesOrder.getCustomer();
+        if (customer == null) {
+            throw new IllegalArgumentException("Data customer tidak ditemukan");
+        }
         
         SalesOrderDetailDTO detailDTO = new SalesOrderDetailDTO();
         detailDTO.setId(salesOrder.getId());
@@ -173,43 +166,23 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             itemDTOs.add(itemDTO);
         }
         detailDTO.setItems(itemDTOs);
-
-        if (salesOrder.getInvoice() != null) {
-            detailDTO.setInvoiceId(salesOrder.getInvoice().getId());
-            detailDTO.setInvoiceDate(salesOrder.getInvoice().getInvoiceDate());
-            detailDTO.setInvoiceAmount(salesOrder.getInvoice().getAmount());
-        }
-        
-        if (salesOrder.getShipping() != null) {
-            detailDTO.setShippingId(salesOrder.getShipping().getId());
-            detailDTO.setShippingDate(salesOrder.getShipping().getShippingDate());
-            detailDTO.setShippingStatus(salesOrder.getShipping().getShippingStatus());
-            detailDTO.setTrackingNumber(salesOrder.getShipping().getTrackingNumber());
-        }
-        
-        if (salesOrder.getReceipt() != null) {
-            detailDTO.setReceiptId(salesOrder.getReceipt().getId());
-            detailDTO.setReceiptDate(salesOrder.getReceipt().getReceiptDate());
-            detailDTO.setAmountReceived(salesOrder.getReceipt().getAmountReceived());
-        }
         
         return detailDTO;
     }
 
-    private List<SalesOrderListDTO> convertToSalesOrderListDTOs(List<SalesOrder> salesOrders) {
+    private List<SalesOrderResponseDTO> convertToSalesOrderListDTOs(List<SalesOrder> salesOrders) {
         return salesOrders.stream().map(order -> {
-            Customer customer = customerDb.findById(order.getCustomerId())
-                    .orElseThrow(() -> new IllegalArgumentException("Customer tidak ditemukan"));
+            Customer customer = order.getCustomer();
+            if (customer == null) {
+                throw new IllegalArgumentException("Data customer tidak ditemukan");
+            }
                     
-            SalesOrderListDTO dto = new SalesOrderListDTO();
+            SalesOrderResponseDTO dto = new SalesOrderResponseDTO();
             dto.setId(order.getId());
+            dto.setCustomerId(customer.getId());
             dto.setOrderDate(order.getOrderDate());
             dto.setStatus(order.getStatus());
-            dto.setCustomerName(customer.getName());
             dto.setTotalPrice(order.getTotalPrice());
-            dto.setHasInvoice(order.getInvoice() != null);
-            dto.setHasShipping(order.getShipping() != null);
-            dto.setHasReceipt(order.getReceipt() != null);
             return dto;
         }).collect(Collectors.toList());
     }

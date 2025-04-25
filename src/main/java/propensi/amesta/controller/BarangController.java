@@ -17,12 +17,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
-import propensi.amesta.payload.request.BarangRequestDTO;
-import propensi.amesta.payload.request.TransferBarangRequestDTO;
-import propensi.amesta.payload.request.UpdateBarangRequestDTO;
-import propensi.amesta.payload.response.BarangResponseDTO;
+import propensi.amesta.payload.request.Aset.BarangRequestDTO;
+import propensi.amesta.payload.request.Aset.TransferBarangRequestDTO;
+import propensi.amesta.payload.request.Aset.UpdateBarangRequestDTO;
 import propensi.amesta.payload.response.BaseResponseDTO;
-import propensi.amesta.payload.response.TransferBarangResponseDTO;
+import propensi.amesta.payload.response.Aset.BarangResponseDTO;
+import propensi.amesta.payload.response.Aset.TransferBarangResponseDTO;
 import propensi.amesta.service.Aset.BarangService;
 import propensi.amesta.service.Aset.TransferBarangService;
 

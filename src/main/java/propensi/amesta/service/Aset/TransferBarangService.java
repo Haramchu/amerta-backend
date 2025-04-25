@@ -2,8 +2,8 @@ package propensi.amesta.service.Aset;
 
 import java.util.List;
 
-import propensi.amesta.payload.request.TransferBarangRequestDTO;
-import propensi.amesta.payload.response.TransferBarangResponseDTO;
+import propensi.amesta.payload.request.Aset.TransferBarangRequestDTO;
+import propensi.amesta.payload.response.Aset.TransferBarangResponseDTO;
 
 public interface TransferBarangService {
     TransferBarangResponseDTO addTransferBarang(TransferBarangRequestDTO request);
