@@ -15,5 +15,5 @@ public interface BarangService {
     List<BarangResponseDTO> getBarangByMerk(String merk);
     List<BarangResponseDTO> getAllBarang();
     BarangResponseDTO changeStatusBarang(String id);
-    List<NamaGudangPerBarangResponseDTO> getAllNamaGudangPerBarang (String id);
+    NamaGudangPerBarangResponseDTO getAllNamaGudangPerBarang (String id);
 }

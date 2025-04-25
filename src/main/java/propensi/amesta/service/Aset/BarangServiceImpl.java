@@ -277,18 +277,19 @@ public class BarangServiceImpl implements BarangService {
     }
 
     @Override
-    public List<NamaGudangPerBarangResponseDTO> getAllNamaGudangPerBarang(String id) {
+    public NamaGudangPerBarangResponseDTO getAllNamaGudangPerBarang(String id) {
         Barang barang = barangDb.findById(id)
             .orElseThrow(() -> new RuntimeException("Barang dengan ID '" + id + "' tidak ditemukan"));
 
-        List<NamaGudangPerBarangResponseDTO> namaGudangList = new ArrayList<>();
+        List<String> namaGudangList = new ArrayList<>();
+        NamaGudangPerBarangResponseDTO namaGudang = new NamaGudangPerBarangResponseDTO();
 
         for (StockBarangPerGudang stock : barang.getListStockBarang()) {
-            NamaGudangPerBarangResponseDTO namaGudang = new NamaGudangPerBarangResponseDTO();
-            namaGudang.setNamaGudang(stock.getGudang().getNama());
-            namaGudangList.add(namaGudang);
+            namaGudangList.add(stock.getGudang().getNama());
         }
 
-        return namaGudangList;
+        namaGudang.setNamaGudang(namaGudangList);
+
+        return namaGudang;
     }    
 }

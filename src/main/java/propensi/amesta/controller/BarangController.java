@@ -258,12 +258,12 @@ public class BarangController {
 
     @GetMapping("/all-gudang/{id}")
     public ResponseEntity<?> getAllNamaGudangPerBarang(@PathVariable String id) {
-        BaseResponseDTO<List<NamaGudangPerBarangResponseDTO>> baseResponseDTO = new BaseResponseDTO<>();
+        BaseResponseDTO<NamaGudangPerBarangResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
         try {
-            List<NamaGudangPerBarangResponseDTO> transferBarangResponseDTO = barangService.getAllNamaGudangPerBarang(id);
+           NamaGudangPerBarangResponseDTO namaGudangPerBarangResponseDTO = barangService.getAllNamaGudangPerBarang(id);
             baseResponseDTO.setStatus(HttpStatus.OK.value());
             baseResponseDTO.setMessage("List nama gudang per barang berhasil ditemukan.");
-            baseResponseDTO.setData(transferBarangResponseDTO);
+            baseResponseDTO.setData(namaGudangPerBarangResponseDTO);
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
