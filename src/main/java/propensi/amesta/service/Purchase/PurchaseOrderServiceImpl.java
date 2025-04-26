@@ -51,6 +51,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     @Autowired
     private GudangDb gudangDb;
 
+
+    // STAGE 1: CREATED
     @Override
     public PurchaseOrderResponseDTO addPurchaseOrder(PurchaseOrderRequestDTO request) {
         // Validasi customer ada atau tidak, jika ada cek apakah vendor atau tidak
@@ -423,10 +425,15 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         PurchaseOrder purchaseOrder = purchaseOrderDb.findById(id)
                 .orElseThrow(() -> new RuntimeException("Purchase Order tidak ditemukan"));
 
-        LocalDate purchaseDate = purchaseOrder.getPurchaseDate();
+        // Validasi tahapan purchase order harus "CREATED"
+        if (!purchaseOrder.getStatus().equalsIgnoreCase("CREATED")) {
+            throw new IllegalArgumentException("Purchase Order harus dalam status CREATED untuk melakukan konfirmasi");
+        }
 
         // Validasi untuk tanggal invoice tidak boleh sebelum tanggal pembelian dan tidak boleh di masa lalu
         LocalDate invoiceDate = request.getInvoiceDate(); // ini input tanggal sendiri dari frontend
+        LocalDate purchaseDate = purchaseOrder.getPurchaseDate();
+
         if (invoiceDate.isBefore(purchaseDate) || invoiceDate.isBefore(LocalDate.now())) {
             throw new IllegalArgumentException("Tanggal invoice tidak boleh sebelum tanggal pembelian");
         }
@@ -456,65 +463,49 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         PurchaseOrder purchaseOrder = purchaseOrderDb.findById(id)
                 .orElseThrow(() -> new RuntimeException("Purchase Order tidak ditemukan"));
 
-        // Validasi tahapan purchase order harus "CONFIRMED" dan invoice harus "PARTIALLY PAID"
-        if (!purchaseOrder.getStatus().equalsIgnoreCase("CONFIRMED") || purchaseOrder.getPayment().getPaymentStatus().equalsIgnoreCase("PARTIALLY PAID")) {
+        // Validasi tahapan purchase order harus "CONFIRMED"
+        if (!purchaseOrder.getStatus().equalsIgnoreCase("CONFIRMED")) {
             throw new IllegalArgumentException("Purchase Order harus dalam status CONFIRMED untuk melakukan pembayaran");
         }
   
+        // Validasi untuk tanggal pembayaran tidak boleh sebelum tanggal pembelian atau tidak boleh di masa lalu atau tidak boleh sebelum tanggal invoice
         LocalDate purchaseDate = purchaseOrder.getPurchaseDate();
         LocalDate invoiceDate = purchaseOrder.getInvoice().getInvoiceDate();
+        LocalDate paymentDate = request.getPaymentDate(); // ini input tanggal sendiri dari frontend
 
-        // Validasi untuk tanggal pembayaran tidak boleh sebelum tanggal pembelian atau tidak boleh di masa lalu atau tidak boleh sebelum tanggal invoice
-        LocalDate paymentDate = request.getPaymentDate();
         if (paymentDate.isBefore(purchaseDate) || paymentDate.isBefore(LocalDate.now()) || paymentDate.isBefore(invoiceDate)) {
             throw new IllegalArgumentException("Tanggal pembayaran tidak boleh sebelum tanggal pembelian dan tanggal tagihan");
         }
 
-        PurchasePayment payment = new PurchasePayment();
-        if(purchaseOrder.getStatus().equalsIgnoreCase("CONFIRMED")){
-            payment.setId(generatePaymentId(purchaseOrder.getCustomer().getName()));
-            payment.setPaymentDate(paymentDate);
-            payment.setTotalAmountPayed(request.getTotalAmountPayed());
-            payment.setPaymentMethod(request.getPaymentMethod());
-    
-            if(request.getTotalAmountPayed().compareTo(purchaseOrder.getTotalPrice()) == 0) {
-                payment.setPaymentStatus("PAID"); // UNPAID, PAID
-                purchaseOrder.setStatus("PAID");
-                purchaseOrder.getInvoice().setInvoiceStatus("PAID");
-            } else if (request.getTotalAmountPayed().compareTo(purchaseOrder.getTotalPrice()) < 0) {
-                payment.setPaymentStatus("PARTIALLY PAID"); // UNPAID, PAID
-                purchaseOrder.getInvoice().setInvoiceStatus("PARTIALLY PAID");
-            } else {
-                throw new IllegalArgumentException("Jumlah pembayaran melebihi total harga");
-            }
-    
-            payment.setPurchaseOrder(purchaseOrder);
-            purchaseOrder.setPayment(payment);
+        PurchasePayment payment = purchaseOrder.getPayment();
 
-        } else if(purchaseOrder.getPayment().getPaymentStatus().equalsIgnoreCase("PARTIALLY PAID")){
-            payment = purchaseOrder.getPayment(); // ambil payment yang sudah ada
+        if (payment == null) {
+            payment = new PurchasePayment();
             payment.setId(generatePaymentId(purchaseOrder.getCustomer().getName()));
-            payment.setPaymentDate(paymentDate);
-            payment.setTotalAmountPayed(request.getTotalAmountPayed());
-            payment.setPaymentMethod(request.getPaymentMethod());
-    
-            if(request.getTotalAmountPayed().compareTo(purchaseOrder.getTotalPrice()) == 0) {
-                payment.setPaymentStatus("PAID"); // UNPAID, PAID
-                purchaseOrder.setStatus("PAID");
-                purchaseOrder.getInvoice().setInvoiceStatus("PAID");
-            } else if (request.getTotalAmountPayed().compareTo(purchaseOrder.getTotalPrice()) < 0) {
-                payment.setPaymentStatus("PARTIALLY PAID"); // UNPAID, PAID
-                purchaseOrder.getInvoice().setInvoiceStatus("PARTIALLY PAID");
-            } else {
-                throw new IllegalArgumentException("Jumlah pembayaran melebihi total harga");
-            }
-    
             payment.setPurchaseOrder(purchaseOrder);
-            purchaseOrder.setPayment(payment);
         }
-        else{
-            throw new IllegalArgumentException("Purchase Order harus dalam status CONFIRMED untuk melakukan pembayaran!");
+
+        payment.setPaymentDate(paymentDate);
+        payment.setPaymentMethod(request.getPaymentMethod()); // kalo udah partially paid, ini prefilled dari yang udah ada, 
+                                                                // jadi payment methodnya sama terus
+ 
+        BigDecimal totalPaid = request.getTotalAmountPayed();
+        BigDecimal totalPrice = purchaseOrder.getTotalPrice();
+
+        if (totalPaid.compareTo(totalPrice) > 0) {
+            throw new IllegalArgumentException("Jumlah pembayaran melebihi total harga");
+        } else if (totalPaid.compareTo(totalPrice) == 0) {
+            payment.setPaymentStatus("PAID");
+            purchaseOrder.setStatus("PAID");
+            purchaseOrder.getInvoice().setInvoiceStatus("PAID");
+        } else {
+            payment.setPaymentStatus("PARTIALLY PAID");
+            purchaseOrder.setStatus("CONFIRMED"); // Tetap di CONFIRMED sampai lunas
+            purchaseOrder.getInvoice().setInvoiceStatus("PARTIALLY PAID");
         }
+
+        payment.setTotalAmountPayed(totalPaid);
+        purchaseOrder.setPayment(payment);
        
 
         return purchaseOrderToPurchaseOrderResponseDTO(purchaseOrderDb.save(purchaseOrder));
@@ -528,8 +519,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             .orElseThrow(() -> new RuntimeException("Purchase Order tidak ditemukan"));
 
         // Validasi tahapan purchase order harus "PAID" dan invoice harus "PAID"
-        if (!purchaseOrder.getStatus().equalsIgnoreCase("PAID") || purchaseOrder.getStatus().equalsIgnoreCase("PAID")) {
-            throw new IllegalArgumentException("Purchase Order harus dalam status CONFIRMED untuk melakukan pembayaran");
+        if (!purchaseOrder.getStatus().equalsIgnoreCase("PAID") || !purchaseOrder.getPayment().getPaymentStatus().equalsIgnoreCase("PAID")) {
+            throw new IllegalArgumentException("Purchase Order harus dalam status PAID untuk melakukan pembayaran");
         }
 
         LocalDate purchaseDate = purchaseOrder.getPurchaseDate();
@@ -565,8 +556,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             .orElseThrow(() -> new RuntimeException("Purchase Order tidak ditemukan"));
 
         // Validasi tahapan purchase order harus "IN DELIVERY" dan delivery status harus "IN DELIVERY"
-        if (!purchaseOrder.getStatus().equalsIgnoreCase("IN DELIVERY") && purchaseOrder.getStatus().equalsIgnoreCase("IN DELIVERY")) {
-            throw new IllegalArgumentException("Purchase Order harus dalam status CONFIRMED untuk melakukan pembayaran");
+        if (!purchaseOrder.getStatus().equalsIgnoreCase("IN DELIVERY") || !purchaseOrder.getDelivery().getDeliveryStatus().equalsIgnoreCase("IN DELIVERY")) {
+            throw new IllegalArgumentException("Purchase Order harus dalam status IN DELIVERY untuk melakukan pembayaran");
         }
 
         PurchaseReceipt receipt = new PurchaseReceipt();
