@@ -532,7 +532,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             .orElseThrow(() -> new RuntimeException("Purchase Order tidak ditemukan"));
 
         // Validasi tahapan purchase order harus "PAID" dan invoice harus "PAID"
-        if (!purchaseOrder.getStatus().equalsIgnoreCase("PAID") || !purchaseOrder.getPayment().getPaymentStatus().equalsIgnoreCase("PAID")) {
+        if (!purchaseOrder.getStatus().equalsIgnoreCase("PAID")) {
             throw new IllegalArgumentException("Purchase Order harus dalam status PAID untuk melakukan pembayaran");
         }
 
@@ -569,7 +569,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             .orElseThrow(() -> new RuntimeException("Purchase Order tidak ditemukan"));
 
         // Validasi tahapan purchase order harus "IN DELIVERY" dan delivery status harus "IN DELIVERY"
-        if (!purchaseOrder.getStatus().equalsIgnoreCase("IN DELIVERY") || !purchaseOrder.getDelivery().getDeliveryStatus().equalsIgnoreCase("IN DELIVERY")) {
+        if (!purchaseOrder.getStatus().equalsIgnoreCase("IN DELIVERY")) {
             throw new IllegalArgumentException("Purchase Order harus dalam status IN DELIVERY untuk melakukan pembayaran");
         }
 
