@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 @Getter
 @Entity
-@Table(name = "delivery")
+@Table(name = "payment_terms_po")
 public class PaymentTermsPO {
     @Id
     private UUID id;

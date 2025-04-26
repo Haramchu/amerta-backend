@@ -80,7 +80,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 }
         }
 
-        // Validasi multiple entry, jika barang dan gudang tujuan sama di PurchaseOrderItem, kuantitas dijumlahkan
+        // Validasi multiple entry, jika barang dan gudang tujuan sama di PurchaseOrderItem, kuantitas dijumlahkan, validasi pajaknya juga untuk barang yang dan gudang tujuan sama, pajak juga harus sama
         Map<String, PurchaseOrderItemRequestDTO> itemMap = new HashMap<>();
 
         for (PurchaseOrderItemRequestDTO item : request.getItems()) {
@@ -88,6 +88,13 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
             if (itemMap.containsKey(key)) {
                 PurchaseOrderItemRequestDTO existing = itemMap.get(key);
+
+                // Validasi pajak harus sama
+                if (!existing.getPajak().equals(item.getPajak())) {
+                    throw new IllegalArgumentException("Barang dengan ID " + item.getBarangId() + " dan gudang tujuan " + item.getGudangTujuan() + " memiliki pajak yang berbeda");
+                }
+
+                // Kalau pajak sama, jumlahkan quantity
                 existing.setQuantity(existing.getQuantity() + item.getQuantity());
             } else {
                 itemMap.put(key, new PurchaseOrderItemRequestDTO(
@@ -137,6 +144,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 item.setPurchaseOrder(purchaseOrder);
                 item.setBarang(barang);
                 item.setQuantity(itemDTO.getQuantity());
+                item.setTax(pajak);
                 item.setGudangTujuan(gudangDb.findById(itemDTO.getGudangTujuan()) // gaperlu dari dto, bisa juga dari barangnya langsung (asumsi gamau bisa ganti gudang tujuan di po)
                         .orElseThrow(() -> new IllegalArgumentException("Gudang tujuan dengan ID " + itemDTO.getGudangTujuan() + " tidak ditemukan")));
 
@@ -182,12 +190,13 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 purchaseOrder.getId(),
                 purchaseOrder.getCustomer().getId(),
                 purchaseOrder.getPurchaseDate(),
-                invoice,
-                delivery,
-                payment,
                 purchaseOrder.getStatus(),
                 items,
-                receipt
+                purchaseOrder.getTotalPrice(),
+                invoice,
+                delivery,
+                receipt,
+                payment
         );
        
     }
@@ -483,28 +492,32 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             payment = new PurchasePayment();
             payment.setId(generatePaymentId(purchaseOrder.getCustomer().getName()));
             payment.setPurchaseOrder(purchaseOrder);
+            payment.setTotalAmountPayed(BigDecimal.ZERO);
         }
 
         payment.setPaymentDate(paymentDate);
-        payment.setPaymentMethod(request.getPaymentMethod()); // kalo udah partially paid, ini prefilled dari yang udah ada, 
+        payment.setPaymentMethod(request.getPaymentMethod()); // kalo udah partially paid, ini prefilled dari yang udah ada (frontend), 
                                                                 // jadi payment methodnya sama terus
  
-        BigDecimal totalPaid = request.getTotalAmountPayed();
+        BigDecimal additionalPaid = request.getTotalAmountPayed();
         BigDecimal totalPrice = purchaseOrder.getTotalPrice();
+        BigDecimal currentTotalPaid = payment.getTotalAmountPayed();
 
-        if (totalPaid.compareTo(totalPrice) > 0) {
+        BigDecimal newTotalPaid = currentTotalPaid.add(additionalPaid);
+
+        if (newTotalPaid.compareTo(totalPrice) > 0) {
             throw new IllegalArgumentException("Jumlah pembayaran melebihi total harga");
-        } else if (totalPaid.compareTo(totalPrice) == 0) {
+        } else if (newTotalPaid.compareTo(totalPrice) == 0) {
             payment.setPaymentStatus("PAID");
             purchaseOrder.setStatus("PAID");
             purchaseOrder.getInvoice().setInvoiceStatus("PAID");
         } else {
             payment.setPaymentStatus("PARTIALLY PAID");
-            purchaseOrder.setStatus("CONFIRMED"); // Tetap di CONFIRMED sampai lunas
+            purchaseOrder.setStatus("CONFIRMED"); // tetap CONFIRMED hingga lunas
             purchaseOrder.getInvoice().setInvoiceStatus("PARTIALLY PAID");
         }
 
-        payment.setTotalAmountPayed(totalPaid);
+        payment.setTotalAmountPayed(newTotalPaid);
         purchaseOrder.setPayment(payment);
        
 
