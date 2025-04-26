@@ -16,4 +16,7 @@ public class PurchaseInvoiceResponseDTO {
     private LocalDate invoiceDate;
     private String invoiceStatus;
     private BigDecimal totalAmount;
+    private Integer paymentTerms;
+    private LocalDate dueDate;
+    private BigDecimal remainingAmount;
 }

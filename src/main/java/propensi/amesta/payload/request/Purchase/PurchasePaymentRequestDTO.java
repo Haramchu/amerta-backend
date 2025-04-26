@@ -21,9 +21,9 @@ public class PurchasePaymentRequestDTO {
     @NotNull(message = "Metode pembayaran tidak boleh kosong")
     private String paymentMethod;
 
-    @NotNull(message = "Kuantitas barang tidak boleh kosong")
-    @Min(value = 1, message = "Kuantitas barang tidak boleh negatif.")
-    @Digits(integer = Integer.MAX_VALUE, fraction = 0, message = "Kuantitas barang harus merupakan angka yang valid.")
+    @NotNull(message = "Pembayaran tidak boleh kosong")
+    @Min(value = 1, message = "Pembayaran tidak boleh negatif.")
+    @Digits(integer = Integer.MAX_VALUE, fraction = 0, message = "Pembayaran harus merupakan angka yang valid.")
     private BigDecimal totalAmountPayed;
 
 }

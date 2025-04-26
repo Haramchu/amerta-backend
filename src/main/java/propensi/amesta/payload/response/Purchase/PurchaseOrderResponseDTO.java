@@ -19,7 +19,7 @@ public class PurchaseOrderResponseDTO {
     // Invoice (Faktur), untuk Ricky
     private PurchaseInvoiceResponseDTO invoice;
 
-    // Delivery (Pengiriman), untuk Jess
+    // Delivery (Surat Jalan), untuk Jess
     private DeliveryResponseDTO delivery;
 
     private PurchasePaymentResponseDTO payment;
