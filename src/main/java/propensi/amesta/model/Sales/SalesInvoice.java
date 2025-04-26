@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,7 +21,13 @@ public class SalesInvoice {
     @JoinColumn(name = "sales_order_id")
     private SalesOrder salesOrder;
 
+    @NotNull(message = "Tanggal invoice tidak boleh kosong")
     private LocalDate invoiceDate;
-    private BigDecimal amount;
+
+    @NotNull(message = "Status invoice tidak boleh kosong")
+    private String invoiceStatus;
+
+    @NotNull(message = "Biaya invoice tidak boleh kosong")
+    private BigDecimal totalAmount;
 
 }
