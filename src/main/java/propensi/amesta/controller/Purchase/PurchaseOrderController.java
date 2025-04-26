@@ -120,7 +120,7 @@ public class PurchaseOrderController {
         }
     }
 
-    @PutMapping("/confirm-po/{id}")
+    @PutMapping("/confirm/{id}")
     public ResponseEntity<?> confirmPurchaseOrder(@PathVariable String id, 
     @Valid @RequestBody PurchaseOrderInvoiceRequestDTO PoInvoiceRequestDTO, BindingResult bindingResult) {
         BaseResponseDTO<PurchaseOrderResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
@@ -159,7 +159,7 @@ public class PurchaseOrderController {
         
     }
 
-    @PutMapping("/delivery-po/{id}")
+    @PutMapping("/delivery/{id}")
     public ResponseEntity<?> deliverPurchaseOrder(@PathVariable String id, 
     @Valid @RequestBody DeliveryRequestDTO deliveryPoRequestDTO, BindingResult bindingResult) {
         BaseResponseDTO<PurchaseOrderResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
@@ -198,7 +198,7 @@ public class PurchaseOrderController {
         
     }
 
-    @PutMapping("/complete-po/{id}")
+    @PutMapping("/complete/{id}")
     public ResponseEntity<?> deliverPurchaseOrder(@PathVariable String id, BindingResult bindingResult) {
         BaseResponseDTO<PurchaseOrderResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
         
