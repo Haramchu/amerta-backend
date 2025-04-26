@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,8 +24,8 @@ import propensi.amesta.payload.request.Purchase.PurchaseOrderItemRequestDTO;
 import propensi.amesta.payload.request.Purchase.PurchaseOrderRequestDTO;
 import propensi.amesta.payload.response.Purchase.DeliveryResponseDTO;
 import propensi.amesta.payload.response.Purchase.PurchaseInvoiceResponseDTO;
-import propensi.amesta.payload.response.Purchase.PurchaseOrderItemResponseDTO;
 import propensi.amesta.payload.response.Purchase.PurchaseOrderResponseDTO;
+import propensi.amesta.payload.response.Purchase.PurchaseOrderItemResponseDTO;
 import propensi.amesta.payload.response.Purchase.PurchasePaymentResponseDTO;
 import propensi.amesta.repository.CustomerDb;
 import propensi.amesta.repository.Aset.BarangDb;
@@ -140,6 +141,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 item.setPurchaseOrder(purchaseOrder);
                 item.setBarang(barang);
                 item.setQuantity(itemDTO.getQuantity());
+                item.setUnitPrice(unitPrice);
+                item.setSubtotal(itemTotal);
                 item.setGudangTujuan(gudangDb.findById(itemDTO.getGudangTujuan()) // gaperlu dari dto, bisa juga dari barangnya langsung (asumsi gamau bisa ganti gudang tujuan di po)
                         .orElseThrow(() -> new IllegalArgumentException("Gudang tujuan dengan ID " + itemDTO.getGudangTujuan() + " tidak ditemukan")));
 
@@ -174,12 +177,144 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         invoice.setPurchaseOrder(purchaseOrder);
         purchaseOrder.setInvoice(invoice);
 
-        // TODO: PurchaseReceipt (nota pembelian) belum dibuat di tahap ini, dibuat saat sudah update status ke tahap selanjutnya, (untuk Michael :D)
-        // TODO: Faktur pembelian (modelnya belom dibuat) juga belum dibuat di tahap ini, dibuat saat sudah update status ke tahap selanjutnya (setelah nota pembelian), (untuk Ricky :D)
-        // TODO: integrasi dengan model barang nantinya untuk tahap selanjutnya (setelah semua selesai dan barang diterima), tambahin stock ke existing stock barang, correspond dengan gudangnya juga sesuai dengan PO.
-        // TODO: implementasi security di websecurityconfig.
-
         return purchaseOrderToPurchaseOrderResponseDTO(purchaseOrderDb.save(purchaseOrder));
+    }
+
+    @Override
+    public List<PurchaseOrderResponseDTO> getAllPurchaseOrders() {
+        List<PurchaseOrder> purchaseOrders = purchaseOrderDb.findAll();
+        return purchaseOrders.stream()
+            .map(this::purchaseOrderToPurchaseOrderResponseDTO)
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<PurchaseOrderResponseDTO> getPurchaseOrdersWithFilters(
+            LocalDate startDate, LocalDate endDate, String status, UUID supplierId) {
+
+        if (startDate == null && endDate == null && status == null && supplierId == null) {
+            return getAllPurchaseOrders();
+        }
+
+        // Set default date range if not provided
+        if (startDate == null) {
+            startDate = LocalDate.of(2000, 1, 1);
+        }
+        if (endDate == null) {
+            endDate = LocalDate.now().plusYears(10);
+        }
+
+        List<PurchaseOrder> purchaseOrders;
+        if (status != null && supplierId != null) {
+            // Validasi supplier
+            Customer supplier = customerDb.findById(supplierId)
+                    .orElseThrow(() -> new IllegalArgumentException("Supplier tidak ditemukan"));
+            
+            if (!supplier.getRole().equalsIgnoreCase("VENDOR")) {
+                throw new IllegalArgumentException("Customer dengan ID tersebut bukan supplier/vendor");
+            }
+            
+            purchaseOrders = purchaseOrderDb.findByPurchaseDateBetweenAndStatusAndCustomerId(startDate, endDate, status, supplierId);
+        } else if (status != null) {
+            purchaseOrders = purchaseOrderDb.findByPurchaseDateBetweenAndStatus(startDate, endDate, status);
+        } else if (supplierId != null) {
+            // Validasi supplier
+            Customer supplier = customerDb.findById(supplierId)
+                    .orElseThrow(() -> new IllegalArgumentException("Supplier tidak ditemukan"));
+            
+            if (!supplier.getRole().equalsIgnoreCase("VENDOR")) {
+                throw new IllegalArgumentException("Customer dengan ID tersebut bukan supplier/vendor");
+            }
+            
+            purchaseOrders = purchaseOrderDb.findByPurchaseDateBetweenAndCustomerId(startDate, endDate, supplierId);
+        } else {
+            purchaseOrders = purchaseOrderDb.findByPurchaseDateBetween(startDate, endDate);
+        }
+        
+        return purchaseOrders.stream()
+            .map(this::purchaseOrderToPurchaseOrderResponseDTO)
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public PurchaseOrderResponseDTO getPurchaseOrderDetail(String purchaseOrderId) {
+        PurchaseOrder purchaseOrder = purchaseOrderDb.findById(purchaseOrderId)
+        .orElseThrow(() -> new IllegalArgumentException("Purchase order tidak ditemukan"));
+
+        Customer supplier = purchaseOrder.getCustomer();
+        if (supplier == null) {
+            throw new IllegalArgumentException("Data supplier tidak ditemukan");
+        }
+
+        PurchaseOrderResponseDTO detailDTO = new PurchaseOrderResponseDTO();
+        detailDTO.setId(purchaseOrder.getId());
+        detailDTO.setPurchaseDate(purchaseOrder.getPurchaseDate());
+        detailDTO.setStatus(purchaseOrder.getStatus());
+        detailDTO.setSupplierId(supplier.getId());
+        detailDTO.setSupplierName(supplier.getName());
+
+        // Calculate total amount from items
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        List<PurchaseOrderItemDetailDTO> itemDTOs = new ArrayList<>();
+
+        for (PurchaseOrderItem item : purchaseOrder.getItems()) {
+            PurchaseOrderItemDetailDTO itemDTO = new PurchaseOrderItemDetailDTO();
+            itemDTO.setId(item.getId());
+            itemDTO.setBarangId(item.getBarang().getId());
+            itemDTO.setBarangName(item.getBarang().getNama());
+            itemDTO.setQuantity(item.getQuantity());
+            
+            // Handle unit price (might be null in existing data)
+            BigDecimal unitPrice = item.getUnitPrice();
+            if (unitPrice == null) {
+                unitPrice = item.getBarang().getHarga();
+            }
+            itemDTO.setUnitPrice(unitPrice);
+            
+            // Handle subtotal (might be null in existing data)
+            BigDecimal subtotal = item.getSubtotal();
+            if (subtotal == null) {
+                subtotal = unitPrice.multiply(BigDecimal.valueOf(item.getQuantity()));
+            }
+            itemDTO.setSubtotal(subtotal);
+            
+            // Add to total
+            totalAmount = totalAmount.add(subtotal);
+            
+            itemDTO.setGudangTujuan(item.getGudangTujuan().getNama());
+            itemDTOs.add(itemDTO);
+        }
+
+        detailDTO.setItems(itemDTOs);
+        detailDTO.setTotalAmount(totalAmount);
+
+        // Invoice details
+        if (purchaseOrder.getInvoice() != null) {
+            detailDTO.setInvoiceId(purchaseOrder.getInvoice().getId());
+            detailDTO.setInvoiceDate(purchaseOrder.getInvoice().getInvoiceDate());
+            detailDTO.setInvoiceStatus(purchaseOrder.getInvoice().getInvoiceStatus());
+            detailDTO.setInvoiceAmount(purchaseOrder.getInvoice().getTotalAmount());
+        }
+
+        // Delivery details
+        if (purchaseOrder.getDelivery() != null) {
+            detailDTO.setDeliveryId(purchaseOrder.getDelivery().getId());
+            detailDTO.setDeliveryDate(purchaseOrder.getDelivery().getDeliveryDate());
+            detailDTO.setDeliveryStatus(purchaseOrder.getDelivery().getDeliveryStatus());
+            detailDTO.setTrackingNumber(purchaseOrder.getDelivery().getTrackingNumber());
+            detailDTO.setDeliveryFee(purchaseOrder.getDelivery().getDeliveryFee());
+        }
+
+        // Payment details
+        if (purchaseOrder.getPayment() != null) {
+            detailDTO.setPaymentId(purchaseOrder.getPayment().getId());
+            detailDTO.setPaymentDate(purchaseOrder.getPayment().getPaymentDate());
+            detailDTO.setPaymentMethod(purchaseOrder.getPayment().getPaymentMethod());
+            detailDTO.setPaymentStatus(purchaseOrder.getPayment().getPaymentStatus());
+            detailDTO.setAmountPaid(purchaseOrder.getPayment().getTotalAmountPayed());
+        }
+
+        return detailDTO;
     }
 
     private PurchaseOrderResponseDTO purchaseOrderToPurchaseOrderResponseDTO(PurchaseOrder purchaseOrder) {
@@ -335,9 +470,9 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     public String generatePaymentId(String customerName) {
         String prefix = "PAY-";
     
-        String kodeCustomer = customerName.replace(" ", "") .length() >= 3
-            ? customerName.replace(" ", "").substring(0, 3).toUpperCase()
-            : customerName.replace(" ", "").toUpperCase();
+        String kodeCustomer = customerName.length() >= 3
+            ? customerName.substring(0, 3).toUpperCase().replace(" ", "")
+            : customerName.toUpperCase().replace(" ", "");
     
         String monthPart = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("MM"));
         String romanMonth = switch (monthPart) {
@@ -361,5 +496,4 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     
         return prefix + kodeCustomer + "-" + romanMonth + year + "-" + randomPart;
     }
-    
 }
