@@ -82,37 +82,12 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     }
 
     @Override
-    public List<SalesOrderResponseDTO> getAllSalesOrders() {
-        List<SalesOrder> salesOrders = salesOrderDb.findAll();
-        return convertToSalesOrderListDTOs(salesOrders);
-    }
-
-    @Override
-    public List<SalesOrderResponseDTO> getSalesOrdersByDateRange(LocalDate startDate, LocalDate endDate) {
-        List<SalesOrder> salesOrders = salesOrderDb.findByOrderDateBetween(startDate, endDate);
-        return convertToSalesOrderListDTOs(salesOrders);
-    }
-
-    @Override
-    public List<SalesOrderResponseDTO> getSalesOrdersByStatus(String status) {
-        List<SalesOrder> salesOrders = salesOrderDb.findByStatus(status);
-        return convertToSalesOrderListDTOs(salesOrders);
-    }
-
-    @Override
-    public List<SalesOrderResponseDTO> getSalesOrdersByCustomer(UUID customerId) {
-        Customer customer = customerDb.findById(customerId)
-                .orElseThrow(() -> new IllegalArgumentException("Customer tidak ditemukan"));
-        List<SalesOrder> salesOrders = salesOrderDb.findByCustomerId(customer.getId());
-        return convertToSalesOrderListDTOs(salesOrders);
-    }
-
-    @Override
-    public List<SalesOrderResponseDTO> getSalesOrdersWithFilters(
+    public List<SalesOrderResponseDTO> getAllSalesOrders(
             LocalDate startDate, LocalDate endDate, String status, UUID customerId) {
 
         if (startDate == null && endDate == null && status == null && customerId == null) {
-            return getAllSalesOrders();
+            List<SalesOrder> salesOrders = salesOrderDb.findAll();
+            return convertToSalesOrderListDTOs(salesOrders);
         }
 
         if (startDate == null) {

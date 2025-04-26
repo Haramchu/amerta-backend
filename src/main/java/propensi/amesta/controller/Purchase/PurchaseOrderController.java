@@ -75,24 +75,16 @@ public class PurchaseOrderController {
         }
     }
 
-    @GetMapping("/list")
+    @GetMapping("/")
     public ResponseEntity<?> getAllPurchaseOrders(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) UUID supplierId) {
         
-        try {
-            List<PurchaseOrderResponseDTO> purchaseOrders;
-            
-            // Jika semua parameter kosong, ambil semua purchase orders
-            if (startDate == null && endDate == null && status == null && supplierId == null) {
-                purchaseOrders = purchaseOrderService.getAllPurchaseOrders();
-            } else {
-                // Jika ada parameter filter, gunakan metode filter
-                purchaseOrders = purchaseOrderService.getPurchaseOrdersWithFilters(startDate, endDate, status, supplierId);
-            }
-            
+        try {        
+            List<PurchaseOrderResponseDTO> purchaseOrders = purchaseOrderService.getAllPurchaseOrders(startDate, endDate, status, supplierId);
+
             BaseResponseDTO<List<PurchaseOrderResponseDTO>> response = new BaseResponseDTO<>();
             response.setStatus(HttpStatus.OK.value());
             response.setMessage("Daftar purchase order berhasil diambil");

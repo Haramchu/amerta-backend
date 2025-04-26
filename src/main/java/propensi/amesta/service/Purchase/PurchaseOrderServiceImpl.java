@@ -143,7 +143,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 item.setQuantity(itemDTO.getQuantity());
                 item.setUnitPrice(unitPrice);
                 item.setSubtotal(itemTotal);
-                item.setGudangTujuan(gudangDb.findById(itemDTO.getGudangTujuan()) // gaperlu dari dto, bisa juga dari barangnya langsung (asumsi gamau bisa ganti gudang tujuan di po)
+                item.setGudangTujuan(gudangDb.findById(itemDTO.getGudangTujuan())
                         .orElseThrow(() -> new IllegalArgumentException("Gudang tujuan dengan ID " + itemDTO.getGudangTujuan() + " tidak ditemukan")));
 
                 items.add(item);
@@ -181,19 +181,15 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     }
 
     @Override
-    public List<PurchaseOrderResponseDTO> getAllPurchaseOrders() {
-        List<PurchaseOrder> purchaseOrders = purchaseOrderDb.findAll();
-        return purchaseOrders.stream()
-            .map(this::purchaseOrderToPurchaseOrderResponseDTO)
-            .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<PurchaseOrderResponseDTO> getPurchaseOrdersWithFilters(
+    public List<PurchaseOrderResponseDTO> getAllPurchaseOrders(
             LocalDate startDate, LocalDate endDate, String status, UUID supplierId) {
 
+        // If no filters are applied, return all purchase orders
         if (startDate == null && endDate == null && status == null && supplierId == null) {
-            return getAllPurchaseOrders();
+            List<PurchaseOrder> purchaseOrders = purchaseOrderDb.findAll();
+            return purchaseOrders.stream()
+                .map(this::purchaseOrderToPurchaseOrderResponseDTO)
+                .collect(Collectors.toList());
         }
 
         // Set default date range if not provided
@@ -206,7 +202,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
         List<PurchaseOrder> purchaseOrders;
         if (status != null && supplierId != null) {
-            // Validasi supplier
+            // Validate supplier
             Customer supplier = customerDb.findById(supplierId)
                     .orElseThrow(() -> new IllegalArgumentException("Supplier tidak ditemukan"));
             
@@ -218,7 +214,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         } else if (status != null) {
             purchaseOrders = purchaseOrderDb.findByPurchaseDateBetweenAndStatus(startDate, endDate, status);
         } else if (supplierId != null) {
-            // Validasi supplier
+            // Validate supplier
             Customer supplier = customerDb.findById(supplierId)
                     .orElseThrow(() -> new IllegalArgumentException("Supplier tidak ditemukan"));
             
@@ -245,76 +241,67 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         if (supplier == null) {
             throw new IllegalArgumentException("Data supplier tidak ditemukan");
         }
-
-        PurchaseOrderResponseDTO detailDTO = new PurchaseOrderResponseDTO();
-        detailDTO.setId(purchaseOrder.getId());
-        detailDTO.setPurchaseDate(purchaseOrder.getPurchaseDate());
-        detailDTO.setStatus(purchaseOrder.getStatus());
-        detailDTO.setSupplierId(supplier.getId());
-        detailDTO.setSupplierName(supplier.getName());
-
-        // Calculate total amount from items
-        BigDecimal totalAmount = BigDecimal.ZERO;
-        List<PurchaseOrderItemDetailDTO> itemDTOs = new ArrayList<>();
-
+        
+        // Create main response DTO
+        PurchaseOrderResponseDTO responseDTO = new PurchaseOrderResponseDTO();
+        responseDTO.setId(purchaseOrder.getId());
+        responseDTO.setCustomerId(supplier.getId());
+        responseDTO.setPurchaseDate(purchaseOrder.getPurchaseDate());
+        responseDTO.setStatus(purchaseOrder.getStatus());
+        
+        // Create invoice DTO
+        if (purchaseOrder.getInvoice() != null) {
+            PurchaseInvoiceResponseDTO invoiceDTO = new PurchaseInvoiceResponseDTO(
+                purchaseOrder.getInvoice().getId(),
+                purchaseOrder.getId(),
+                purchaseOrder.getInvoice().getInvoiceDate(),
+                purchaseOrder.getInvoice().getInvoiceStatus(),
+                purchaseOrder.getInvoice().getTotalAmount()
+            );
+            responseDTO.setInvoice(invoiceDTO);
+        }
+        
+        // Create delivery DTO
+        if (purchaseOrder.getDelivery() != null) {
+            DeliveryResponseDTO deliveryDTO = new DeliveryResponseDTO(
+                purchaseOrder.getDelivery().getId(),
+                purchaseOrder.getId(),
+                purchaseOrder.getDelivery().getDeliveryDate(),
+                purchaseOrder.getDelivery().getDeliveryStatus(),
+                purchaseOrder.getDelivery().getTrackingNumber(),
+                purchaseOrder.getDelivery().getDeliveryFee()
+            );
+            responseDTO.setDelivery(deliveryDTO);
+        }
+        
+        // Create payment DTO
+        if (purchaseOrder.getPayment() != null) {
+            PurchasePaymentResponseDTO paymentDTO = new PurchasePaymentResponseDTO(
+                purchaseOrder.getPayment().getId(),
+                purchaseOrder.getId(),
+                purchaseOrder.getPayment().getPaymentDate(),
+                purchaseOrder.getPayment().getPaymentMethod(),
+                purchaseOrder.getPayment().getPaymentStatus(),
+                purchaseOrder.getPayment().getTotalAmountPayed()
+            );
+            responseDTO.setPayment(paymentDTO);
+        }
+        
+        // Create items DTO list
+        List<PurchaseOrderItemResponseDTO> itemDTOs = new ArrayList<>();
         for (PurchaseOrderItem item : purchaseOrder.getItems()) {
-            PurchaseOrderItemDetailDTO itemDTO = new PurchaseOrderItemDetailDTO();
-            itemDTO.setId(item.getId());
-            itemDTO.setBarangId(item.getBarang().getId());
-            itemDTO.setBarangName(item.getBarang().getNama());
-            itemDTO.setQuantity(item.getQuantity());
-            
-            // Handle unit price (might be null in existing data)
-            BigDecimal unitPrice = item.getUnitPrice();
-            if (unitPrice == null) {
-                unitPrice = item.getBarang().getHarga();
-            }
-            itemDTO.setUnitPrice(unitPrice);
-            
-            // Handle subtotal (might be null in existing data)
-            BigDecimal subtotal = item.getSubtotal();
-            if (subtotal == null) {
-                subtotal = unitPrice.multiply(BigDecimal.valueOf(item.getQuantity()));
-            }
-            itemDTO.setSubtotal(subtotal);
-            
-            // Add to total
-            totalAmount = totalAmount.add(subtotal);
-            
-            itemDTO.setGudangTujuan(item.getGudangTujuan().getNama());
+            PurchaseOrderItemResponseDTO itemDTO = new PurchaseOrderItemResponseDTO(
+                item.getId(),
+                purchaseOrder.getId(),
+                item.getBarang().getId(),
+                item.getQuantity(),
+                item.getGudangTujuan().getNama()
+            );
             itemDTOs.add(itemDTO);
         }
-
-        detailDTO.setItems(itemDTOs);
-        detailDTO.setTotalAmount(totalAmount);
-
-        // Invoice details
-        if (purchaseOrder.getInvoice() != null) {
-            detailDTO.setInvoiceId(purchaseOrder.getInvoice().getId());
-            detailDTO.setInvoiceDate(purchaseOrder.getInvoice().getInvoiceDate());
-            detailDTO.setInvoiceStatus(purchaseOrder.getInvoice().getInvoiceStatus());
-            detailDTO.setInvoiceAmount(purchaseOrder.getInvoice().getTotalAmount());
-        }
-
-        // Delivery details
-        if (purchaseOrder.getDelivery() != null) {
-            detailDTO.setDeliveryId(purchaseOrder.getDelivery().getId());
-            detailDTO.setDeliveryDate(purchaseOrder.getDelivery().getDeliveryDate());
-            detailDTO.setDeliveryStatus(purchaseOrder.getDelivery().getDeliveryStatus());
-            detailDTO.setTrackingNumber(purchaseOrder.getDelivery().getTrackingNumber());
-            detailDTO.setDeliveryFee(purchaseOrder.getDelivery().getDeliveryFee());
-        }
-
-        // Payment details
-        if (purchaseOrder.getPayment() != null) {
-            detailDTO.setPaymentId(purchaseOrder.getPayment().getId());
-            detailDTO.setPaymentDate(purchaseOrder.getPayment().getPaymentDate());
-            detailDTO.setPaymentMethod(purchaseOrder.getPayment().getPaymentMethod());
-            detailDTO.setPaymentStatus(purchaseOrder.getPayment().getPaymentStatus());
-            detailDTO.setAmountPaid(purchaseOrder.getPayment().getTotalAmountPayed());
-        }
-
-        return detailDTO;
+        responseDTO.setItems(itemDTOs);
+        
+        return responseDTO;
     }
 
     private PurchaseOrderResponseDTO purchaseOrderToPurchaseOrderResponseDTO(PurchaseOrder purchaseOrder) {
@@ -359,7 +346,6 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 purchaseOrderItem.getBarang().getId(),
                 purchaseOrderItem.getQuantity(),
                 purchaseOrderItem.getGudangTujuan().getNama()
-
         );
     }
 
@@ -384,7 +370,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         );
     }
     
-    public String generateTrackingNumber(List<PurchaseOrderItem> items) {
+    private String generateTrackingNumber(List<PurchaseOrderItem> items) {
         // Format: UUID-XXX-Y, di mana UUID adalah 6 karakter acak, XXX adalah 3 huruf pertama dari nama barang, dan Y adalah 1 digit angka 
         String uuidPart = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         StringBuilder trackingNumber = new StringBuilder(uuidPart);
@@ -396,7 +382,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         return trackingNumber.toString();
     }
 
-    public String generatePoId(){
+    private String generatePoId(){
         String id = "PO-";
         String datePart = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd"))
         .replace("-01-", "-I-")
@@ -442,7 +428,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         return invoiceId;
     }
 
-    public String generateDeliveryId(List<PurchaseOrderItem> items) {
+    private String generateDeliveryId(List<PurchaseOrderItem> items) {
         String prefix = "DEL-";
     
         String namaBarang = items.get(0).getBarang().getNama();
@@ -467,7 +453,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         return prefix + kodeBarang + "-" + tanggal + "-" + randomPart;
     }
 
-    public String generatePaymentId(String customerName) {
+    private String generatePaymentId(String customerName) {
         String prefix = "PAY-";
     
         String kodeCustomer = customerName.length() >= 3

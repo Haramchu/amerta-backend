@@ -9,8 +9,6 @@ import propensi.amesta.payload.response.Purchase.PurchaseOrderResponseDTO;
 
 public interface PurchaseOrderService {
     PurchaseOrderResponseDTO addPurchaseOrder(PurchaseOrderRequestDTO request);
-
-    List<PurchaseOrderResponseDTO> getAllPurchaseOrders();
-    List<PurchaseOrderResponseDTO> getPurchaseOrdersWithFilters(LocalDate startDate, LocalDate endDate, String status, UUID supplierId);
+    List<PurchaseOrderResponseDTO> getAllPurchaseOrders(LocalDate startDate, LocalDate endDate, String status, UUID supplierId);
     PurchaseOrderResponseDTO getPurchaseOrderDetail(String purchaseOrderId);
 }

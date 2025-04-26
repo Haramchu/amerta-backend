@@ -1,4 +1,4 @@
-package propensi.amesta.controller;
+package propensi.amesta.controller.Sales;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -60,28 +60,6 @@ public class SalesController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<BaseResponseDTO<List<SalesOrderResponseDTO>>> getAllSalesOrders() {
-        try {
-            List<SalesOrderResponseDTO> salesOrders = salesOrderService.getAllSalesOrders();
-            
-            BaseResponseDTO<List<SalesOrderResponseDTO>> response = new BaseResponseDTO<List<SalesOrderResponseDTO>>();
-            response.setStatus(HttpStatus.OK.value());
-            response.setMessage("Daftar sales order berhasil diambil");
-            response.setTimestamp(new Date());
-            response.setData(salesOrders);
-            
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            BaseResponseDTO<List<SalesOrderResponseDTO>> errorResponse = new BaseResponseDTO<List<SalesOrderResponseDTO>>();
-            errorResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            errorResponse.setMessage("Terjadi kesalahan saat mengambil daftar sales order: " + e.getMessage());
-            errorResponse.setTimestamp(new Date());
-            errorResponse.setData(null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
-    }
-
-    @GetMapping("/filter")
     public ResponseEntity<BaseResponseDTO<List<SalesOrderResponseDTO>>> getSalesOrdersWithFilters(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
@@ -89,7 +67,7 @@ public class SalesController {
             @RequestParam(required = false) UUID customerId) {
         
         try {
-            List<SalesOrderResponseDTO> salesOrders = salesOrderService.getSalesOrdersWithFilters(
+            List<SalesOrderResponseDTO> salesOrders = salesOrderService.getAllSalesOrders(
                     startDate, endDate, status, customerId);
             
             BaseResponseDTO<List<SalesOrderResponseDTO>> response = new BaseResponseDTO<List<SalesOrderResponseDTO>>();

@@ -10,10 +10,6 @@ import propensi.amesta.payload.response.Sales.SalesOrderResponseDTO;
 
 public interface SalesOrderService {
     SalesOrderResponseDTO addSalesOrder(SalesOrderRequestDTO request);
-    List<SalesOrderResponseDTO> getAllSalesOrders();
-    List<SalesOrderResponseDTO> getSalesOrdersByDateRange(LocalDate startDate, LocalDate endDate);
-    List<SalesOrderResponseDTO> getSalesOrdersByStatus(String status);
-    List<SalesOrderResponseDTO> getSalesOrdersByCustomer(UUID customerId);
-    List<SalesOrderResponseDTO> getSalesOrdersWithFilters(LocalDate startDate, LocalDate endDate, String status, UUID customerId);
+    List<SalesOrderResponseDTO> getAllSalesOrders(LocalDate startDate, LocalDate endDate, String status, UUID customerId);
     SalesOrderDetailDTO getSalesOrderDetail(String salesOrderId);
 }
