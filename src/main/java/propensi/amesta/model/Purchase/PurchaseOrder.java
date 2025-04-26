@@ -43,4 +43,7 @@ public class PurchaseOrder {
 
     @OneToMany(mappedBy = "purchaseOrder", cascade = CascadeType.ALL)
     private List<PurchaseOrderItem> items;
+
+    @NotNull(message = "Total harga tidak boleh kosong")
+    private BigDecimal totalPrice;
 }

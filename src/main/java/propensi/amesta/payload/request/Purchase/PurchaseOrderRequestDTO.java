@@ -15,8 +15,8 @@ import lombok.NoArgsConstructor;
 @Data
 public class PurchaseOrderRequestDTO {
     
-    @NotNull(message = "Tanggal invoice harus diisi")
-    private LocalDate invoiceDate; // untuk PurchaseInvoice
+    // @NotNull(message = "Tanggal invoice harus diisi")
+    // private LocalDate invoiceDate; // untuk PurchaseInvoice
 
     @NotNull(message = "Tanggal pembelian harus diisi")
     private LocalDate purchaseDate;
@@ -37,11 +37,11 @@ public class PurchaseOrderRequestDTO {
         return true;
     }
 
-    @NotNull(message = "Detail pembayaran tidak boleh kosong")
-    private PurchasePaymentRequestDTO payment; // untuk PurchasePayment
+    // @NotNull(message = "Detail pembayaran tidak boleh kosong")
+    // private PurchasePaymentRequestDTO payment; // untuk PurchasePayment
 
-    @NotNull(message = "Detail pengiriman tidak boleh kosong")
-    private DeliveryRequestDTO delivery; // untuk Delivery
+    // @NotNull(message = "Detail pengiriman tidak boleh kosong")
+    // private DeliveryRequestDTO delivery; // untuk Delivery
     
     // PurchaseReceipt data diambil dari sini.
 }
