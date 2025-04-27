@@ -19,7 +19,7 @@ public class PurchaseOrderRequestDTO {
     private LocalDate purchaseDate;
 
     @NotNull(message = "Customer ID tidak boleh kosong")
-    private UUID customerId; // untuk Customer
+    private UUID customerId;
 
     @NotNull(message = "List barang tidak boleh kosong")
     private List<PurchaseOrderItemRequestDTO> items;

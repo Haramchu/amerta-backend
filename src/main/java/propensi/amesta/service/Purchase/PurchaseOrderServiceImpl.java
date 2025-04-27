@@ -128,7 +128,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 Barang barang = barangDb.findById(itemDTO.getBarangId())
                         .orElseThrow(() -> new IllegalArgumentException("Barang dengan ID " + itemDTO.getBarangId() + " tidak ditemukan"));
 
-                BigDecimal unitPrice = barang.getHarga();
+                BigDecimal unitPrice = barang.getHargaBeli(); // harga beli barang
                 BigDecimal itemTotal = unitPrice.multiply(BigDecimal.valueOf(itemDTO.getQuantity()));
                 Integer pajak = itemDTO.getPajak(); // pajak dalam persen
                 if (pajak == 0) {

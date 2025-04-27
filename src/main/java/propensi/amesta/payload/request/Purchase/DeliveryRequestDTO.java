@@ -16,8 +16,7 @@ public class DeliveryRequestDTO {
     private LocalDate deliveryDate;
 
     @NotNull(message = "Biaya pengiriman tidak boleh kosong")
-    @Digits(integer = Integer.MAX_VALUE, fraction = 0, message = "Biaya pengiriman harus merupakan bilangan bulat yang valid")
-    @Min(value = 0, message = "Biaya pengiriman tidak boleh negatif")
+    @DecimalMin(value = "0", message = "Biaya pengiriman minimal 0") // boleh gratis ongkir
     private BigDecimal deliveryFee;
 
 }

@@ -3,8 +3,7 @@ package propensi.amesta.payload.request.Purchase;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import jakarta.validation.constraints.Digits;
-import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,8 +21,7 @@ public class PurchasePaymentRequestDTO {
     private String paymentMethod;
 
     @NotNull(message = "Pembayaran tidak boleh kosong")
-    @Min(value = 1, message = "Pembayaran tidak boleh negatif.")
-    @Digits(integer = Integer.MAX_VALUE, fraction = 0, message = "Pembayaran harus merupakan angka yang valid.")
+    @DecimalMin(value = "1.0", message = "Pembayaran minimal 1.")
     private BigDecimal totalAmountPayed;
 
 }
