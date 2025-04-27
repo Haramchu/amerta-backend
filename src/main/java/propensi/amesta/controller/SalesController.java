@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import propensi.amesta.payload.request.Sales.SalesOrderRequestDTO;
 import propensi.amesta.payload.response.BaseResponseDTO;
-import propensi.amesta.payload.response.SalesOrderResponseDTO;
+import propensi.amesta.payload.response.Sales.SalesOrderResponseDTO;
 import propensi.amesta.service.SalesOrderService;
 
 import java.util.Date;

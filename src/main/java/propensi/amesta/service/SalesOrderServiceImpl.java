@@ -11,7 +11,7 @@ import propensi.amesta.model.Sales.SalesOrder;
 import propensi.amesta.model.Sales.SalesOrderItem;
 import propensi.amesta.payload.request.Sales.SalesOrderItemRequestDTO;
 import propensi.amesta.payload.request.Sales.SalesOrderRequestDTO;
-import propensi.amesta.payload.response.SalesOrderResponseDTO;
+import propensi.amesta.payload.response.Sales.SalesOrderResponseDTO;
 import propensi.amesta.repository.Aset.BarangDb;
 import propensi.amesta.repository.CustomerDb;
 import propensi.amesta.repository.Sales.SalesOrderDb;
