@@ -61,7 +61,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     @Override
     public PurchaseOrderResponseDTO addPurchaseOrder(PurchaseOrderRequestDTO request) {
         // Validasi customer ada atau tidak, jika ada cek apakah vendor atau tidak
-         Customer customer = customerDb.findById(request.getCustomerId())
+        Customer customer = customerDb.findById(request.getCustomerId())
                 .orElseThrow(() -> new IllegalArgumentException("Customer tidak ditemukan"));
 
         if (!customer.getRole().equalsIgnoreCase("VENDOR")){
@@ -114,7 +114,6 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         List<PurchaseOrderItemRequestDTO> consolidatedItems = new ArrayList<>(itemMap.values());
         request.setItems(consolidatedItems);
 
-
         // Validasi gudang tujuan harus ada
         for (PurchaseOrderItemRequestDTO item : request.getItems()) {
             gudangDb.findById(item.getGudangTujuan())
@@ -138,8 +137,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 Integer pajak = itemDTO.getPajak(); // pajak dalam persen
                 if (pajak == 0) {
                     total = total.add(itemTotal);
-                }
-                else{
+                } else {
                     BigDecimal pajakValue = itemTotal.multiply(BigDecimal.valueOf(pajak)).divide(BigDecimal.valueOf(100));
                     total = total.add(itemTotal.add(pajakValue));
                 }
@@ -150,9 +148,6 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 item.setBarang(barang);
                 item.setQuantity(itemDTO.getQuantity());
                 item.setTax(pajak);
-                item.setGudangTujuan(gudangDb.findById(itemDTO.getGudangTujuan()) // gaperlu dari dto, bisa juga dari barangnya langsung (asumsi gamau bisa ganti gudang tujuan di po)
-                item.setUnitPrice(unitPrice);
-                item.setSubtotal(itemTotal);
                 item.setGudangTujuan(gudangDb.findById(itemDTO.getGudangTujuan())
                         .orElseThrow(() -> new IllegalArgumentException("Gudang tujuan dengan ID " + itemDTO.getGudangTujuan() + " tidak ditemukan")));
 
@@ -164,31 +159,31 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
         // TODO: implementasi security di websecurityconfig!!!!!!!!!!!
 
-        PurchasePayment payment = new PurchasePayment();
-        payment.setId(generatePaymentId(customer.getName()));
-        payment.setPaymentDate(paymentDate);
-        payment.setTotalAmountPayed(BigDecimal.valueOf(0)); // Belum ada total amount payed di tahap ini, karena belum ada pembayaran
-        payment.setPaymentMethod(request.getPayment().getPaymentMethod());
-        payment.setPaymentStatus("UNPAID"); // UNPAID, PAID, REFUNDED,
-        payment.setPurchaseOrder(purchaseOrder);
-        purchaseOrder.setPayment(payment);
+        // PurchasePayment payment = new PurchasePayment();
+        // payment.setId(generatePaymentId(customer.getName()));
+        // payment.setPaymentDate(paymentDate);
+        // payment.setTotalAmountPayed(BigDecimal.valueOf(0)); // Belum ada total amount payed di tahap ini, karena belum ada pembayaran
+        // payment.setPaymentMethod(request.getPayment().getPaymentMethod());
+        // payment.setPaymentStatus("UNPAID"); // UNPAID, PAID, REFUNDED,
+        // payment.setPurchaseOrder(purchaseOrder);
+        // purchaseOrder.setPayment(payment);
 
-        Delivery delivery = new Delivery();
-        delivery.setId(generateDeliveryId(items)); // ID = UUID
-        delivery.setDeliveryDate(deliveryDate);
-        delivery.setDeliveryStatus("PENDING"); // PENDING, IN_PROGRESS, DELIVERED, CANCELLED
-        delivery.setTrackingNumber(generateTrackingNumber(items));
-        delivery.setDeliveryFee(request.getDelivery().getDeliveryFee());
-        delivery.setPurchaseOrder(purchaseOrder);
-        purchaseOrder.setDelivery(delivery);
+        // Delivery delivery = new Delivery();
+        // delivery.setId(generateDeliveryId(items)); // ID = UUID
+        // delivery.setDeliveryDate(deliveryDate);
+        // delivery.setDeliveryStatus("PENDING"); // PENDING, IN_PROGRESS, DELIVERED, CANCELLED
+        // delivery.setTrackingNumber(generateTrackingNumber(items));
+        // delivery.setDeliveryFee(request.getDelivery().getDeliveryFee());
+        // delivery.setPurchaseOrder(purchaseOrder);
+        // purchaseOrder.setDelivery(delivery);
 
-        PurchaseInvoice invoice = new PurchaseInvoice();
-        invoice.setId(generateInvoiceId());
-        invoice.setInvoiceDate(invoiceDate);
-        invoice.setInvoiceStatus("DRAFT"); // DRAFT,ISSUED, PAID
-        invoice.setTotalAmount(total);
-        invoice.setPurchaseOrder(purchaseOrder);
-        purchaseOrder.setInvoice(invoice);
+        // PurchaseInvoice invoice = new PurchaseInvoice();
+        // invoice.setId(generateInvoiceId());
+        // invoice.setInvoiceDate(invoiceDate);
+        // invoice.setInvoiceStatus("DRAFT"); // DRAFT,ISSUED, PAID
+        // invoice.setTotalAmount(total);
+        // invoice.setPurchaseOrder(purchaseOrder);
+        // purchaseOrder.setInvoice(invoice);
 
         return purchaseOrderToPurchaseOrderResponseDTO(purchaseOrderDb.save(purchaseOrder));
     }
@@ -202,7 +197,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             List<PurchaseOrder> purchaseOrders = purchaseOrderDb.findAll();
             return purchaseOrders.stream()
                 .map(this::purchaseOrderToPurchaseOrderResponseDTO)
-                .collect(Collectors.toList());
+                .toList();
         }
 
         // Set default date range if not provided
@@ -242,79 +237,15 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         
         return purchaseOrders.stream()
             .map(this::purchaseOrderToPurchaseOrderResponseDTO)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Override
     public PurchaseOrderResponseDTO getPurchaseOrderById(String id) {
         PurchaseOrder purchaseOrder = purchaseOrderDb.findById(id)
-        .orElseThrow(() -> new IllegalArgumentException("Purchase order tidak ditemukan"));
+            .orElseThrow(() -> new IllegalArgumentException("Purchase order tidak ditemukan"));
 
-        Customer supplier = purchaseOrder.getCustomer();
-        if (supplier == null) {
-            throw new IllegalArgumentException("Data supplier tidak ditemukan");
-        }
-        
-        // Create main response DTO
-        PurchaseOrderResponseDTO responseDTO = new PurchaseOrderResponseDTO();
-        responseDTO.setId(purchaseOrder.getId());
-        responseDTO.setCustomerId(supplier.getId());
-        responseDTO.setPurchaseDate(purchaseOrder.getPurchaseDate());
-        responseDTO.setStatus(purchaseOrder.getStatus());
-        
-        // Create invoice DTO
-        if (purchaseOrder.getInvoice() != null) {
-            PurchaseInvoiceResponseDTO invoiceDTO = new PurchaseInvoiceResponseDTO(
-                purchaseOrder.getInvoice().getId(),
-                purchaseOrder.getId(),
-                purchaseOrder.getInvoice().getInvoiceDate(),
-                purchaseOrder.getInvoice().getInvoiceStatus(),
-                purchaseOrder.getInvoice().getTotalAmount()
-            );
-            responseDTO.setInvoice(invoiceDTO);
-        }
-        
-        // Create delivery DTO
-        if (purchaseOrder.getDelivery() != null) {
-            DeliveryResponseDTO deliveryDTO = new DeliveryResponseDTO(
-                purchaseOrder.getDelivery().getId(),
-                purchaseOrder.getId(),
-                purchaseOrder.getDelivery().getDeliveryDate(),
-                purchaseOrder.getDelivery().getDeliveryStatus(),
-                purchaseOrder.getDelivery().getTrackingNumber(),
-                purchaseOrder.getDelivery().getDeliveryFee()
-            );
-            responseDTO.setDelivery(deliveryDTO);
-        }
-        
-        // Create payment DTO
-        if (purchaseOrder.getPayment() != null) {
-            PurchasePaymentResponseDTO paymentDTO = new PurchasePaymentResponseDTO(
-                purchaseOrder.getPayment().getId(),
-                purchaseOrder.getId(),
-                purchaseOrder.getPayment().getPaymentDate(),
-                purchaseOrder.getPayment().getPaymentMethod(),
-                purchaseOrder.getPayment().getPaymentStatus(),
-                purchaseOrder.getPayment().getTotalAmountPayed()
-            );
-            responseDTO.setPayment(paymentDTO);
-        }
-        
-        // Create items DTO list
-        List<PurchaseOrderItemResponseDTO> itemDTOs = new ArrayList<>();
-        for (PurchaseOrderItem item : purchaseOrder.getItems()) {
-            PurchaseOrderItemResponseDTO itemDTO = new PurchaseOrderItemResponseDTO(
-                item.getId(),
-                purchaseOrder.getId(),
-                item.getBarang().getId(),
-                item.getQuantity(),
-                item.getGudangTujuan().getNama()
-            );
-            itemDTOs.add(itemDTO);
-        }
-        responseDTO.setItems(itemDTOs);
-        
-        return responseDTO;
+        return purchaseOrderToPurchaseOrderResponseDTO(purchaseOrder);
     }
 
     private PurchaseOrderResponseDTO purchaseOrderToPurchaseOrderResponseDTO(PurchaseOrder purchaseOrder) {

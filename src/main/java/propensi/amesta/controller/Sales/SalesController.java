@@ -22,7 +22,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/sales-order")
-@RequiredArgsConstructor
 public class SalesController {
 
     @Autowired
@@ -70,24 +69,24 @@ public class SalesController {
             List<SalesOrderResponseDTO> salesOrders = salesOrderService.getAllSalesOrders(
                     startDate, endDate, status, customerId);
             
-            BaseResponseDTO<List<SalesOrderResponseDTO>> response = new BaseResponseDTO<List<SalesOrderResponseDTO>>();
+            BaseResponseDTO<List<SalesOrderResponseDTO>> response = new BaseResponseDTO<>();
             response.setStatus(HttpStatus.OK.value());
-            response.setMessage("Daftar sales order berhasil difilter");
+            response.setMessage("Daftar sales order berhasil diambil");
             response.setTimestamp(new Date());
             response.setData(salesOrders);
             
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            BaseResponseDTO<List<SalesOrderResponseDTO>> errorResponse = new BaseResponseDTO<List<SalesOrderResponseDTO>>();
+            BaseResponseDTO<List<SalesOrderResponseDTO>> errorResponse = new BaseResponseDTO<>();
             errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
             errorResponse.setMessage(e.getMessage());
             errorResponse.setTimestamp(new Date());
             errorResponse.setData(null);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         } catch (Exception e) {
-            BaseResponseDTO<List<SalesOrderResponseDTO>> errorResponse = new BaseResponseDTO<List<SalesOrderResponseDTO>>();
+            BaseResponseDTO<List<SalesOrderResponseDTO>> errorResponse = new BaseResponseDTO<>();
             errorResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            errorResponse.setMessage("Terjadi kesalahan saat memfilter daftar sales order: " + e.getMessage());
+            errorResponse.setMessage("Terjadi kesalahan saat mengambil daftar sales order: " + e.getMessage());
             errorResponse.setTimestamp(new Date());
             errorResponse.setData(null);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
@@ -95,11 +94,11 @@ public class SalesController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BaseResponseDTO<SalesOrderDetailDTO>> getSalesOrderDetail(@PathVariable String id) {
+    public ResponseEntity<BaseResponseDTO<SalesOrderDetailDTO>> getSalesOrderById(@PathVariable String id) {
         try {
-            SalesOrderDetailDTO salesOrderDetail = salesOrderService.getSalesOrderDetail(id);
+            SalesOrderDetailDTO salesOrderDetail = salesOrderService.getSalesOrderById(id);
             
-            BaseResponseDTO<SalesOrderDetailDTO> response = new BaseResponseDTO<SalesOrderDetailDTO>();
+            BaseResponseDTO<SalesOrderDetailDTO> response = new BaseResponseDTO<>();
             response.setStatus(HttpStatus.OK.value());
             response.setMessage("Detail sales order berhasil diambil");
             response.setTimestamp(new Date());
@@ -107,14 +106,14 @@ public class SalesController {
             
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            BaseResponseDTO<SalesOrderDetailDTO> errorResponse = new BaseResponseDTO<SalesOrderDetailDTO>();
+            BaseResponseDTO<SalesOrderDetailDTO> errorResponse = new BaseResponseDTO<>();
             errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
             errorResponse.setMessage(e.getMessage());
             errorResponse.setTimestamp(new Date());
             errorResponse.setData(null);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         } catch (Exception e) {
-            BaseResponseDTO<SalesOrderDetailDTO> errorResponse = new BaseResponseDTO<SalesOrderDetailDTO>();
+            BaseResponseDTO<SalesOrderDetailDTO> errorResponse = new BaseResponseDTO<>();
             errorResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
             errorResponse.setMessage("Terjadi kesalahan saat mengambil detail sales order: " + e.getMessage());
             errorResponse.setTimestamp(new Date());

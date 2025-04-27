@@ -53,7 +53,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             Barang barang = barangDb.findById(itemDTO.getBarangId())
                     .orElseThrow(() -> new IllegalArgumentException("Barang dengan ID " + itemDTO.getBarangId() + " tidak ditemukan"));
 
-            BigDecimal unitPrice = barang.getHarga();
+            BigDecimal unitPrice = barang.getHargaJual();
             BigDecimal itemTotal = unitPrice.multiply(BigDecimal.valueOf(itemDTO.getQuantity()));
             total = total.add(itemTotal);
 
@@ -76,7 +76,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         response.setId(salesOrder.getId());
         response.setCustomerId(customer.getId());
         response.setOrderDate(salesOrder.getOrderDate());
-        response.setStatus(salesOrder.getStatus());
+        response.setStatus(salesOrder.getStatus().getStatus());
         response.setTotalPrice(total);
 
         return response;
@@ -113,7 +113,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     }
 
     @Override
-    public SalesOrderDetailDTO getSalesOrderDetail(String salesOrderId) {
+    public SalesOrderDetailDTO getSalesOrderById(String salesOrderId) {
         SalesOrder salesOrder = salesOrderDb.findById(salesOrderId)
                 .orElseThrow(() -> new IllegalArgumentException("Sales order tidak ditemukan"));
         
@@ -125,7 +125,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         SalesOrderDetailDTO detailDTO = new SalesOrderDetailDTO();
         detailDTO.setId(salesOrder.getId());
         detailDTO.setOrderDate(salesOrder.getOrderDate());
-        detailDTO.setStatus(salesOrder.getStatus().getStatus());
+        detailDTO.setStatus(salesOrder.getStatusAsString());
         detailDTO.setCustomerId(customer.getId().toString());
         detailDTO.setCustomerName(customer.getName());
         detailDTO.setTotalPrice(salesOrder.getTotalPrice());
@@ -157,7 +157,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             dto.setId(order.getId());
             dto.setCustomerId(customer.getId());
             dto.setOrderDate(order.getOrderDate());
-            dto.setStatus(order.getStatus().getStatus());
+            dto.setStatus(order.getStatusAsString());
             dto.setTotalPrice(order.getTotalPrice());
             return dto;
         }).collect(Collectors.toList());

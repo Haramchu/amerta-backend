@@ -62,17 +62,14 @@ public class WebSecurityConfig {
                 
                 // TODO: implement security untuk add customer.
 
-                .requestMatchers("/api/purchase-order/add").hasAnyAuthority("direktur", "sales", "general_manager", "administrasi")
-                .requestMatchers("/api/purchase-order/viewall").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/purchase-order/").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
                 .requestMatchers("/api/purchase-order/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/purchase-order/add").hasAnyAuthority("direktur", "sales", "general_manager", "administrasi")
                 .requestMatchers("/api/purchase-order/confirm/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
                 .requestMatchers("/api/purchase-order/payment/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
                 .requestMatchers("/api/purchase-order/delivery/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
                 .requestMatchers("/api/purchase-order/complete/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
 
-                .requestMatchers("/api/sales-order/").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
-                .requestMatchers("/api/sales-order/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
-                .requestMatchers("/api/sales-order/add").hasAnyAuthority("direktur", "sales", "administrasi")
                 .requestMatchers("/api/sales-order/").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
                 .requestMatchers("/api/sales-order/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
                 .requestMatchers("/api/sales-order/add").hasAnyAuthority("direktur", "sales", "administrasi")
