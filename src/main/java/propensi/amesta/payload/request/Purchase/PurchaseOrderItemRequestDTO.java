@@ -21,5 +21,11 @@ public class PurchaseOrderItemRequestDTO {
     private Integer quantity;
 
     @NotEmpty(message = "Gudang tujuan tidak boleh kosong")
-    private String gudangTujuan; // mungkin tidak perlu, bisa diambil dari objek barang. bisa dipake jika kita mau ganti gudang tujuan secara langsung di po.
+    private String gudangTujuan;
+
+    @NotNull(message = "Pajak tidak boleh kosong")
+    @Min(value = 0, message = "Pajak tidak boleh negatif.")
+    @Digits(integer = Integer.MAX_VALUE, fraction = 2, message = "Pajak harus merupakan angka yang valid dengan maksimal 2 angka di belakang koma.")
+    private Integer pajak;
+
 }

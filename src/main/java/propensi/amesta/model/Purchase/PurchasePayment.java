@@ -2,12 +2,18 @@ package propensi.amesta.model.Purchase;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.UUID;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import propensi.amesta.enums.Purchase.PaymentStatus;
 
 @Setter
 @Getter
@@ -29,9 +35,20 @@ public class PurchasePayment {
     private String paymentMethod;
 
     @NotNull(message = "Status pembayaran tidak boleh kosong") 
-    private String paymentStatus;
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus paymentStatus;
 
     @NotNull(message = "Biaya pembayaran tidak boleh kosong")
     private BigDecimal totalAmountPayed;
 
+    public void setPaymentStatusFromString(String statusStr) {
+        this.paymentStatus = PaymentStatus.fromString(statusStr);
+        if (this.paymentStatus == null) {
+            throw new IllegalArgumentException("Status pembayaran tidak valid: " + statusStr);
+        }
+    }
+
+    public String getPaymentStatusAsString() {
+        return paymentStatus != null ? paymentStatus.getStatus() : null;
+    }
 }

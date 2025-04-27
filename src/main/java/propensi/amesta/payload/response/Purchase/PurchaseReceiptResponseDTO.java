@@ -10,13 +10,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class PurchaseInvoiceResponseDTO {
+public class PurchaseReceiptResponseDTO {
     private String id;
     private String purchaseOrderId;
-    private LocalDate invoiceDate;
-    private String invoiceStatus;
-    private BigDecimal totalAmount;
-    private Integer paymentTerms;
-    private LocalDate dueDate;
-    private BigDecimal remainingAmount;
+    private LocalDate receiptDate;
+    private BigDecimal amountPayed;
+
+    // tambahin yang lain yang mau ditampilin di nota, jangan lupa di PurchaseReceipt.java
 }

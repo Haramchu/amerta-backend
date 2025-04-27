@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import propensi.amesta.model.Aset.Barang;
 import propensi.amesta.model.Aset.Gudang;
 import propensi.amesta.model.Aset.StockBarangPerGudang;
+import propensi.amesta.payload.response.NamaGudangPerBarangResponseDTO;
 import propensi.amesta.payload.request.Aset.BarangRequestDTO;
 import propensi.amesta.payload.request.Aset.StockBarangRequestDTO;
 import propensi.amesta.payload.request.Aset.UpdateBarangRequestDTO;
@@ -46,7 +47,8 @@ public class BarangServiceImpl implements BarangService {
         barang.setKategori(barangRequestDTO.getKategori().strip());
         barang.setMerk(barangRequestDTO.getMerk().strip());
         barang.setActive(barangRequestDTO.isActive());
-        barang.setHarga(barangRequestDTO.getHarga());
+        barang.setHargaBeli(barangRequestDTO.getHargaBeli());
+        barang.setHargaJual(barangRequestDTO.getHargaJual());
         barang.setId(generateId());
 
         List<StockBarangPerGudang> listStockBarang = new ArrayList<>();
@@ -185,7 +187,8 @@ public class BarangServiceImpl implements BarangService {
         barang.setNama(barangRequestDTO.getNama().strip());
         barang.setKategori(barangRequestDTO.getKategori().strip());
         barang.setMerk(barangRequestDTO.getMerk().strip());
-        barang.setHarga(barangRequestDTO.getHarga());
+        barang.setHargaBeli(barangRequestDTO.getHargaBeli());
+        barang.setHargaJual(barangRequestDTO.getHargaJual());
         barang.setActive(barangRequestDTO.isActive());
     
         return barangToBarangResponseDTO(barangDb.save(barang));
@@ -232,7 +235,8 @@ public class BarangServiceImpl implements BarangService {
         barangResponseDTO.setMerk(barang.getMerk());
         barangResponseDTO.setStockBarang(stockBarangResponseDTO);
         barangResponseDTO.setTotalStock(stockBarangResponseDTO.stream().mapToInt(stock -> stock.getStock()).sum());
-        barangResponseDTO.setHarga(barang.getHarga());
+        barangResponseDTO.setHargaBeli(barang.getHargaBeli());
+        barangResponseDTO.setHargaJual(barang.getHargaJual());
         barangResponseDTO.setCreatedDate(barang.getCreatedDate());
         barangResponseDTO.setUpdatedDate(barang.getUpdatedDate());
         return barangResponseDTO;
@@ -273,5 +277,22 @@ public class BarangServiceImpl implements BarangService {
 
         barang.setActive(!barang.isActive());
         return barangToBarangResponseDTO(barangDb.save(barang));
+    }
+
+    @Override
+    public NamaGudangPerBarangResponseDTO getAllNamaGudangPerBarang(String id) {
+        Barang barang = barangDb.findById(id)
+            .orElseThrow(() -> new RuntimeException("Barang dengan ID '" + id + "' tidak ditemukan"));
+
+        List<String> namaGudangList = new ArrayList<>();
+        NamaGudangPerBarangResponseDTO namaGudang = new NamaGudangPerBarangResponseDTO();
+
+        for (StockBarangPerGudang stock : barang.getListStockBarang()) {
+            namaGudangList.add(stock.getGudang().getNama());
+        }
+
+        namaGudang.setNamaGudang(namaGudangList);
+
+        return namaGudang;
     }    
 }

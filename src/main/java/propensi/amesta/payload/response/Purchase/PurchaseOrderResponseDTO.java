@@ -16,9 +16,21 @@ public class PurchaseOrderResponseDTO {
     private String id;
     private UUID customerId;
     private LocalDate purchaseDate;
-    private PurchaseInvoiceResponseDTO invoice;
-    private DeliveryResponseDTO delivery;
-    private PurchasePaymentResponseDTO payment;
     private String status;
     private List<PurchaseOrderItemResponseDTO> items;
+    private BigDecimal totalPrice;
+
+    // Invoice (Faktur), untuk Ricky
+    private PurchaseInvoiceResponseDTO invoice;
+
+    // Delivery (Surat Jalan), untuk Jess
+    private DeliveryResponseDTO delivery;
+
+    // Receipt (Nota), untuk Michael
+    private PurchaseReceiptResponseDTO receipt;
+
+    private PurchasePaymentResponseDTO payment;
+
+
+ 
 }

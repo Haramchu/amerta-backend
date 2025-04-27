@@ -2,7 +2,6 @@ package propensi.amesta.payload.response.Purchase;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.UUID;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

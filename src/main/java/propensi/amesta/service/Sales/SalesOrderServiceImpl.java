@@ -5,6 +5,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import propensi.amesta.model.Aset.Barang;
+import propensi.amesta.enums.Sales.SalesOrderStatus;
 import propensi.amesta.model.Customer;
 import propensi.amesta.model.Sales.*;
 import propensi.amesta.payload.request.Sales.SalesOrderItemRequestDTO;
@@ -43,7 +44,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         salesOrder.setId(UUID.randomUUID().toString());
         salesOrder.setCustomer(customer);
         salesOrder.setOrderDate(request.getOrderDate());
-        salesOrder.setStatus("CREATED");
+        salesOrder.setStatus(SalesOrderStatus.CREATED);
 
         BigDecimal total = BigDecimal.ZERO;
         var items = new ArrayList<SalesOrderItem>();
@@ -124,7 +125,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         SalesOrderDetailDTO detailDTO = new SalesOrderDetailDTO();
         detailDTO.setId(salesOrder.getId());
         detailDTO.setOrderDate(salesOrder.getOrderDate());
-        detailDTO.setStatus(salesOrder.getStatus());
+        detailDTO.setStatus(salesOrder.getStatus().getStatus());
         detailDTO.setCustomerId(customer.getId().toString());
         detailDTO.setCustomerName(customer.getName());
         detailDTO.setTotalPrice(salesOrder.getTotalPrice());
@@ -156,7 +157,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             dto.setId(order.getId());
             dto.setCustomerId(customer.getId());
             dto.setOrderDate(order.getOrderDate());
-            dto.setStatus(order.getStatus());
+            dto.setStatus(order.getStatus().getStatus());
             dto.setTotalPrice(order.getTotalPrice());
             return dto;
         }).collect(Collectors.toList());
