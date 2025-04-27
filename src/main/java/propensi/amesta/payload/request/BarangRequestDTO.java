@@ -29,9 +29,13 @@ public class BarangRequestDTO {
     @NotEmpty(message = "Merk barang harus diisi.")
     private String merk;
 
-    @NotNull(message = "Harga barang harus diisi.")
+    @NotNull(message = "Harga beli barang harus diisi.")
     @DecimalMin(value = "1.0", message = "Harga barang minimal 1.")
-    private BigDecimal harga;
+    private BigDecimal hargaBeli;
+
+    @NotNull(message = "Harga jual barang harus diisi.")
+    @DecimalMin(value = "1.0", message = "Harga barang minimal 1.")
+    private BigDecimal hargaJual;
 
     @NotNull(message= "List stok barang harus diisi")
     @Size(min = 1, message = "Harus ada minimal satu stok barang")

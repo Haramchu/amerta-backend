@@ -9,20 +9,22 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 import propensi.amesta.model.Customer;
 import propensi.amesta.model.Aset.Barang;
+import propensi.amesta.model.Aset.StockBarangPerGudang;
 import propensi.amesta.model.Purchase.Delivery;
 import propensi.amesta.model.Purchase.PurchaseInvoice;
 import propensi.amesta.model.Purchase.PurchaseOrder;
 import propensi.amesta.model.Purchase.PurchaseOrderItem;
 import propensi.amesta.model.Purchase.PurchasePayment;
 import propensi.amesta.model.Purchase.PurchaseReceipt;
+import propensi.amesta.payload.request.Purchase.DeliveryRequestDTO;
 import propensi.amesta.payload.request.Purchase.PurchaseOrderInvoiceRequestDTO;
 import propensi.amesta.payload.request.Purchase.PurchaseOrderItemRequestDTO;
 import propensi.amesta.payload.request.Purchase.PurchaseOrderRequestDTO;
+import propensi.amesta.payload.request.Purchase.PurchasePaymentRequestDTO;
 import propensi.amesta.payload.response.Purchase.DeliveryResponseDTO;
 import propensi.amesta.payload.response.Purchase.PurchaseInvoiceResponseDTO;
 import propensi.amesta.payload.response.Purchase.PurchaseOrderItemResponseDTO;
@@ -49,6 +51,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     @Autowired
     private GudangDb gudangDb;
 
+
+    // STAGE 1: CREATED
     @Override
     public PurchaseOrderResponseDTO addPurchaseOrder(PurchaseOrderRequestDTO request) {
         // Validasi customer ada atau tidak, jika ada cek apakah vendor atau tidak
@@ -65,24 +69,6 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             throw new IllegalArgumentException("Tanggal pembelian tidak boleh di masa lalu");
         }
 
-        // Validasi untuk tanggal invoice tidak boleh sebelum tanggal pembelian atau tidak boleh di masa lalu
-        // LocalDate invoiceDate = request.getInvoiceDate();
-        // if (invoiceDate.isBefore(purchaseDate) || invoiceDate.isBefore(LocalDate.now())) {
-        //     throw new IllegalArgumentException("Tanggal invoice tidak boleh sebelum tanggal pembelian");
-        // }
-
-        // Validasi untuk tanggal pengiriman tidak boleh sebelum tanggal pembelian atau tidak boleh di masa lalu
-        // LocalDate deliveryDate = request.getDelivery().getDeliveryDate();
-        // if (deliveryDate.isBefore(purchaseDate) || deliveryDate.isBefore(LocalDate.now())) {
-        //     throw new IllegalArgumentException("Tanggal pengiriman tidak boleh sebelum tanggal pembelian");
-        // }
-
-        // Validasi untuk tanggal pembayaran tidak boleh sebelum tanggal pembelian atau tidak boleh di masa lalu
-        // LocalDate paymentDate = request.getPayment().getPaymentDate();
-        // if (paymentDate.isBefore(purchaseDate) || paymentDate.isBefore(LocalDate.now()) || paymentDate.isBefore(invoiceDate)) {
-        //     throw new IllegalArgumentException("Tanggal pembayaran tidak boleh sebelum tanggal pembelian");
-        // }
-
         // Validasi untuk barang harus ada dan kuantitas tidak boleh negatif
         for (PurchaseOrderItemRequestDTO item : request.getItems()) {
                 if (!barangDb.existsById(item.getBarangId())) {
@@ -94,7 +80,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 }
         }
 
-        // Validasi multiple entry, jika barang dan gudang tujuan sama di PurchaseOrderItem, kuantitas dijumlahkan
+        // Validasi multiple entry, jika barang dan gudang tujuan sama di PurchaseOrderItem, kuantitas dijumlahkan, validasi pajaknya juga untuk barang yang dan gudang tujuan sama, pajak juga harus sama
         Map<String, PurchaseOrderItemRequestDTO> itemMap = new HashMap<>();
 
         for (PurchaseOrderItemRequestDTO item : request.getItems()) {
@@ -102,6 +88,13 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
             if (itemMap.containsKey(key)) {
                 PurchaseOrderItemRequestDTO existing = itemMap.get(key);
+
+                // Validasi pajak harus sama
+                if (!existing.getPajak().equals(item.getPajak())) {
+                    throw new IllegalArgumentException("Barang dengan ID " + item.getBarangId() + " dan gudang tujuan " + item.getGudangTujuan() + " memiliki pajak yang berbeda");
+                }
+
+                // Kalau pajak sama, jumlahkan quantity
                 existing.setQuantity(existing.getQuantity() + item.getQuantity());
             } else {
                 itemMap.put(key, new PurchaseOrderItemRequestDTO(
@@ -135,7 +128,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 Barang barang = barangDb.findById(itemDTO.getBarangId())
                         .orElseThrow(() -> new IllegalArgumentException("Barang dengan ID " + itemDTO.getBarangId() + " tidak ditemukan"));
 
-                BigDecimal unitPrice = barang.getHarga();
+                BigDecimal unitPrice = barang.getHargaBeli(); // harga beli barang
                 BigDecimal itemTotal = unitPrice.multiply(BigDecimal.valueOf(itemDTO.getQuantity()));
                 Integer pajak = itemDTO.getPajak(); // pajak dalam persen
                 if (pajak == 0) {
@@ -151,6 +144,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 item.setPurchaseOrder(purchaseOrder);
                 item.setBarang(barang);
                 item.setQuantity(itemDTO.getQuantity());
+                item.setTax(pajak);
                 item.setGudangTujuan(gudangDb.findById(itemDTO.getGudangTujuan()) // gaperlu dari dto, bisa juga dari barangnya langsung (asumsi gamau bisa ganti gudang tujuan di po)
                         .orElseThrow(() -> new IllegalArgumentException("Gudang tujuan dengan ID " + itemDTO.getGudangTujuan() + " tidak ditemukan")));
 
@@ -160,36 +154,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         purchaseOrder.setItems(items);
         purchaseOrder.setTotalPrice(total);
 
-        // PurchasePayment payment = new PurchasePayment();
-        // payment.setId(generatePaymentId(customer.getName()));
-        // payment.setPaymentDate(paymentDate);
-        // payment.setTotalAmountPayed(BigDecimal.valueOf(0)); // Belum ada total amount payed di tahap ini, karena belum ada pembayaran
-        // payment.setPaymentMethod(request.getPayment().getPaymentMethod());
-        // payment.setPaymentStatus("UNPAID"); // UNPAID, PAID, REFUNDED,
-        // payment.setPurchaseOrder(purchaseOrder);
-        // purchaseOrder.setPayment(payment);
-
-        // Delivery delivery = new Delivery();
-        // delivery.setId(generateDeliveryId(items)); // ID = UUID
-        // delivery.setDeliveryDate(deliveryDate);
-        // delivery.setDeliveryStatus("PENDING"); // PENDING, IN_PROGRESS, DELIVERED, CANCELLED
-        // delivery.setTrackingNumber(generateTrackingNumber(items));
-        // delivery.setDeliveryFee(request.getDelivery().getDeliveryFee());
-        // delivery.setPurchaseOrder(purchaseOrder);
-        // purchaseOrder.setDelivery(delivery);
-
-        // PurchaseInvoice invoice = new PurchaseInvoice();
-        // invoice.setId(generateInvoiceId());
-        // invoice.setInvoiceDate(invoiceDate);
-        // invoice.setInvoiceStatus("DRAFT"); // DRAFT,ISSUED, PAID
-        // invoice.setTotalAmount(total);
-        // invoice.setPurchaseOrder(purchaseOrder);
-        // purchaseOrder.setInvoice(invoice);
-
-        // TODO: PurchaseReceipt (nota pembelian) belum dibuat di tahap ini, dibuat saat sudah update status ke tahap selanjutnya, (untuk Michael :D)
-        // TODO: Faktur pembelian (modelnya belom dibuat) juga belum dibuat di tahap ini, dibuat saat sudah update status ke tahap selanjutnya (setelah nota pembelian), (untuk Ricky :D)
-        // TODO: integrasi dengan model barang nantinya untuk tahap selanjutnya (setelah semua selesai dan barang diterima), tambahin stock ke existing stock barang, correspond dengan gudangnya juga sesuai dengan PO.
-        // TODO: implementasi security di websecurityconfig.
+        // TODO: implementasi security di websecurityconfig!!!!!!!!!!!
 
         return purchaseOrderToPurchaseOrderResponseDTO(purchaseOrderDb.save(purchaseOrder));
     }
@@ -225,12 +190,13 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 purchaseOrder.getId(),
                 purchaseOrder.getCustomer().getId(),
                 purchaseOrder.getPurchaseDate(),
-                invoice,
-                delivery,
-                payment,
                 purchaseOrder.getStatus(),
                 items,
-                receipt
+                purchaseOrder.getTotalPrice(),
+                invoice,
+                delivery,
+                receipt,
+                payment
         );
        
     }
@@ -269,12 +235,23 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     }
 
     private PurchaseInvoiceResponseDTO purchaseInvoiceToPurchaseInvoiceResponseDTO(PurchaseInvoice purchaseInvoice) {
+        BigDecimal remainingAmount = purchaseInvoice.getTotalAmount();
+
+        if (purchaseInvoice.getPurchaseOrder().getPayment() != null) {
+            remainingAmount = purchaseInvoice.getTotalAmount().subtract(purchaseInvoice.getPurchaseOrder().getPayment().getTotalAmountPayed());
+        } else {
+            remainingAmount = purchaseInvoice.getTotalAmount();
+        }
+
         return new PurchaseInvoiceResponseDTO(
                 purchaseInvoice.getId(),
                 purchaseInvoice.getPurchaseOrder().getId(),
                 purchaseInvoice.getInvoiceDate(),
                 purchaseInvoice.getInvoiceStatus(),
-                purchaseInvoice.getTotalAmount()
+                purchaseInvoice.getTotalAmount(),
+                purchaseInvoice.getPaymentTerms(),
+                purchaseInvoice.getDueDate(),
+                remainingAmount
         );
     }
 
@@ -294,7 +271,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
         String y = String.valueOf(items.size());
 
-        trackingNumber.append("-").append(items.get(0).getBarang().getNama().substring(0, 3).toUpperCase()).append(y);
+        trackingNumber.append("-").append(items.get(0).getBarang().getNama().replace(" ", "").substring(0, 3).toUpperCase()).append(y);
 
         return trackingNumber.toString();
     }
@@ -351,7 +328,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         // Format: DEL-XXX-DD-MM-XXXXX, di mana XXX adalah 3 huruf pertama dari nama barang, DD adalah tanggal dalam angka romawi, MM adalah bulan dalam angka romawi, dan XXXXX adalah 5 karakter acak
         String prefix = "DEL-";
     
-        String namaBarang = items.get(0).getBarang().getNama();
+        String namaBarang = items.get(0).getBarang().getNama().replace(" ", "");
         String kodeBarang = namaBarang.length() >= 3 ? namaBarang.substring(0, 3).toUpperCase() : namaBarang.toUpperCase();
     
         String tanggal = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("dd-MM"))
@@ -404,6 +381,24 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         return prefix + kodeCustomer + "-" + romanMonth + year + "-" + randomPart;
     }
 
+    public String generateReceiptId(List<PurchaseOrderItem> items) {
+        // Format: REC-XXX-DDMMYY-XXXXX
+    
+        String prefix = "REC-";
+    
+        String namaBarang = items.get(0).getBarang().getNama().replace(" ", "");
+        String kodeBarang = namaBarang.length() >= 3
+                ? namaBarang.substring(0, 3).toUpperCase()
+                : namaBarang.toUpperCase();
+    
+        String datePart = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("ddMMyy"));
+    
+        String randomPart = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 5).toUpperCase();
+    
+        return prefix + kodeBarang + "-" + datePart + "-" + randomPart;
+    }
+    
+
     @Override
     public List<PurchaseOrderResponseDTO> getAllPurchaseOrders() {
         List<PurchaseOrder> purchaseOrders = purchaseOrderDb.findAll();
@@ -429,20 +424,25 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     // 1. CREATED = PO baru saja dibuat, menunggu konfirmasi dari vendor
     // 2. CONFIRMED = PO sudah dikonfirmasi oleh vendor, menunggu pembayaran dari pembeli, muncul faktur
     // 3. PAID = Pembeli sudah melakukan pembayaran, menunggu pengiriman dari vendor, tahap masukin pembayaran
-    // 4. DELIVERED = Barang sudah diterima oleh pembeli, menunggu nota pembelian dari vendor, muncul surat jalan
-    // 6. COMPLETED = Nota sudah diterima oleh pembeli, PO selesai
+    // 4. IN DELIVERY = Barang sedang dikirim oleh pembeli, menunggu nota pembelian dari vendor, muncul surat jalan
+    // 5. COMPLETED = Nota sudah diterima oleh pembeli, PO selesai
     
-    // STAGE 2: CONFIRMED
+    // STAGE 2: CONFIRMED, FAKTUR (RICKY)
     @Override
     public PurchaseOrderResponseDTO confirmPurchaseOrder(String id, PurchaseOrderInvoiceRequestDTO request) {
         // Validasi untuk purchase order ada atau tidak
         PurchaseOrder purchaseOrder = purchaseOrderDb.findById(id)
                 .orElseThrow(() -> new RuntimeException("Purchase Order tidak ditemukan"));
 
+        // Validasi tahapan purchase order harus "CREATED"
+        if (!purchaseOrder.getStatus().equalsIgnoreCase("CREATED")) {
+            throw new IllegalArgumentException("Purchase Order harus dalam status CREATED untuk melakukan konfirmasi");
+        }
+
+        // Validasi untuk tanggal invoice tidak boleh sebelum tanggal pembelian dan tidak boleh di masa lalu
+        LocalDate invoiceDate = request.getInvoiceDate(); // ini input tanggal sendiri dari frontend
         LocalDate purchaseDate = purchaseOrder.getPurchaseDate();
 
-        // Validasi untuk tanggal invoice tidak boleh sebelum tanggal pembelian atau tidak boleh di masa lalu
-        LocalDate invoiceDate = request.getInvoiceDate();
         if (invoiceDate.isBefore(purchaseDate) || invoiceDate.isBefore(LocalDate.now())) {
             throw new IllegalArgumentException("Tanggal invoice tidak boleh sebelum tanggal pembelian");
         }
@@ -453,11 +453,152 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         invoice.setInvoiceStatus("ISSUED"); // ISSUED, PAID (PAS UDAH BAYAR BARU UBAH KE INI)
         invoice.setTotalAmount(purchaseOrder.getTotalPrice());
         invoice.setPurchaseOrder(purchaseOrder);
+        invoice.setPaymentTerms(request.getPaymentTerms());
+        invoice.setDueDate(invoiceDate.plusDays(request.getPaymentTerms())); // Jatuh tempo invoice = tanggal invoice + payment terms
         purchaseOrder.setInvoice(invoice);
 
         purchaseOrder.setStatus("CONFIRMED");
+
+        // TODO: tambahin attribute di invoice sesuai dengan kebutuhan, utk ricky, ubah juga di dto request (PurchaseOrderInvoiceRequestDTO) 
+        // dan response (PurchaseInvoiceResponseDTO) sama model (PurchaseInvoice)
         
         return purchaseOrderToPurchaseOrderResponseDTO(purchaseOrderDb.save(purchaseOrder));
     }
+
+    // STAGE 3: PAID
+    @Override
+    public PurchaseOrderResponseDTO payPurchaseOrder(String id, PurchasePaymentRequestDTO request) {
+        // Validasi untuk purchase order ada atau tidak
+        PurchaseOrder purchaseOrder = purchaseOrderDb.findById(id)
+                .orElseThrow(() -> new RuntimeException("Purchase Order tidak ditemukan"));
+
+        // Validasi tahapan purchase order harus "CONFIRMED"
+        if (!purchaseOrder.getStatus().equalsIgnoreCase("CONFIRMED")) {
+            throw new IllegalArgumentException("Purchase Order harus dalam status CONFIRMED untuk melakukan pembayaran");
+        }
+  
+        // Validasi untuk tanggal pembayaran tidak boleh sebelum tanggal pembelian atau tidak boleh di masa lalu atau tidak boleh sebelum tanggal invoice
+        LocalDate purchaseDate = purchaseOrder.getPurchaseDate();
+        LocalDate invoiceDate = purchaseOrder.getInvoice().getInvoiceDate();
+        LocalDate paymentDate = request.getPaymentDate(); // ini input tanggal sendiri dari frontend
+
+        if (paymentDate.isBefore(purchaseDate) || paymentDate.isBefore(LocalDate.now()) || paymentDate.isBefore(invoiceDate)) {
+            throw new IllegalArgumentException("Tanggal pembayaran tidak boleh sebelum tanggal pembelian dan tanggal tagihan");
+        }
+
+        PurchasePayment payment = purchaseOrder.getPayment();
+
+        if (payment == null) {
+            payment = new PurchasePayment();
+            payment.setId(generatePaymentId(purchaseOrder.getCustomer().getName()));
+            payment.setPurchaseOrder(purchaseOrder);
+            payment.setTotalAmountPayed(BigDecimal.ZERO);
+        }
+
+        payment.setPaymentDate(paymentDate);
+        payment.setPaymentMethod(request.getPaymentMethod()); // kalo udah partially paid, ini prefilled dari yang udah ada (frontend), 
+                                                                // jadi payment methodnya sama terus
+ 
+        BigDecimal additionalPaid = request.getTotalAmountPayed();
+        BigDecimal totalPrice = purchaseOrder.getTotalPrice();
+        BigDecimal currentTotalPaid = payment.getTotalAmountPayed();
+
+        BigDecimal newTotalPaid = currentTotalPaid.add(additionalPaid);
+
+        if (newTotalPaid.compareTo(totalPrice) > 0) {
+            throw new IllegalArgumentException("Jumlah pembayaran melebihi total harga");
+        } else if (newTotalPaid.compareTo(totalPrice) == 0) {
+            payment.setPaymentStatus("PAID");
+            purchaseOrder.setStatus("PAID");
+            purchaseOrder.getInvoice().setInvoiceStatus("PAID");
+        } else {
+            payment.setPaymentStatus("PARTIALLY PAID");
+            purchaseOrder.setStatus("CONFIRMED"); // tetap CONFIRMED hingga lunas
+            purchaseOrder.getInvoice().setInvoiceStatus("PARTIALLY PAID");
+        }
+
+        payment.setTotalAmountPayed(newTotalPaid);
+        purchaseOrder.setPayment(payment);
+       
+
+        return purchaseOrderToPurchaseOrderResponseDTO(purchaseOrderDb.save(purchaseOrder));
+    }
+
+    // STAGE 4: IN DELIVERY, SURAT JALAN (JESS)
+    @Override
+    public PurchaseOrderResponseDTO deliverPurchaseOrder(String id, DeliveryRequestDTO request) {
+        // Validasi untuk purchase order ada atau tidak
+        PurchaseOrder purchaseOrder = purchaseOrderDb.findById(id)
+            .orElseThrow(() -> new RuntimeException("Purchase Order tidak ditemukan"));
+
+        // Validasi tahapan purchase order harus "PAID" dan invoice harus "PAID"
+        if (!purchaseOrder.getStatus().equalsIgnoreCase("PAID")) {
+            throw new IllegalArgumentException("Purchase Order harus dalam status PAID untuk melakukan pembayaran");
+        }
+
+        LocalDate purchaseDate = purchaseOrder.getPurchaseDate();
+        LocalDate invoiceDate = purchaseOrder.getInvoice().getInvoiceDate();
+
+        // Validasi untuk tanggal pengiriman tidak boleh sebelum tanggal pembelian atau tidak boleh di masa lalu
+        LocalDate deliveryDate = request.getDeliveryDate();
+        if (deliveryDate.isBefore(purchaseDate) || deliveryDate.isBefore(LocalDate.now()) || deliveryDate.isBefore(invoiceDate)) {
+            throw new IllegalArgumentException("Tanggal pengiriman tidak boleh sebelum tanggal pembelian dan tanggal tagihan");
+        }
+
+        Delivery delivery = new Delivery();
+        delivery.setId(generateDeliveryId(purchaseOrder.getItems()));
+        delivery.setDeliveryDate(deliveryDate);
+        delivery.setDeliveryStatus("IN DELIVERY"); // IN DELIVERY, DELIVERED (KETIKA UDAH SAMPAI NANTI TAHAP SELANJUTNYA)
+        delivery.setTrackingNumber(generateTrackingNumber(purchaseOrder.getItems()));
+        delivery.setDeliveryFee(request.getDeliveryFee());
+        purchaseOrder.setStatus("IN DELIVERY");
+        delivery.setPurchaseOrder(purchaseOrder);
+        purchaseOrder.setDelivery(delivery);
+
+        // TODO: tambahin attribute di delivery sesuai dengan kebutuhan, utk jess, ubah juga di dto request (DeliveryRequestDTO) 
+        // dan response (DeliveryResponseDTO) sama model (Delivery)
+
+        return purchaseOrderToPurchaseOrderResponseDTO(purchaseOrderDb.save(purchaseOrder));
+    }
+
+    // STAGE 5: COMPLETED, NOTA (MICHAEL)
+    @Override
+    public PurchaseOrderResponseDTO completePurchaseOrder(String id) {
+        // Validasi untuk purchase order ada atau tidak
+        PurchaseOrder purchaseOrder = purchaseOrderDb.findById(id)
+            .orElseThrow(() -> new RuntimeException("Purchase Order tidak ditemukan"));
+
+        // Validasi tahapan purchase order harus "IN DELIVERY" dan delivery status harus "IN DELIVERY"
+        if (!purchaseOrder.getStatus().equalsIgnoreCase("IN DELIVERY")) {
+            throw new IllegalArgumentException("Purchase Order harus dalam status IN DELIVERY untuk melakukan pembayaran");
+        }
+
+        PurchaseReceipt receipt = new PurchaseReceipt();
+        receipt.setId(generateReceiptId(purchaseOrder.getItems()));
+        receipt.setReceiptDate(purchaseOrder.getPayment().getPaymentDate()); // tanggal nota = tanggal pembayaran
+        receipt.setAmountPayed(purchaseOrder.getPayment().getTotalAmountPayed());
+        purchaseOrder.setStatus("COMPLETED");
+        receipt.setPurchaseOrder(purchaseOrder);
+        purchaseOrder.setReceipt(receipt);
+        purchaseOrder.getDelivery().setDeliveryStatus("DELIVERED"); // update status delivery jadi delivered
+
+        // TODO: tambahin attribute di purchase receipt sesuai dengan kebutuhan, utk michael, ubah juga di response (PurchaseReceiptResponseDTO) sama model (PurchaseReceipt)
+
+        // Update stock barang di gudang tujuan sesuai dengan quantity yang diterima
+        for (PurchaseOrderItem item : purchaseOrder.getItems()) {
+            Barang barang = item.getBarang();
+            for(StockBarangPerGudang stock : barang.getListStockBarang()){
+                if(stock.getGudang().getNama().equals(item.getGudangTujuan().getNama())){
+                    stock.setStock(stock.getStock() + item.getQuantity()); // update stock barang di gudang tujuan
+                }
+            }
+        }
+
+        return purchaseOrderToPurchaseOrderResponseDTO(purchaseOrderDb.save(purchaseOrder));
+    }
+
+    
+
+
     
 }

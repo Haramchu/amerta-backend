@@ -15,14 +15,11 @@ import lombok.NoArgsConstructor;
 @Data
 public class PurchaseOrderRequestDTO {
     
-    // @NotNull(message = "Tanggal invoice harus diisi")
-    // private LocalDate invoiceDate; // untuk PurchaseInvoice
-
     @NotNull(message = "Tanggal pembelian harus diisi")
     private LocalDate purchaseDate;
 
     @NotNull(message = "Customer ID tidak boleh kosong")
-    private UUID customerId; // untuk Customer
+    private UUID customerId;
 
     @NotNull(message = "List barang tidak boleh kosong")
     private List<PurchaseOrderItemRequestDTO> items;
@@ -37,11 +34,4 @@ public class PurchaseOrderRequestDTO {
         return true;
     }
 
-    // @NotNull(message = "Detail pembayaran tidak boleh kosong")
-    // private PurchasePaymentRequestDTO payment; // untuk PurchasePayment
-
-    // @NotNull(message = "Detail pengiriman tidak boleh kosong")
-    // private DeliveryRequestDTO delivery; // untuk Delivery
-    
-    // PurchaseReceipt data diambil dari sini.
 }

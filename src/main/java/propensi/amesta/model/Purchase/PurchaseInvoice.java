@@ -29,4 +29,10 @@ public class PurchaseInvoice {
 
     @NotNull(message = "Biaya invoice tidak boleh kosong")
     private BigDecimal totalAmount; // Amount yang harus dibayar oleh customer, bukan amount yang sudah dibayar
+
+    @NotNull(message = "Payment terms tidak boleh kosong")
+    private Integer paymentTerms; // 30 days, 60 days, dll
+
+    @NotNull(message = "Tanggal jatuh tempo tidak boleh kosong")
+    private LocalDate dueDate; // untuk PurchaseInvoice
 }

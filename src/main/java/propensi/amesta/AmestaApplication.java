@@ -129,7 +129,8 @@ public class AmestaApplication {
             barang.setKategori("Kategori " + i);
             barang.setMerk("Merk " + i);
             barang.setActive(true);
-            barang.setHarga(BigDecimal.valueOf(10000 + (i * 500)));
+            barang.setHargaBeli(BigDecimal.valueOf(10000 + (i * 500)));
+            barang.setHargaJual(BigDecimal.valueOf(20000 + (i * 500)));
 
             List<StockBarangPerGudang> listBarang = new ArrayList<>();
             StockBarangPerGudang stockBarang = new StockBarangPerGudang();

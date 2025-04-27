@@ -21,7 +21,8 @@ public class BarangResponseDTO {
     private String merk;
     private List<StockBarangResponseDTO> stockBarang;
     private int totalStock;
-    private BigDecimal harga;
+    private BigDecimal hargaBeli;
+    private BigDecimal hargaJual;
     
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MMMM dd, yyyy | HH:mm:ss", timezone = "Asia/Jakarta")
     private Date createdDate;
