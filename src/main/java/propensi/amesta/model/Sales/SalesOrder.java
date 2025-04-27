@@ -20,7 +20,7 @@ public class SalesOrder {
     private String Id;
 
     @NotNull(message = "Tanggal pembelian tidak boleh kosong")
-    private LocalDate purchaseDate;
+    private LocalDate orderDate;
     
     @NotNull(message = "Status pembelian tidak boleh kosong")
     private String status; 
@@ -44,4 +44,6 @@ public class SalesOrder {
     @OneToMany(mappedBy = "salesOrder", cascade = CascadeType.ALL)
     private List<SalesOrderItem> items;
 
+    @NotNull(message = "Total harga tidak boleh kosong")
+    private BigDecimal totalPrice;
 }

@@ -1,4 +1,4 @@
-package propensi.amesta.payload.request;
+package propensi.amesta.payload.request.Sales;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;

@@ -7,7 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import propensi.amesta.payload.request.SalesOrderRequestDTO;
+
+import propensi.amesta.payload.request.Sales.SalesOrderRequestDTO;
 import propensi.amesta.payload.response.BaseResponseDTO;
 import propensi.amesta.payload.response.SalesOrderResponseDTO;
 import propensi.amesta.service.SalesOrderService;

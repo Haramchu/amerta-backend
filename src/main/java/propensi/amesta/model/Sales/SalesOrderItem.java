@@ -1,11 +1,16 @@
 package propensi.amesta.model.Sales;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import propensi.amesta.model.Aset.Barang;
+import propensi.amesta.model.Aset.Gudang;
 
 @Setter
 @Getter
@@ -14,9 +19,9 @@ import propensi.amesta.model.Aset.Barang;
 public class SalesOrderItem {
 
     @Id
-    private String Id;
+    private UUID Id;
 
-     @ManyToOne
+    @ManyToOne
     @JoinColumn(name = "sales_order_id")
     private SalesOrder salesOrder;
 
@@ -24,7 +29,15 @@ public class SalesOrderItem {
     @JoinColumn(name = "barang_id")
     private Barang barang;
 
+    @NotNull(message = "Kuantitas tidak boleh kosong")
     private Integer quantity;
-    
-    private BigDecimal unitPrice;
+
+    @ManyToOne
+    @JoinColumn(name = "gudang_nama", referencedColumnName = "nama")
+    private Gudang gudangTujuan;
+
+    @NotNull(message = "Pajak tidak boleh kosong")
+    @Min(value = 1, message = "Pajak tidak boleh negatif.")
+    @Digits(integer = Integer.MAX_VALUE, fraction = 0, message = "Pajak harus merupakan angka yang valid.")
+    private Integer tax;
 }
