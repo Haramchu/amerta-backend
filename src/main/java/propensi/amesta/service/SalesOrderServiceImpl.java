@@ -56,11 +56,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             total = total.add(itemTotal);
 
             SalesOrderItem item = new SalesOrderItem();
-            item.setId(UUID.randomUUID().toString());
-            item.setSalesOrder(salesOrder);
-            item.setBarang(barang);
-            item.setQuantity(itemDTO.getQuantity());
-            item.setUnitPrice(unitPrice);
+            
 
             items.add(item);
         }
