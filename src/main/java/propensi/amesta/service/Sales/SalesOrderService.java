@@ -13,9 +13,8 @@ public interface SalesOrderService {
     List<SalesOrderResponseDTO> getAllSalesOrders();
     SalesOrderResponseDTO getSalesOrderById(String id);
 
-    // UPDATE Sales ORDER
+    SalesOrderResponseDTO confirmShipping(String id);
     SalesOrderResponseDTO confirmSalesOrder(String id, SalesOrderInvoiceRequestDTO request);
     SalesOrderResponseDTO paySalesOrder(String id, SalesPaymentRequestDTO request);
     SalesOrderResponseDTO shipSalesOrder(String id, ShippingRequestDTO request);
-    SalesOrderResponseDTO completeSalesOrder(String id);
 }
