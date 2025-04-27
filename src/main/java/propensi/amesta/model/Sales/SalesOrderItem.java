@@ -1,6 +1,5 @@
 package propensi.amesta.model.Sales;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
 import jakarta.persistence.*;

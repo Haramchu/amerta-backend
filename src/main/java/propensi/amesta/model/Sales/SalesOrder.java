@@ -20,7 +20,7 @@ public class SalesOrder {
     private String Id;
 
     @NotNull(message = "Tanggal pembelian tidak boleh kosong")
-    private LocalDate orderDate;
+    private LocalDate salesDate;
     
     @NotNull(message = "Status pembelian tidak boleh kosong")
     private String status; 
