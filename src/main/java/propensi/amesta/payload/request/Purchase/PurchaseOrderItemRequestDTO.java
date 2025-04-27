@@ -25,7 +25,7 @@ public class PurchaseOrderItemRequestDTO {
 
     @NotNull(message = "Pajak tidak boleh kosong")
     @Min(value = 0, message = "Pajak tidak boleh negatif.")
-    @Digits(integer = Integer.MAX_VALUE, fraction = 0, message = "Pajak harus merupakan angka yang valid.")
+    @Digits(integer = Integer.MAX_VALUE, fraction = 2, message = "Pajak harus merupakan angka yang valid dengan maksimal 2 angka di belakang koma.")
     private Integer pajak;
 
 }
