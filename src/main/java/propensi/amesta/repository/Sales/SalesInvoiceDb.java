@@ -6,5 +6,5 @@ import propensi.amesta.model.Sales.SalesInvoice;
 
 @Repository
 public interface SalesInvoiceDb extends JpaRepository<SalesInvoice, String> {
-    boolean existsByNomorNota(String nomorNota);
+
 }
