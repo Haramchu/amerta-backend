@@ -1,5 +1,8 @@
 package propensi.amesta.model.Sales;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,25 +17,13 @@ import java.time.LocalDateTime;
 public class SalesInvoice {
 
     @Id
-    @Column(name = "id", nullable = false, unique = true)
-    private String id;
+    private String Id;
 
-    @Column(name = "nomor_nota", nullable = false)
-    private String nomorNota;
+    @OneToOne
+    @JoinColumn(name = "sales_order_id")
+    private SalesOrder salesOrder;
 
-    @Column(name = "tanggal_dibuat", nullable = false)
-    private LocalDateTime tanggalDibuat;
+    private LocalDate invoiceDate;
+    private BigDecimal amount;
 
-    @Column(name = "jumlah_tagihan", nullable = false)
-    private BigDecimal jumlahTagihan;
-
-    @Column(name = "status_pembayaran", nullable = false)
-    private String statusPembayaran;
-
-    @PrePersist
-    protected void onCreate() {
-        if (this.tanggalDibuat == null) {
-            this.tanggalDibuat = LocalDateTime.now();
-        }
-    }
 }

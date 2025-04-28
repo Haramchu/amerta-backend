@@ -15,7 +15,7 @@ public class StockBarangRequestDTO {
         
     @NotNull(message = "Jumlah stok harus diisi.")
     @Min(value = 0, message = "Stok tidak boleh negatif.")
-    @Digits(integer = 10, fraction = 0, message = "Stok harus merupakan angka yang valid.")
+    @Digits(integer = Integer.MAX_VALUE, fraction = 0, message = "Stok harus merupakan angka yang valid.")
     private int stock;
 
     @NotEmpty(message = "Gudang harus diisi")

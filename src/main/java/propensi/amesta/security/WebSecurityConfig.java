@@ -1,8 +1,6 @@
 package propensi.amesta.security;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -21,13 +19,11 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.web.cors.CorsConfiguration;
 
 import propensi.amesta.security.jwt.JwtTokenFilter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 
 @Configuration
 @EnableWebSecurity
@@ -40,14 +36,6 @@ public class WebSecurityConfig {
     @Order(1)
     public SecurityFilterChain jwtFilterChain(HttpSecurity http) throws Exception {
         http.securityMatcher("/api/**")
-             .cors(cors -> cors.configurationSource(request -> {
-                CorsConfiguration config = new CorsConfiguration();
-                config.setAllowedOrigins(List.of("http://localhost:3000"));
-                config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                config.setAllowedHeaders(List.of("*"));
-                config.setAllowCredentials(true);
-                return config;
-            }))
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(requests -> requests
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() 
@@ -55,7 +43,6 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/user/**").hasAnyAuthority("administrasi", "direktur")
                 .requestMatchers("/api/barang/add").hasAnyAuthority("direktur", "general_manager")
                 .requestMatchers("/api/barang/update/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang")
-                .requestMatchers("/api/barang/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang")
                 .requestMatchers("/api/barang/change-status/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang")
                 .requestMatchers("/api/barang/viewall").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "sales", "administrasi", "komisaris")
                 .requestMatchers("/api/barang/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "sales", "administrasi", "komisaris")
@@ -72,6 +59,17 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/gudang/").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
                 .requestMatchers("/api/gudang/{namaGudang}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
                 .requestMatchers("/api/gudang/update/{namaGudang}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang")
+                
+                // TODO: implement security untuk add customer.
+
+                .requestMatchers("/api/purchase-order/add").hasAnyAuthority("direktur", "sales", "general_manager", "administrasi")
+                .requestMatchers("/api/purchase-order/viewall").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/purchase-order/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/purchase-order/confirm/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+                .requestMatchers("/api/purchase-order/payment/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+                .requestMatchers("/api/purchase-order/delivery/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+                .requestMatchers("/api/purchase-order/complete/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+
                 .anyRequest().authenticated()    
             )
             .formLogin(form -> form

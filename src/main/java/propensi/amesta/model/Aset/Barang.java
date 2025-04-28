@@ -1,5 +1,6 @@
 package propensi.amesta.model.Aset;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -38,6 +39,12 @@ public class Barang {
 
     @NotNull(message = "Merk barang harus diisi")
     private String merk;
+
+    @NotNull(message = "Harga beli barang harus diisi")
+    private BigDecimal hargaBeli;
+
+    @NotNull(message = "Harga jual barang harus diisi")
+    private BigDecimal hargaJual;
 
     @OneToMany(mappedBy = "barang", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StockBarangPerGudang> listStockBarang;

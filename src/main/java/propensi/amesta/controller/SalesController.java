@@ -1,7 +1,5 @@
 package propensi.amesta.controller;
 
-import java.util.Date;
-
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -9,29 +7,30 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import propensi.amesta.payload.request.CustomerRequestDTO;
+import propensi.amesta.payload.request.SalesOrderRequestDTO;
 import propensi.amesta.payload.response.BaseResponseDTO;
-import propensi.amesta.payload.response.CustomerResponseDTO;
-import propensi.amesta.service.CustomerService;
+import propensi.amesta.payload.response.SalesOrderResponseDTO;
+import propensi.amesta.service.SalesOrderService;
+
+import java.util.Date;
 
 @RestController
-@RequestMapping("/api/customer")
+@RequestMapping("/api/sales-order")
 @RequiredArgsConstructor
-public class CustomerController {
+public class SalesController {
 
     @Autowired
-    private CustomerService customerService;
+    private SalesOrderService salesOrderService;
 
     @PostMapping("/add")
-    public ResponseEntity<?> addCustomer(@Valid @RequestBody CustomerRequestDTO requestDTO) {
-        BaseResponseDTO<CustomerResponseDTO> response = new BaseResponseDTO<>();
+    public ResponseEntity<?> createSalesOrder(@Valid @RequestBody SalesOrderRequestDTO requestDTO) {
+        BaseResponseDTO<SalesOrderResponseDTO> response = new BaseResponseDTO<>();
 
         try {
-            CustomerResponseDTO result = customerService.addCustomer(requestDTO);
+            SalesOrderResponseDTO result = salesOrderService.addSalesOrder(requestDTO);
 
             response.setStatus(HttpStatus.CREATED.value());
-            response.setMessage("Customer berhasil ditambahkan!");
+            response.setMessage("Sales order berhasil dibuat!");
             response.setTimestamp(new Date());
             response.setData(result);
 
@@ -40,11 +39,10 @@ public class CustomerController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new BaseResponseDTO<>(HttpStatus.BAD_REQUEST.value(), e.getMessage(), new Date(), null));
-
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new BaseResponseDTO<>(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                            "Terjadi kesalahan saat menambahkan customer!", new Date(), null));
+                            "Terjadi kesalahan saat membuat sales order", new Date(), null));
         }
     }
 }

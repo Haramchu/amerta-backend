@@ -15,6 +15,7 @@ import propensi.amesta.payload.request.BarangRequestDTO;
 import propensi.amesta.payload.request.StockBarangRequestDTO;
 import propensi.amesta.payload.request.UpdateBarangRequestDTO;
 import propensi.amesta.payload.response.BarangResponseDTO;
+import propensi.amesta.payload.response.NamaGudangPerBarangResponseDTO;
 import propensi.amesta.payload.response.StockBarangResponseDTO;
 import propensi.amesta.repository.Aset.BarangDb;
 import propensi.amesta.repository.Aset.GudangDb;
@@ -32,7 +33,7 @@ public class BarangServiceImpl implements BarangService {
     public BarangResponseDTO addBarang(BarangRequestDTO barangRequestDTO) {
         for (StockBarangRequestDTO stockBarangRequestDTO : barangRequestDTO.getListStockBarang()) {
             gudangDb.findById(stockBarangRequestDTO.getNamaGudang())
-                .orElseThrow(() -> new RuntimeException("Gudang dengan ID " + stockBarangRequestDTO.getNamaGudang() + " tidak tersedia"));
+                .orElseThrow(() -> new RuntimeException("Gudang dengan ID '" + stockBarangRequestDTO.getNamaGudang() + "' tidak tersedia"));
         }
 
         if(barangDb.findAll().size() > 0){
@@ -46,6 +47,8 @@ public class BarangServiceImpl implements BarangService {
         barang.setKategori(barangRequestDTO.getKategori().strip());
         barang.setMerk(barangRequestDTO.getMerk().strip());
         barang.setActive(barangRequestDTO.isActive());
+        barang.setHargaBeli(barangRequestDTO.getHargaBeli());
+        barang.setHargaJual(barangRequestDTO.getHargaJual());
         barang.setId(generateId());
 
         List<StockBarangPerGudang> listStockBarang = new ArrayList<>();
@@ -53,14 +56,14 @@ public class BarangServiceImpl implements BarangService {
 
         for (StockBarangRequestDTO stockBarangRequestDTO : barangRequestDTO.getListStockBarang()) {
             Gudang gudang = gudangDb.findById(stockBarangRequestDTO.getNamaGudang())
-                .orElseThrow(() -> new RuntimeException("Gudang dengan ID " + stockBarangRequestDTO.getNamaGudang() + " tidak tersedia"));
+                .orElseThrow(() -> new RuntimeException("Gudang dengan ID '" + stockBarangRequestDTO.getNamaGudang() + "' tidak tersedia"));
 
             gudangStockMap.put(gudang, gudangStockMap.getOrDefault(gudang, 0) + stockBarangRequestDTO.getStock());
         }
 
         for (Map.Entry<Gudang, Integer> entry : gudangStockMap.entrySet()) {
             if (entry.getValue() < 0) {
-                throw new IllegalArgumentException("Total stok barang untuk gudang " + entry.getKey().getNama() + " harus lebih besar atau sama dengan 0");
+                throw new IllegalArgumentException("Total stok barang untuk gudang '" + entry.getKey().getNama() + "' harus lebih besar atau sama dengan 0");
             }
 
             StockBarangPerGudang stockBarangPerGudang = new StockBarangPerGudang();
@@ -77,7 +80,7 @@ public class BarangServiceImpl implements BarangService {
                 : 0);
         
             if (gudang.getKapasitas() < totalStock) {
-                throw new RuntimeException("Kapasitas gudang " + gudang.getNama() + " tidak mencukupi");
+                throw new RuntimeException("Kapasitas gudang '" + gudang.getNama() + "' tidak mencukupi");
             }
         }
 
@@ -112,7 +115,7 @@ public class BarangServiceImpl implements BarangService {
     @Override
     public BarangResponseDTO getBarangById(String id) {
         Barang barang = barangDb.findById(id)
-            .orElseThrow(() -> new RuntimeException("Barang dengan ID " + id + " tidak ditemukan"));
+            .orElseThrow(() -> new RuntimeException("Barang dengan ID '" + id + "' tidak ditemukan"));
 
         return barangToBarangResponseDTO(barang);
     }
@@ -120,11 +123,11 @@ public class BarangServiceImpl implements BarangService {
     @Override
     public BarangResponseDTO updateBarang(String id, UpdateBarangRequestDTO barangRequestDTO) {
         Barang barang = barangDb.findById(id)
-            .orElseThrow(() -> new RuntimeException("Barang dengan ID " + id + " tidak ditemukan"));
+            .orElseThrow(() -> new RuntimeException("Barang dengan ID '" + id + " tidak ditemukan"));
     
         for (StockBarangRequestDTO stockBarangRequestDTO : barangRequestDTO.getListStockBarang()) {
             gudangDb.findById(stockBarangRequestDTO.getNamaGudang())
-                .orElseThrow(() -> new RuntimeException("Gudang dengan ID " + stockBarangRequestDTO.getNamaGudang() + " tidak tersedia"));
+                .orElseThrow(() -> new RuntimeException("Gudang dengan ID '" + stockBarangRequestDTO.getNamaGudang() + "' tidak tersedia"));
         }
     
         List<StockBarangPerGudang> existingList = barang.getListStockBarang();
@@ -147,7 +150,7 @@ public class BarangServiceImpl implements BarangService {
             int totalStock = entry.getValue();
     
             Gudang gudang = gudangDb.findById(namaGudang)
-                .orElseThrow(() -> new RuntimeException("Gudang dengan ID " + namaGudang + " tidak tersedia"));
+                .orElseThrow(() -> new RuntimeException("Gudang dengan ID '" + namaGudang + "' tidak tersedia"));
     
             if (existingStockMap.containsKey(namaGudang)) {
                 StockBarangPerGudang existingStock = existingStockMap.get(namaGudang);
@@ -170,7 +173,7 @@ public class BarangServiceImpl implements BarangService {
                 : 0);
     
             if (gudang.getKapasitas() < totalStock) {
-                throw new RuntimeException("Kapasitas gudang " + gudang.getNama() + " tidak mencukupi. Tidak ada perubahan yang dilakukan.");
+                throw new RuntimeException("Kapasitas gudang '" + gudang.getNama() + "' tidak mencukupi. Tidak ada perubahan yang dilakukan.");
             }
         }
 
@@ -184,6 +187,8 @@ public class BarangServiceImpl implements BarangService {
         barang.setNama(barangRequestDTO.getNama().strip());
         barang.setKategori(barangRequestDTO.getKategori().strip());
         barang.setMerk(barangRequestDTO.getMerk().strip());
+        barang.setHargaBeli(barangRequestDTO.getHargaBeli());
+        barang.setHargaJual(barangRequestDTO.getHargaJual());
         barang.setActive(barangRequestDTO.isActive());
     
         return barangToBarangResponseDTO(barangDb.save(barang));
@@ -195,7 +200,7 @@ public class BarangServiceImpl implements BarangService {
         List<BarangResponseDTO> barangResponseDTOList = new ArrayList<>();
         List<Barang> barangList = barangDb.findByKategori(kategori);
         if (barangList.isEmpty()) {
-            throw new RuntimeException("Barang dengan kategori " + kategori + " tidak ditemukan");
+            throw new RuntimeException("Barang dengan kategori '" + kategori + "' tidak ditemukan");
         }
 
         for (Barang barang : barangList) {
@@ -210,7 +215,7 @@ public class BarangServiceImpl implements BarangService {
         List<BarangResponseDTO> barangResponseDTOList = new ArrayList<>();
         List<Barang> barangList = barangDb.findByMerk(merk);
         if (barangList.isEmpty()) {
-            throw new RuntimeException("Barang dengan merk " + merk + " tidak ditemukan");
+            throw new RuntimeException("Barang dengan merk '" + merk + "' tidak ditemukan");
         }
 
         for (Barang barang : barangList) {
@@ -230,6 +235,8 @@ public class BarangServiceImpl implements BarangService {
         barangResponseDTO.setMerk(barang.getMerk());
         barangResponseDTO.setStockBarang(stockBarangResponseDTO);
         barangResponseDTO.setTotalStock(stockBarangResponseDTO.stream().mapToInt(stock -> stock.getStock()).sum());
+        barangResponseDTO.setHargaBeli(barang.getHargaBeli());
+        barangResponseDTO.setHargaJual(barang.getHargaJual());
         barangResponseDTO.setCreatedDate(barang.getCreatedDate());
         barangResponseDTO.setUpdatedDate(barang.getUpdatedDate());
         return barangResponseDTO;
@@ -253,7 +260,7 @@ public class BarangServiceImpl implements BarangService {
         List<BarangResponseDTO> barangResponseDTOList = new ArrayList<>();
         List<Barang> barangList = barangDb.findAll();
         if (barangList.isEmpty()) {
-            throw new RuntimeException("Barang tidak ditemukan");
+            throw new RuntimeException("Tidak ada data barang yang tersedia");
         }
 
         for (Barang barang : barangList) {
@@ -266,9 +273,26 @@ public class BarangServiceImpl implements BarangService {
     @Override
     public BarangResponseDTO changeStatusBarang(String id) {
         Barang barang = barangDb.findById(id)
-            .orElseThrow(() -> new RuntimeException("Barang dengan ID " + id + " tidak ditemukan"));
+            .orElseThrow(() -> new RuntimeException("Barang dengan ID '" + id + "' tidak ditemukan"));
 
         barang.setActive(!barang.isActive());
         return barangToBarangResponseDTO(barangDb.save(barang));
+    }
+
+    @Override
+    public NamaGudangPerBarangResponseDTO getAllNamaGudangPerBarang(String id) {
+        Barang barang = barangDb.findById(id)
+            .orElseThrow(() -> new RuntimeException("Barang dengan ID '" + id + "' tidak ditemukan"));
+
+        List<String> namaGudangList = new ArrayList<>();
+        NamaGudangPerBarangResponseDTO namaGudang = new NamaGudangPerBarangResponseDTO();
+
+        for (StockBarangPerGudang stock : barang.getListStockBarang()) {
+            namaGudangList.add(stock.getGudang().getNama());
+        }
+
+        namaGudang.setNamaGudang(namaGudangList);
+
+        return namaGudang;
     }    
 }

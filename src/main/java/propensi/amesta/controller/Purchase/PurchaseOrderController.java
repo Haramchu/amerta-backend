@@ -1,4 +1,4 @@
-package propensi.amesta.controller;
+package propensi.amesta.controller.Purchase;
 
 import java.util.Date;
 import java.util.List;
@@ -17,30 +17,24 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
-import propensi.amesta.payload.request.BarangRequestDTO;
-import propensi.amesta.payload.request.TransferBarangRequestDTO;
-import propensi.amesta.payload.request.UpdateBarangRequestDTO;
-import propensi.amesta.payload.response.BarangResponseDTO;
+import propensi.amesta.payload.request.Purchase.DeliveryRequestDTO;
+import propensi.amesta.payload.request.Purchase.PurchaseOrderInvoiceRequestDTO;
+import propensi.amesta.payload.request.Purchase.PurchaseOrderRequestDTO;
+import propensi.amesta.payload.request.Purchase.PurchasePaymentRequestDTO;
 import propensi.amesta.payload.response.BaseResponseDTO;
-import propensi.amesta.payload.response.NamaGudangPerBarangResponseDTO;
-import propensi.amesta.payload.response.TransferBarangResponseDTO;
-import propensi.amesta.service.Aset.BarangService;
-import propensi.amesta.service.Aset.TransferBarangService;
-
+import propensi.amesta.payload.response.Purchase.PurchaseOrderResponseDTO;
+import propensi.amesta.service.Purchase.PurchaseOrderService;
 
 @RestController
-@RequestMapping("/api/barang")
-public class BarangController {
-    
-    @Autowired
-    private BarangService barangService;
+@RequestMapping("/api/purchase-order")
+public class PurchaseOrderController {
 
-     @Autowired
-    private TransferBarangService transferBarangService;
+    @Autowired
+    private PurchaseOrderService purchaseOrderService;
 
     @PostMapping("/add")
-    public ResponseEntity<?> addBarang(@Valid @RequestBody BarangRequestDTO barangRequestDTO, BindingResult bindingResult) {
-        BaseResponseDTO<BarangResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
+    public ResponseEntity<?> addPurchaseOrder(@Valid @RequestBody PurchaseOrderRequestDTO purchaseOrderRequestDTO, BindingResult bindingResult) {
+        BaseResponseDTO<PurchaseOrderResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
         
         if (bindingResult.hasErrors()) {
             StringBuilder errorMessages = new StringBuilder();
@@ -54,10 +48,10 @@ public class BarangController {
         }
 
         try {
-            BarangResponseDTO barangResponseDTO = barangService.addBarang(barangRequestDTO);
+            PurchaseOrderResponseDTO purchaseOrderResponseDTO = purchaseOrderService.addPurchaseOrder(purchaseOrderRequestDTO);
             baseResponseDTO.setStatus(HttpStatus.OK.value());
-            baseResponseDTO.setMessage("Barang berhasil ditambahkan.");
-            baseResponseDTO.setData(barangResponseDTO);
+            baseResponseDTO.setMessage("Purchase Order berhasil ditambahkan.");
+            baseResponseDTO.setData(purchaseOrderResponseDTO);
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.CREATED);
 
@@ -82,12 +76,12 @@ public class BarangController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getBarangById(@PathVariable("id") String id) {
-        BaseResponseDTO<BarangResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
+    public ResponseEntity<?> getPurchaseOrderById(@PathVariable("id") String id) {
+        BaseResponseDTO<PurchaseOrderResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
         try {
-            BarangResponseDTO barangResponseDTO = barangService.getBarangById(id);
+            PurchaseOrderResponseDTO barangResponseDTO = purchaseOrderService.getPurchaseOrderById(id);
             baseResponseDTO.setStatus(HttpStatus.OK.value());
-            baseResponseDTO.setMessage("Barang berhasil ditemukan.");
+            baseResponseDTO.setMessage("Purchase Order berhasil ditemukan.");
             baseResponseDTO.setData(barangResponseDTO);
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
@@ -105,12 +99,12 @@ public class BarangController {
     }
 
     @GetMapping("/viewall")
-    public ResponseEntity<?> getAllBarang() {
-        BaseResponseDTO<List<BarangResponseDTO>> baseResponseDTO = new BaseResponseDTO<>();
+    public ResponseEntity<?> getAllPurchaseOrder() {
+        BaseResponseDTO<List<PurchaseOrderResponseDTO>> baseResponseDTO = new BaseResponseDTO<>();
         try {
-            List<BarangResponseDTO> listBarang = barangService.getAllBarang();
+            List<PurchaseOrderResponseDTO> listBarang = purchaseOrderService.getAllPurchaseOrders();
             baseResponseDTO.setStatus(HttpStatus.OK.value());
-            baseResponseDTO.setMessage("Barang berhasil ditemukan.");
+            baseResponseDTO.setMessage("Purchase Orders berhasil ditemukan.");
             baseResponseDTO.setData(listBarang);
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
@@ -127,10 +121,10 @@ public class BarangController {
         }
     }
 
-    @PutMapping("/update/{id}")
-    public ResponseEntity<?> transferBarang(@PathVariable String id, 
-    @Valid @RequestBody UpdateBarangRequestDTO barangRequestDTO, BindingResult bindingResult) {
-        BaseResponseDTO<BarangResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
+    @PutMapping("/confirm/{id}")
+    public ResponseEntity<?> confirmPurchaseOrder(@PathVariable String id, 
+    @Valid @RequestBody PurchaseOrderInvoiceRequestDTO PoInvoiceRequestDTO, BindingResult bindingResult) {
+        BaseResponseDTO<PurchaseOrderResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
         
         if (bindingResult.hasErrors()) {
             StringBuilder errorMessages = new StringBuilder();
@@ -144,14 +138,14 @@ public class BarangController {
         }
 
         try {
-            BarangResponseDTO barangResponseDTO = barangService.updateBarang(id, barangRequestDTO);
+            PurchaseOrderResponseDTO purchaseOrderResponseDTO = purchaseOrderService.confirmPurchaseOrder(id, PoInvoiceRequestDTO);
             baseResponseDTO.setStatus(HttpStatus.OK.value());
-            baseResponseDTO.setMessage("Barang berhasil diupdate.");
-            baseResponseDTO.setData(barangResponseDTO);
+            baseResponseDTO.setMessage("Purchase Order berhasil dikonfirmasi.");
+            baseResponseDTO.setData(purchaseOrderResponseDTO);
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
 
-        } catch (RuntimeException e) {
+        } catch (IllegalArgumentException e) {
             baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
             baseResponseDTO.setMessage(e.getMessage());
             baseResponseDTO.setTimestamp(new Date());
@@ -165,30 +159,12 @@ public class BarangController {
         }
         
     }
-    
 
-    @PutMapping("/change-status/{id}")
-    public ResponseEntity<?> changeStatusBarang(@PathVariable String id) {
-        BaseResponseDTO<BarangResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
-        try {
-            BarangResponseDTO barangResponseDTO = barangService.changeStatusBarang(id);
-            baseResponseDTO.setStatus(HttpStatus.OK.value());
-            baseResponseDTO.setMessage("Status barang berhasil diubah.");
-            baseResponseDTO.setData(barangResponseDTO);
-            baseResponseDTO.setTimestamp(new Date());
-            return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
-        } catch (Exception e) {
-            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            baseResponseDTO.setMessage(e.getMessage());
-            baseResponseDTO.setTimestamp(new Date());
-            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @PostMapping("/transfer")
-    public ResponseEntity<?> transferBarang(@Valid @RequestBody TransferBarangRequestDTO transferRequest, BindingResult bindingResult) {
-        BaseResponseDTO<TransferBarangResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
-
+    @PutMapping("/payment/{id}")
+    public ResponseEntity<?> payPurchaseOrder(@PathVariable String id, 
+    @Valid @RequestBody PurchasePaymentRequestDTO PoPaymentRequestDTO, BindingResult bindingResult) {
+        BaseResponseDTO<PurchaseOrderResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
+        
         if (bindingResult.hasErrors()) {
             StringBuilder errorMessages = new StringBuilder();
             for (FieldError error : bindingResult.getFieldErrors()) {
@@ -201,82 +177,92 @@ public class BarangController {
         }
 
         try {
-            TransferBarangResponseDTO transferResponse = transferBarangService.addTransferBarang(transferRequest);
-            baseResponseDTO.setStatus(HttpStatus.CREATED.value());
-            baseResponseDTO.setMessage("Pemindahan barang berhasil dicatat.");
-            baseResponseDTO.setData(transferResponse);
-            baseResponseDTO.setTimestamp(new Date());
-            return new ResponseEntity<>(baseResponseDTO, HttpStatus.CREATED);
-        } catch (Exception e) {
-            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            baseResponseDTO.setMessage(e.getMessage());
-            baseResponseDTO.setTimestamp(new Date());
-            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @GetMapping("/transfer/viewall")
-    public ResponseEntity<BaseResponseDTO<List<TransferBarangResponseDTO>>> getAllTransferBarang() {
-        BaseResponseDTO<List<TransferBarangResponseDTO>> baseResponseDTO = new BaseResponseDTO<>();
-        try {
-            List<TransferBarangResponseDTO> listTransferBarang = transferBarangService.getAllTransferBarang();
+            PurchaseOrderResponseDTO purchaseOrderResponseDTO = purchaseOrderService.payPurchaseOrder(id, PoPaymentRequestDTO);
             baseResponseDTO.setStatus(HttpStatus.OK.value());
-            baseResponseDTO.setMessage("Daftar transfer barang berhasil ditemukan.");
-            baseResponseDTO.setData(listTransferBarang);
+            baseResponseDTO.setMessage("Purchase Order berhasil dikonfirmasi.");
+            baseResponseDTO.setData(purchaseOrderResponseDTO);
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
-        } catch (Exception e) {
-            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + e.getMessage());
-            baseResponseDTO.setTimestamp(new Date());
-            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
 
-    @GetMapping("/transfer/{id}")
-    public ResponseEntity<?> getTransferBarangById(@PathVariable String id) {
-        BaseResponseDTO<TransferBarangResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
-        try {
-            TransferBarangResponseDTO transferBarangResponseDTO = transferBarangService.getTransferBarangByID(id);
-            baseResponseDTO.setStatus(HttpStatus.OK.value());
-            baseResponseDTO.setMessage("Transfer barang berhasil ditemukan.");
-            baseResponseDTO.setData(transferBarangResponseDTO);
-            baseResponseDTO.setTimestamp(new Date());
-            return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
-            baseResponseDTO.setStatus(HttpStatus.NOT_FOUND.value());
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
             baseResponseDTO.setMessage(e.getMessage());
             baseResponseDTO.setTimestamp(new Date());
-            return new ResponseEntity<>(baseResponseDTO, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+
         } catch (Exception e) {
             baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
             baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + e.getMessage());
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+        
     }
 
-    @GetMapping("/all-gudang/{id}")
-    public ResponseEntity<?> getAllNamaGudangPerBarang(@PathVariable String id) {
-        BaseResponseDTO<NamaGudangPerBarangResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
+    @PutMapping("/delivery/{id}")
+    public ResponseEntity<?> deliverPurchaseOrder(@PathVariable String id, 
+    @Valid @RequestBody DeliveryRequestDTO deliveryPoRequestDTO, BindingResult bindingResult) {
+        BaseResponseDTO<PurchaseOrderResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
+        
+        if (bindingResult.hasErrors()) {
+            StringBuilder errorMessages = new StringBuilder();
+            for (FieldError error : bindingResult.getFieldErrors()) {
+                errorMessages.append(error.getDefaultMessage()).append("; ");
+            }
+            baseResponseDTO.setStatus(HttpStatus.BAD_REQUEST.value());
+            baseResponseDTO.setMessage(errorMessages.toString());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.BAD_REQUEST);
+        }
+
         try {
-           NamaGudangPerBarangResponseDTO namaGudangPerBarangResponseDTO = barangService.getAllNamaGudangPerBarang(id);
+            PurchaseOrderResponseDTO purchaseOrderResponseDTO = purchaseOrderService.deliverPurchaseOrder(id, deliveryPoRequestDTO);
             baseResponseDTO.setStatus(HttpStatus.OK.value());
-            baseResponseDTO.setMessage("List nama gudang per barang berhasil ditemukan.");
-            baseResponseDTO.setData(namaGudangPerBarangResponseDTO);
+            baseResponseDTO.setMessage("Pesanan di Purchase Order sedang dikirim.");
+            baseResponseDTO.setData(purchaseOrderResponseDTO);
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+
         } catch (IllegalArgumentException e) {
-            baseResponseDTO.setStatus(HttpStatus.NOT_FOUND.value());
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
             baseResponseDTO.setMessage(e.getMessage());
             baseResponseDTO.setTimestamp(new Date());
-            return new ResponseEntity<>(baseResponseDTO, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+
         } catch (Exception e) {
             baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
             baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + e.getMessage());
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+        
+    }
+
+    @PutMapping("/complete/{id}")
+    public ResponseEntity<?> deliverPurchaseOrder(@PathVariable String id) {
+        BaseResponseDTO<PurchaseOrderResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
+        
+        try {
+            PurchaseOrderResponseDTO purchaseOrderResponseDTO = purchaseOrderService.completePurchaseOrder(id);
+            baseResponseDTO.setStatus(HttpStatus.OK.value());
+            baseResponseDTO.setMessage("Purchase Order berhasil diselesaikan.");
+            baseResponseDTO.setData(purchaseOrderResponseDTO);
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+
+        } catch (IllegalArgumentException e) {
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage(e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+
+        } catch (Exception e) {
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        
     }
 
 }

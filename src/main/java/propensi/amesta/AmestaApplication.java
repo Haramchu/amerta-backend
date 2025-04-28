@@ -1,9 +1,11 @@
 package propensi.amesta;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -11,6 +13,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
 import jakarta.transaction.Transactional;
+import propensi.amesta.model.Customer;
 import propensi.amesta.model.Aset.AlamatGudang;
 import propensi.amesta.model.Aset.Barang;
 import propensi.amesta.model.Aset.Gudang;
@@ -22,6 +25,7 @@ import propensi.amesta.model.EndUser.KepalaGudang;
 import propensi.amesta.model.EndUser.Komisaris;
 import propensi.amesta.model.EndUser.Sales;
 import propensi.amesta.model.EndUser.User;
+import propensi.amesta.repository.CustomerDb;
 import propensi.amesta.repository.Aset.BarangDb;
 import propensi.amesta.repository.Aset.GudangDb;
 import propensi.amesta.repository.EndUser.UserDb;
@@ -35,7 +39,7 @@ public class AmestaApplication {
 
 	@Bean
     @Transactional
-    CommandLineRunner run(UserDb userDb, UserService userService, GudangDb gudangDb, BarangDb barangDb) {
+    CommandLineRunner run(UserDb userDb, UserService userService, GudangDb gudangDb, BarangDb barangDb, CustomerDb customerDb) {
         return args -> {
             createUserIfNotExists(userDb, userService, new Administrasi(), "admin", "admin@example.com", "admin", "ADMIN");
             createUserIfNotExists(userDb, userService, new Direktur(), "direktur", "direktur@example.com", "direktur", "DIREKTUR");
@@ -50,6 +54,8 @@ public class AmestaApplication {
                 Gudang gud = createGudangDummy(kepalaGudang, gudangDb);
                 createBarangDummy(gud, barangDb);
             }
+
+            createCustomerDummy(customerDb);
         };
     }
 
@@ -89,7 +95,7 @@ public class AmestaApplication {
         Gudang gudang = new Gudang();
         gudang.setNama("Gudang 1");
         gudang.setDeskripsi("Gudang 1 Deskripsi");
-        gudang.setKapasitas(1000);
+        gudang.setKapasitas(1000000);
         gudang.setKepalaGudang(kepalaGudang);
         gudang.setAlamatGudang(alamatGudang);
         gudang.setCreatedDate(new Date());
@@ -100,7 +106,7 @@ public class AmestaApplication {
     }
 
     private void createBarangDummy(Gudang gudang, BarangDb barangDb) {
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 50; i++) {
             String id = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd"))
             .replace("-01-", "-I-")
             .replace("-02-", "-II-")
@@ -123,6 +129,8 @@ public class AmestaApplication {
             barang.setKategori("Kategori " + i);
             barang.setMerk("Merk " + i);
             barang.setActive(true);
+            barang.setHargaBeli(BigDecimal.valueOf(10000 + (i * 500)));
+            barang.setHargaJual(BigDecimal.valueOf(20000 + (i * 500)));
 
             List<StockBarangPerGudang> listBarang = new ArrayList<>();
             StockBarangPerGudang stockBarang = new StockBarangPerGudang();
@@ -135,5 +143,18 @@ public class AmestaApplication {
 
             barangDb.save(barang);
         }
+    }
+
+    private void createCustomerDummy(CustomerDb customerDb){
+        Customer customer = new Customer();
+        customer.setId(UUID.randomUUID());
+        customer.setName("Customer 1");
+        customer.setPhone("08123456789");
+        customer.setHandphone("08123456789");
+        customer.setWhatsapp("08123456789");
+        customer.setEmail("customer@example.com");
+        customer.setAddress("Jl. Customer No. 1");
+        customer.setRole("VENDOR");
+        customerDb.save(customer);
     }
 }
