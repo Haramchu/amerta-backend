@@ -7,6 +7,8 @@ import propensi.amesta.model.Purchase.PurchaseOrder;
 import propensi.amesta.payload.response.Purchase.PurchaseInvoiceResponseDTO;
 import propensi.amesta.repository.Purchase.PurchaseInvoiceDb;
 import propensi.amesta.repository.Purchase.PurchaseOrderDb;
+
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,6 +40,14 @@ public class PurchaseInvoiceServiceImpl implements PurchaseInvoiceService {
     }
 
     private PurchaseInvoiceResponseDTO invoiceToResponseDTO(PurchaseInvoice invoice) {
+        BigDecimal remainingAmount = invoice.getTotalAmount();
+
+        if (invoice.getPurchaseOrder().getPayment() != null) {
+            remainingAmount = invoice.getTotalAmount().subtract(invoice.getPurchaseOrder().getPayment().getTotalAmountPayed());
+        } else {
+            remainingAmount = invoice.getTotalAmount();
+        }
+
         return new PurchaseInvoiceResponseDTO(
                 invoice.getId(),
                 invoice.getPurchaseOrder().getId(),
@@ -46,7 +56,7 @@ public class PurchaseInvoiceServiceImpl implements PurchaseInvoiceService {
                 invoice.getTotalAmount(),
                 invoice.getPaymentTerms(),
                 invoice.getDueDate(),
-                invoice.getTotalAmount()
+                remainingAmount
         );
     }
 }
