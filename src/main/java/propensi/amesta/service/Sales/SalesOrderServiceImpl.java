@@ -130,7 +130,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
                     .orElseThrow(() -> new IllegalArgumentException(
                             "Barang dengan ID " + itemDTO.getBarangId() + " tidak ditemukan"));
 
-            BigDecimal unitPrice = barang.getHargaBeli(); // harga beli barang
+            BigDecimal unitPrice = barang.getHargaJual();
             BigDecimal itemTotal = unitPrice.multiply(BigDecimal.valueOf(itemDTO.getQuantity()));
             Integer pajak = itemDTO.getPajak(); // pajak dalam persen
             if (pajak == 0) {
