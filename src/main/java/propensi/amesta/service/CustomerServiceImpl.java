@@ -7,6 +7,7 @@ import propensi.amesta.payload.request.CustomerRequestDTO;
 import propensi.amesta.payload.response.CustomerResponseDTO;
 import propensi.amesta.repository.CustomerDb;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -48,4 +49,19 @@ public class CustomerServiceImpl implements CustomerService {
                 customer.getRole()
         );
     }
+
+    public List<CustomerResponseDTO> getAllCustomer() {
+
+        List<Customer> customers = customerDb.findAll();
+        
+        return customers.stream()
+                .map(this::customerToCustomerResponseDTO)
+                .toList();
+    }
+
+    public CustomerResponseDTO getCustomerById(UUID idCustomer) {
+        Customer customer = customerDb.findById(idCustomer).orElseThrow(() -> new IllegalArgumentException("Customer tidak ditemukan."));
+        return customerToCustomerResponseDTO(customer);
+    }
+    
 }
