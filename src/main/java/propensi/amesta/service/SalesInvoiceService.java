@@ -1,7 +1,11 @@
 package propensi.amesta.service;
 
+import java.util.List;
+
 import propensi.amesta.model.Sales.SalesInvoice;
+import propensi.amesta.payload.response.Sales.SalesInvoiceResponseDTO;
 
 public interface SalesInvoiceService {
-    SalesInvoice generateInvoice(String nomorNota, String id, String status, java.math.BigDecimal total);
+    public SalesInvoiceResponseDTO getInvoiceById(String id);
+    public List<SalesInvoiceResponseDTO> getAllInvoices();
 }
