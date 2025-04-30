@@ -222,8 +222,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 purchaseOrderItem.getPurchaseOrder().getId(),
                 purchaseOrderItem.getBarang().getId(),
                 purchaseOrderItem.getQuantity(),
-                purchaseOrderItem.getGudangTujuan().getNama()
-
+                purchaseOrderItem.getGudangTujuan().getNama(),
+                purchaseOrderItem.getTax()
         );
     }
 
