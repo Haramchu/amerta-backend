@@ -69,10 +69,14 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             throw new IllegalArgumentException("Tanggal pembelian tidak boleh di masa lalu");
         }
 
-        // Validasi untuk barang harus ada dan kuantitas tidak boleh negatif
+        // Validasi untuk barang harus ada, kuantitas tidak boleh negatif, dan barang aktif
         for (PurchaseOrderItemRequestDTO item : request.getItems()) {
                 if (!barangDb.existsById(item.getBarangId())) {
                         throw new IllegalArgumentException("Barang dengan ID " + item.getBarangId() + " tidak ditemukan");
+                }
+
+                if(barangDb.findById(item.getBarangId()).get().isActive() == false){
+                    throw new IllegalArgumentException("Barang dengan ID " + item.getBarangId() + " tidak aktif");
                 }
 
                 if (item.getQuantity() <= 0) {
