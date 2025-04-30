@@ -3,9 +3,9 @@ package propensi.amesta.repository.Sales;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import propensi.amesta.model.Sales.SalesOffer;
+import propensi.amesta.model.Sales.SalesPayment;
 
 @Repository
-public interface SalesOfferDb extends JpaRepository<SalesOffer, String> {
+public interface SalesPaymentDb extends JpaRepository<SalesPayment, String> {
 
 }

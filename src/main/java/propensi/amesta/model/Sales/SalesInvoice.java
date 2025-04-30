@@ -1,6 +1,10 @@
 package propensi.amesta.model.Sales;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,25 +18,24 @@ import java.time.LocalDateTime;
 public class SalesInvoice {
 
     @Id
-    @Column(name = "id", nullable = false, unique = true)
     private String id;
 
-    @Column(name = "nomor_nota", nullable = false)
-    private String nomorNota;
+    @OneToOne
+    @JoinColumn(name = "sales_order_id")
+    private SalesOrder salesOrder;
 
-    @Column(name = "tanggal_dibuat", nullable = false)
-    private LocalDateTime tanggalDibuat;
+    @NotNull(message = "Tanggal invoice tidak boleh kosong")
+    private LocalDate invoiceDate;
 
-    @Column(name = "jumlah_tagihan", nullable = false)
-    private BigDecimal jumlahTagihan;
+    @NotNull(message = "Status invoice tidak boleh kosong")
+    private String invoiceStatus;
 
-    @Column(name = "status_pembayaran", nullable = false)
-    private String statusPembayaran;
+    @NotNull(message = "Biaya invoice tidak boleh kosong")
+    private BigDecimal totalAmount; // Amount yang harus dibayar oleh customer, bukan amount yang sudah dibayar
 
-    @PrePersist
-    protected void onCreate() {
-        if (this.tanggalDibuat == null) {
-            this.tanggalDibuat = LocalDateTime.now();
-        }
-    }
+    @NotNull(message = "Payment terms tidak boleh kosong")
+    private Integer paymentTerms; // 30 days, 60 days, dll
+
+    @NotNull(message = "Tanggal jatuh tempo tidak boleh kosong")
+    private LocalDate dueDate; // untuk SalesInvoice
 }

@@ -22,6 +22,7 @@ import propensi.amesta.payload.request.TransferBarangRequestDTO;
 import propensi.amesta.payload.request.UpdateBarangRequestDTO;
 import propensi.amesta.payload.response.BarangResponseDTO;
 import propensi.amesta.payload.response.BaseResponseDTO;
+import propensi.amesta.payload.response.NamaGudangPerBarangResponseDTO;
 import propensi.amesta.payload.response.TransferBarangResponseDTO;
 import propensi.amesta.service.Aset.BarangService;
 import propensi.amesta.service.Aset.TransferBarangService;
@@ -52,7 +53,7 @@ public class BarangController {
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.BAD_REQUEST);
         }
 
-        try{
+        try {
             BarangResponseDTO barangResponseDTO = barangService.addBarang(barangRequestDTO);
             baseResponseDTO.setStatus(HttpStatus.OK.value());
             baseResponseDTO.setMessage("Barang berhasil ditambahkan.");
@@ -60,13 +61,24 @@ public class BarangController {
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.CREATED);
 
+        } catch (IllegalArgumentException e) {
+            baseResponseDTO.setStatus(HttpStatus.BAD_REQUEST.value());
+            baseResponseDTO.setMessage(e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.BAD_REQUEST);
+
+        } catch (RuntimeException e) {
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage(e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+
         } catch (Exception e) {
             baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
             baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + e.getMessage());
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        
     }
 
     @GetMapping("/{id}")
@@ -79,6 +91,11 @@ public class BarangController {
             baseResponseDTO.setData(barangResponseDTO);
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage(e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
             baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + e.getMessage());
@@ -97,6 +114,11 @@ public class BarangController {
             baseResponseDTO.setData(listBarang);
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage(e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
             baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + e.getMessage());
@@ -121,13 +143,19 @@ public class BarangController {
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.BAD_REQUEST);
         }
 
-        try{
+        try {
             BarangResponseDTO barangResponseDTO = barangService.updateBarang(id, barangRequestDTO);
             baseResponseDTO.setStatus(HttpStatus.OK.value());
             baseResponseDTO.setMessage("Barang berhasil diupdate.");
             baseResponseDTO.setData(barangResponseDTO);
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+
+        } catch (RuntimeException e) {
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage(e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
 
         } catch (Exception e) {
             baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
@@ -151,7 +179,7 @@ public class BarangController {
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
         } catch (Exception e) {
             baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + e.getMessage());
+            baseResponseDTO.setMessage(e.getMessage());
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -181,7 +209,7 @@ public class BarangController {
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.CREATED);
         } catch (Exception e) {
             baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + e.getMessage());
+            baseResponseDTO.setMessage(e.getMessage());
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -213,6 +241,29 @@ public class BarangController {
             baseResponseDTO.setStatus(HttpStatus.OK.value());
             baseResponseDTO.setMessage("Transfer barang berhasil ditemukan.");
             baseResponseDTO.setData(transferBarangResponseDTO);
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            baseResponseDTO.setStatus(HttpStatus.NOT_FOUND.value());
+            baseResponseDTO.setMessage(e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/all-gudang/{id}")
+    public ResponseEntity<?> getAllNamaGudangPerBarang(@PathVariable String id) {
+        BaseResponseDTO<NamaGudangPerBarangResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
+        try {
+           NamaGudangPerBarangResponseDTO namaGudangPerBarangResponseDTO = barangService.getAllNamaGudangPerBarang(id);
+            baseResponseDTO.setStatus(HttpStatus.OK.value());
+            baseResponseDTO.setMessage("List nama gudang per barang berhasil ditemukan.");
+            baseResponseDTO.setData(namaGudangPerBarangResponseDTO);
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
