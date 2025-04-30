@@ -70,6 +70,13 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/purchase-order/delivery/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
                 .requestMatchers("/api/purchase-order/complete/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
 
+
+                .requestMatchers("/api/sales-receipt/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/sales-receipt/viewall").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/purchase-receipt/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/purchase-receipt/viewall").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                
+
                 .anyRequest().authenticated()    
             )
             .formLogin(form -> form
