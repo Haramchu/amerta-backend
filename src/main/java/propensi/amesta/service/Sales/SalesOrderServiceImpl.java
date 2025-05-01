@@ -35,7 +35,6 @@ import propensi.amesta.repository.CustomerDb;
 import propensi.amesta.repository.Aset.BarangDb;
 import propensi.amesta.repository.Aset.GudangDb;
 import propensi.amesta.repository.Sales.SalesOrderDb;
-import propensi.amesta.service.Shipping.ShippingDocumentService;
 
 @Service
 public class SalesOrderServiceImpl implements SalesOrderService {
@@ -51,9 +50,6 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
     @Autowired
     private GudangDb gudangDb;
-
-    @Autowired
-    private ShippingDocumentService shippingDocumentService;
 
     // STAGE 1: CREATED
     @Override
