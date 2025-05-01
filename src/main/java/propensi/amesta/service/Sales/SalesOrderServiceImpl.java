@@ -406,35 +406,33 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     }
 
     @Override
-    public List<SalesOrderResponseDTO> getAllSalesOrders(LocalDate startDate, LocalDate endDate, String status, UUID customerId) {
-        if (startDate == null && endDate == null && status == null && customerId == null) {
-            List<SalesOrder> salesOrders = salesOrderDb.findAll();
-            return salesOrders.stream()
-                .map(this::salesOrderToSalesOrderResponseDTO)
-                .toList();
+    public List<SalesOrderResponseDTO> getAllSalesOrders() {
+        List<SalesOrder> salesOrders = salesOrderDb.findAll();
+        List<SalesOrderResponseDTO> salesOrderResponseDTOs = new ArrayList<>();
+
+        for (SalesOrder salesOrder : salesOrders) {
+            SalesOrderResponseDTO salesOrderResponseDTO = salesOrderToSalesOrderResponseDTO(salesOrder);
+            salesOrderResponseDTOs.add(salesOrderResponseDTO);
         }
 
-        if (startDate == null) {
-            startDate = LocalDate.of(2000, 1, 1);
-        }
-        if (endDate == null) {
-            endDate = LocalDate.now().plusYears(10);
-        }
+        return salesOrderResponseDTOs;
+    }
 
-        List<SalesOrder> salesOrders;
-        if (status != null && customerId != null) {
-            salesOrders = salesOrderDb.findBySalesDateBetweenAndStatusAndCustomerId(startDate, endDate, status, customerId);
-        } else if (status != null) {
-            salesOrders = salesOrderDb.findBySalesDateBetweenAndStatus(startDate, endDate, status);
-        } else if (customerId != null) {
-            salesOrders = salesOrderDb.findBySalesDateBetweenAndCustomerId(startDate, endDate, customerId);
-        } else {
-            salesOrders = salesOrderDb.findBySalesDateBetween(startDate, endDate);
-        }
-        
-        return salesOrders.stream()
-            .map(this::salesOrderToSalesOrderResponseDTO)
+    @Override
+    public List<SalesOrderResponseDTO> getSalesOrdersByStatus(String status) {
+        List<SalesOrder> allSalesOrders = salesOrderDb.findAll();
+        List<SalesOrder> filteredSalesOrders = allSalesOrders.stream()
+            .filter(order -> status.equalsIgnoreCase(order.getStatus()))
             .toList();
+        
+        List<SalesOrderResponseDTO> salesOrderResponseDTOs = new ArrayList<>();
+
+        for (SalesOrder salesOrder : filteredSalesOrders) {
+            SalesOrderResponseDTO salesOrderResponseDTO = salesOrderToSalesOrderResponseDTO(salesOrder);
+            salesOrderResponseDTOs.add(salesOrderResponseDTO);
+        }
+
+        return salesOrderResponseDTOs;
     }
 
     @Override
@@ -486,7 +484,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         return salesOrderToSalesOrderResponseDTO(salesOrderDb.save(salesOrder));
     }
 
-    // STAGE 3: IN DELIVERY, SURAT JALAN (JESS)
+    // STAGE 3: IN SHIPPING, SURAT JALAN (JESS)
     @Override
     public SalesOrderResponseDTO shipSalesOrder(String id, ShippingRequestDTO request) {
         // Validasi untuk sales order ada atau tidak
@@ -542,6 +540,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         shipping.setShippingStatus("IN SHIPPING"); // IN SHIPPING, SHIPPED (KETIKA UDAH SAMPAI NANTI TAHAP SELANJUTNYA)
         shipping.setTrackingNumber(generateTrackingNumber(salesOrder.getItems()));
         shipping.setShippingFee(request.getShippingFee());
+        salesOrder.setTotalPrice(salesOrder.getTotalPrice().add(request.getShippingFee())); // Update total price
         salesOrder.setStatus("IN SHIPPING");
         shipping.setSalesOrder(salesOrder);
         salesOrder.setShipping(shipping);

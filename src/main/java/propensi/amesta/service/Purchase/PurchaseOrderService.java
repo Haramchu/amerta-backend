@@ -1,8 +1,6 @@
 package propensi.amesta.service.Purchase;
 
-import java.time.LocalDate;
 import java.util.List;
-import java.util.UUID;
 
 import propensi.amesta.payload.request.Purchase.DeliveryRequestDTO;
 import propensi.amesta.payload.request.Purchase.PurchaseOrderInvoiceRequestDTO;
@@ -12,12 +10,10 @@ import propensi.amesta.payload.response.Purchase.PurchaseOrderResponseDTO;
 
 public interface PurchaseOrderService {
     PurchaseOrderResponseDTO addPurchaseOrder(PurchaseOrderRequestDTO request);
-    
-    // VIEW PURCHASE ORDER
-    List<PurchaseOrderResponseDTO> getAllPurchaseOrders(LocalDate startDate, LocalDate endDate, String status, UUID supplierId);
+    List<PurchaseOrderResponseDTO> getAllPurchaseOrders();
+    List<PurchaseOrderResponseDTO> getPurchaseOrdersByStatus(String status);
     PurchaseOrderResponseDTO getPurchaseOrderById(String id);
 
-    // UPDATE PURCHASE ORDER
     PurchaseOrderResponseDTO confirmPurchaseOrder(String id, PurchaseOrderInvoiceRequestDTO request);
     PurchaseOrderResponseDTO payPurchaseOrder(String id, PurchasePaymentRequestDTO request);
     PurchaseOrderResponseDTO deliverPurchaseOrder(String id, DeliveryRequestDTO request);

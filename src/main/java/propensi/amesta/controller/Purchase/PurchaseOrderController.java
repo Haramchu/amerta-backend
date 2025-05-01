@@ -79,37 +79,34 @@ public class PurchaseOrderController {
         }
     }
 
-    @GetMapping("/")
-    public ResponseEntity<?> getAllPurchaseOrders(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) UUID supplierId) {
-        
-        try {        
-            List<PurchaseOrderResponseDTO> purchaseOrders = purchaseOrderService.getAllPurchaseOrders(startDate, endDate, status, supplierId);
-
-            BaseResponseDTO<List<PurchaseOrderResponseDTO>> response = new BaseResponseDTO<>();
-            response.setStatus(HttpStatus.OK.value());
-            response.setMessage("Daftar purchase order berhasil diambil");
-            response.setTimestamp(new Date());
-            response.setData(purchaseOrders);
+    @GetMapping("/viewall")
+    public ResponseEntity<?> getAllPurchaseOrder(@RequestParam(required = false) String status) {
+        BaseResponseDTO<List<PurchaseOrderResponseDTO>> baseResponseDTO = new BaseResponseDTO<>();
+        try {
+            List<PurchaseOrderResponseDTO> listBarang;
             
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            BaseResponseDTO<List<PurchaseOrderResponseDTO>> errorResponse = new BaseResponseDTO<>();
-            errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
-            errorResponse.setMessage(e.getMessage());
-            errorResponse.setTimestamp(new Date());
-            errorResponse.setData(null);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+            if (status != null && !status.isEmpty()) {
+                listBarang = purchaseOrderService.getPurchaseOrdersByStatus(status);
+                baseResponseDTO.setMessage("Purchase Orders dengan status " + status + " berhasil ditemukan.");
+            } else {
+                listBarang = purchaseOrderService.getAllPurchaseOrders();
+                baseResponseDTO.setMessage("Purchase Orders berhasil ditemukan.");
+            }
+            
+            baseResponseDTO.setStatus(HttpStatus.OK.value());
+            baseResponseDTO.setData(listBarang);
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage(e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
-            BaseResponseDTO<List<PurchaseOrderResponseDTO>> errorResponse = new BaseResponseDTO<>();
-            errorResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            errorResponse.setMessage("Terjadi kesalahan saat mengambil daftar purchase order: " + e.getMessage());
-            errorResponse.setTimestamp(new Date());
-            errorResponse.setData(null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

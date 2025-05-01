@@ -20,6 +20,7 @@ import propensi.amesta.model.Purchase.PurchaseOrder;
 import propensi.amesta.model.Purchase.PurchaseOrderItem;
 import propensi.amesta.model.Purchase.PurchasePayment;
 import propensi.amesta.model.Purchase.PurchaseReceipt;
+import propensi.amesta.model.Sales.SalesOrder;
 import propensi.amesta.payload.request.Purchase.DeliveryRequestDTO;
 import propensi.amesta.payload.request.Purchase.PurchaseOrderInvoiceRequestDTO;
 import propensi.amesta.payload.request.Purchase.PurchaseOrderItemRequestDTO;
@@ -31,6 +32,7 @@ import propensi.amesta.payload.response.Purchase.PurchaseOrderItemResponseDTO;
 import propensi.amesta.payload.response.Purchase.PurchaseOrderResponseDTO;
 import propensi.amesta.payload.response.Purchase.PurchasePaymentResponseDTO;
 import propensi.amesta.payload.response.Purchase.PurchaseReceiptResponseDTO;
+import propensi.amesta.payload.response.Sales.SalesOrderResponseDTO;
 import propensi.amesta.repository.CustomerDb;
 import propensi.amesta.repository.Aset.BarangDb;
 import propensi.amesta.repository.Aset.GudangDb;
@@ -407,49 +409,33 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     }
     
     @Override
-    public List<PurchaseOrderResponseDTO> getAllPurchaseOrders(LocalDate startDate, LocalDate endDate, String status, UUID supplierId) {
-        if (startDate == null && endDate == null && status == null && supplierId == null) {
-            List<PurchaseOrder> purchaseOrders = purchaseOrderDb.findAll();
-            return purchaseOrders.stream()
-                .map(this::purchaseOrderToPurchaseOrderResponseDTO)
-                .toList();
+    public List<PurchaseOrderResponseDTO> getAllPurchaseOrders() {
+        List<PurchaseOrder> purchaseOrders = purchaseOrderDb.findAll();
+        List<PurchaseOrderResponseDTO> purchaseOrderResponseDTOs = new ArrayList<>();
+
+        for (PurchaseOrder purchaseOrder : purchaseOrders) {
+            PurchaseOrderResponseDTO purchaseOrderResponseDTO = purchaseOrderToPurchaseOrderResponseDTO(purchaseOrder);
+            purchaseOrderResponseDTOs.add(purchaseOrderResponseDTO);
         }
 
-        if (startDate == null) {
-            startDate = LocalDate.of(2000, 1, 1);
-        }
-        if (endDate == null) {
-            endDate = LocalDate.now().plusYears(10);
-        }
+        return purchaseOrderResponseDTOs;
+    }
 
-        List<PurchaseOrder> purchaseOrders;
-        if (status != null && supplierId != null) {
-            Customer supplier = customerDb.findById(supplierId)
-                    .orElseThrow(() -> new IllegalArgumentException("Supplier tidak ditemukan"));
-            
-            if (!supplier.getRole().equalsIgnoreCase("VENDOR")) {
-                throw new IllegalArgumentException("Customer dengan ID tersebut bukan supplier/vendor");
-            }
-            
-            purchaseOrders = purchaseOrderDb.findByPurchaseDateBetweenAndStatusAndCustomerId(startDate, endDate, status, supplierId);
-        } else if (status != null) {
-            purchaseOrders = purchaseOrderDb.findByPurchaseDateBetweenAndStatus(startDate, endDate, status);
-        } else if (supplierId != null) {
-            Customer supplier = customerDb.findById(supplierId)
-                    .orElseThrow(() -> new IllegalArgumentException("Supplier tidak ditemukan"));
-            
-            if (!supplier.getRole().equalsIgnoreCase("VENDOR")) {
-                throw new IllegalArgumentException("Customer dengan ID tersebut bukan supplier/vendor");
-            }
-            
-            purchaseOrders = purchaseOrderDb.findByPurchaseDateBetweenAndCustomerId(startDate, endDate, supplierId);
-        } else {
-            purchaseOrders = purchaseOrderDb.findByPurchaseDateBetween(startDate, endDate);
-        }
-        
-        return purchaseOrders.stream()
-            .map(this::purchaseOrderToPurchaseOrderResponseDTO)
+    @Override
+    public List<PurchaseOrderResponseDTO> getPurchaseOrdersByStatus(String status) {
+        List<PurchaseOrder> allpurchaseOrders = purchaseOrderDb.findAll();
+        List<PurchaseOrder> filteredpurchaseOrders = allpurchaseOrders.stream()
+            .filter(order -> status.equalsIgnoreCase(order.getStatus()))
             .toList();
+        
+        List<PurchaseOrderResponseDTO> purchaseOrderResponseDTOs = new ArrayList<>();
+
+        for (PurchaseOrder purchaseOrder : filteredpurchaseOrders) {
+            PurchaseOrderResponseDTO purchaseOrderResponseDTO = purchaseOrderToPurchaseOrderResponseDTO(purchaseOrder);
+            purchaseOrderResponseDTOs.add(purchaseOrderResponseDTO);
+        }
+
+        return purchaseOrderResponseDTOs;
     }
 
     @Override
@@ -592,7 +578,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         delivery.setTrackingNumber(generateTrackingNumber(purchaseOrder.getItems()));
         delivery.setDeliveryFee(request.getDeliveryFee());
         purchaseOrder.setStatus("IN DELIVERY");
-        purchaseOrder.setTotalPrice(purchaseOrder.getTotalPrice().add(request.getDeliveryFee()));
+        purchaseOrder.setTotalPrice(purchaseOrder.getTotalPrice().add(request.getDeliveryFee())); // total price = total price + delivery fee
         delivery.setPurchaseOrder(purchaseOrder);
         purchaseOrder.setDelivery(delivery);
 

@@ -13,8 +13,8 @@ import lombok.NoArgsConstructor;
 public class ShippingResponseDTO {
     private String id;
     private String salesOrderId;
-    private LocalDate deliveryDate;
-    private String deliveryStatus;
+    private LocalDate shippingDate;
+    private String shippingStatus;
     private String trackingNumber;
-    private BigDecimal deliveryFee;
+    private BigDecimal shippingFee;
 }
