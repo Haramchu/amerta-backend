@@ -403,10 +403,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     }
     
     @Override
-    public List<PurchaseOrderResponseDTO> getAllPurchaseOrders(
-            LocalDate startDate, LocalDate endDate, String status, UUID supplierId) {
-
-        // If no filters are applied, return all purchase orders
+    public List<PurchaseOrderResponseDTO> getAllPurchaseOrders(LocalDate startDate, LocalDate endDate, String status, UUID supplierId) {
         if (startDate == null && endDate == null && status == null && supplierId == null) {
             List<PurchaseOrder> purchaseOrders = purchaseOrderDb.findAll();
             return purchaseOrders.stream()
@@ -414,7 +411,6 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 .toList();
         }
 
-        // Set default date range if not provided
         if (startDate == null) {
             startDate = LocalDate.of(2000, 1, 1);
         }
@@ -424,7 +420,6 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
         List<PurchaseOrder> purchaseOrders;
         if (status != null && supplierId != null) {
-            // Validate supplier
             Customer supplier = customerDb.findById(supplierId)
                     .orElseThrow(() -> new IllegalArgumentException("Supplier tidak ditemukan"));
             
@@ -436,7 +431,6 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         } else if (status != null) {
             purchaseOrders = purchaseOrderDb.findByPurchaseDateBetweenAndStatus(startDate, endDate, status);
         } else if (supplierId != null) {
-            // Validate supplier
             Customer supplier = customerDb.findById(supplierId)
                     .orElseThrow(() -> new IllegalArgumentException("Supplier tidak ditemukan"));
             

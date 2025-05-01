@@ -41,6 +41,7 @@ public class WebSecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() 
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/user/**").hasAnyAuthority("administrasi", "direktur")
+
                 .requestMatchers("/api/barang/add").hasAnyAuthority("direktur", "general_manager")
                 .requestMatchers("/api/barang/update/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang")
                 .requestMatchers("/api/barang/change-status/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang")
@@ -49,12 +50,15 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/barang/transfer").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi")
                 .requestMatchers("/api/barang/transfer/viewall").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
                 .requestMatchers("/api/barang/transfer/view/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
+
                 .requestMatchers("/api/penerimaan/create").hasAnyAuthority("direktur", "administrasi")
                 .requestMatchers("/api/penerimaan/viewall").hasAnyAuthority("direktur", "komisaris")
                 .requestMatchers("/api/penerimaan/view/{id}").hasAnyAuthority("direktur", "komisaris")
+
                 .requestMatchers("/api/pengeluaran/create").hasAnyAuthority("direktur", "administrasi")
                 .requestMatchers("/api/pengeluaran/viewall").hasAnyAuthority("direktur", "komisaris")
                 .requestMatchers("/api/pengeluaran/view/{id}").hasAnyAuthority("direktur", "komisaris")
+                
                 .requestMatchers("/api/gudang/add").hasAnyAuthority("direktur", "general_manager")
                 .requestMatchers("/api/gudang/").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
                 .requestMatchers("/api/gudang/{namaGudang}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
@@ -62,17 +66,22 @@ public class WebSecurityConfig {
                 
                 // TODO: implement security untuk add customer.
 
-                .requestMatchers("/api/purchase-order/").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
-                .requestMatchers("/api/purchase-order/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
                 .requestMatchers("/api/purchase-order/add").hasAnyAuthority("direktur", "sales", "general_manager", "administrasi")
+                .requestMatchers("/api/purchase-order/viewall").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/purchase-order/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
                 .requestMatchers("/api/purchase-order/confirm/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
                 .requestMatchers("/api/purchase-order/payment/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
                 .requestMatchers("/api/purchase-order/delivery/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
                 .requestMatchers("/api/purchase-order/complete/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
 
-                .requestMatchers("/api/sales-order/").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/sales-order/add").hasAnyAuthority("direktur", "sales", "general_manager", "administrasi")
+                .requestMatchers("/api/sales-order/viewall").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
                 .requestMatchers("/api/sales-order/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
-                .requestMatchers("/api/sales-order/add").hasAnyAuthority("direktur", "sales", "administrasi")
+                .requestMatchers("/api/sales-order/confirm/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+                .requestMatchers("/api/sales-order/payment/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+                .requestMatchers("/api/sales-order/shipping/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+                .requestMatchers("/api/sales-order/confirm-shipping/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+
                 .anyRequest().authenticated()    
             )
             .formLogin(form -> form

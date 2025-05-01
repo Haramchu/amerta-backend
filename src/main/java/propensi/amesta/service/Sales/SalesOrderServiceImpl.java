@@ -402,16 +402,35 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     }
 
     @Override
-    public List<SalesOrderResponseDTO> getAllSalesOrders() {
-        List<SalesOrder> salesOrders = salesOrderDb.findAll();
-        List<SalesOrderResponseDTO> salesOrderResponseDTOs = new ArrayList<>();
-
-        for (SalesOrder salesOrder : salesOrders) {
-            SalesOrderResponseDTO salesOrderResponseDTO = salesOrderToSalesOrderResponseDTO(salesOrder);
-            salesOrderResponseDTOs.add(salesOrderResponseDTO);
+    public List<SalesOrderResponseDTO> getAllSalesOrders(LocalDate startDate, LocalDate endDate, String status, UUID customerId) {
+        if (startDate == null && endDate == null && status == null && customerId == null) {
+            List<SalesOrder> salesOrders = salesOrderDb.findAll();
+            return salesOrders.stream()
+                .map(this::salesOrderToSalesOrderResponseDTO)
+                .toList();
         }
 
-        return salesOrderResponseDTOs;
+        if (startDate == null) {
+            startDate = LocalDate.of(2000, 1, 1);
+        }
+        if (endDate == null) {
+            endDate = LocalDate.now().plusYears(10);
+        }
+
+        List<SalesOrder> salesOrders;
+        if (status != null && customerId != null) {
+            salesOrders = salesOrderDb.findByOrderDateBetweenAndStatusAndCustomerId(startDate, endDate, status, customerId);
+        } else if (status != null) {
+            salesOrders = salesOrderDb.findByOrderDateBetweenAndStatus(startDate, endDate, status);
+        } else if (customerId != null) {
+            salesOrders = salesOrderDb.findByOrderDateBetweenAndCustomerId(startDate, endDate, customerId);
+        } else {
+            salesOrders = salesOrderDb.findByOrderDateBetween(startDate, endDate);
+        }
+        
+        return salesOrders.stream()
+            .map(this::salesOrderToSalesOrderResponseDTO)
+            .toList();
     }
 
     @Override
