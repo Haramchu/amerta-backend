@@ -58,7 +58,7 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/pengeluaran/create").hasAnyAuthority("direktur", "administrasi")
                 .requestMatchers("/api/pengeluaran/viewall").hasAnyAuthority("direktur", "komisaris")
                 .requestMatchers("/api/pengeluaran/view/{id}").hasAnyAuthority("direktur", "komisaris")
-                
+
                 .requestMatchers("/api/gudang/add").hasAnyAuthority("direktur", "general_manager")
                 .requestMatchers("/api/gudang/").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
                 .requestMatchers("/api/gudang/{namaGudang}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
@@ -67,7 +67,7 @@ public class WebSecurityConfig {
                 // TODO: implement security untuk add customer.
 
                 .requestMatchers("/api/purchase-order/add").hasAnyAuthority("direktur", "sales", "general_manager", "administrasi")
-                .requestMatchers("/api/purchase-order/viewall").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/purchase-order/").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
                 .requestMatchers("/api/purchase-order/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
                 .requestMatchers("/api/purchase-order/confirm/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
                 .requestMatchers("/api/purchase-order/payment/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
@@ -75,7 +75,7 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/purchase-order/complete/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
 
                 .requestMatchers("/api/sales-order/add").hasAnyAuthority("direktur", "sales", "general_manager", "administrasi")
-                .requestMatchers("/api/sales-order/viewall").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/sales-order/").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
                 .requestMatchers("/api/sales-order/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
                 .requestMatchers("/api/sales-order/confirm/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
                 .requestMatchers("/api/sales-order/payment/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")

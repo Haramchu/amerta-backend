@@ -1,9 +1,12 @@
-package propensi.amesta.controller.Purchase;
+package propensi.amesta.controller.Sales;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
@@ -99,26 +103,38 @@ public class SalesOrderController {
         }
     }
 
-    @GetMapping("/viewall")
-    public ResponseEntity<?> getAllSalesOrder() {
-        BaseResponseDTO<List<SalesOrderResponseDTO>> baseResponseDTO = new BaseResponseDTO<>();
+    @GetMapping("/")
+    public ResponseEntity<BaseResponseDTO<List<SalesOrderResponseDTO>>> getSalesOrdersWithFilters(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) UUID customerId) {
+        
         try {
-            List<SalesOrderResponseDTO> listBarang = salesOrderService.getAllSalesOrders();
-            baseResponseDTO.setStatus(HttpStatus.OK.value());
-            baseResponseDTO.setMessage("Sales Orders berhasil ditemukan.");
-            baseResponseDTO.setData(listBarang);
-            baseResponseDTO.setTimestamp(new Date());
-            return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
-        } catch (RuntimeException e) {
-            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            baseResponseDTO.setMessage(e.getMessage());
-            baseResponseDTO.setTimestamp(new Date());
-            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+            List<SalesOrderResponseDTO> salesOrders = salesOrderService.getAllSalesOrders(
+                    startDate, endDate, status, customerId);
+            
+            BaseResponseDTO<List<SalesOrderResponseDTO>> response = new BaseResponseDTO<>();
+            response.setStatus(HttpStatus.OK.value());
+            response.setMessage("Daftar sales order berhasil diambil");
+            response.setTimestamp(new Date());
+            response.setData(salesOrders);
+            
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            BaseResponseDTO<List<SalesOrderResponseDTO>> errorResponse = new BaseResponseDTO<>();
+            errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorResponse.setMessage(e.getMessage());
+            errorResponse.setTimestamp(new Date());
+            errorResponse.setData(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         } catch (Exception e) {
-            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + e.getMessage());
-            baseResponseDTO.setTimestamp(new Date());
-            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+            BaseResponseDTO<List<SalesOrderResponseDTO>> errorResponse = new BaseResponseDTO<>();
+            errorResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            errorResponse.setMessage("Terjadi kesalahan saat mengambil daftar sales order: " + e.getMessage());
+            errorResponse.setTimestamp(new Date());
+            errorResponse.setData(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 
