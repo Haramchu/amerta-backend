@@ -35,6 +35,7 @@ import propensi.amesta.repository.CustomerDb;
 import propensi.amesta.repository.Aset.BarangDb;
 import propensi.amesta.repository.Aset.GudangDb;
 import propensi.amesta.repository.Purchase.PurchaseOrderDb;
+import propensi.amesta.service.Shipping.ShippingDocumentService;
 
 @Service
 public class PurchaseOrderServiceImpl implements PurchaseOrderService {
@@ -50,6 +51,9 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
     @Autowired
     private GudangDb gudangDb;
+
+    @Autowired
+    private ShippingDocumentService shippingDocumentService;
 
 
     // STAGE 1: CREATED
@@ -533,7 +537,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
         payment.setPaymentDate(paymentDate);
         payment.setPaymentMethod(request.getPaymentMethod()); // kalo udah partially paid, ini prefilled dari yang udah ada (frontend), 
-                                                                // jadi payment methodnya sama terus
+                                                              // jadi payment methodnya sama terus
  
         BigDecimal additionalPaid = request.getTotalAmountPayed();
         BigDecimal totalPrice = purchaseOrder.getTotalPrice();
@@ -588,6 +592,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         delivery.setTrackingNumber(generateTrackingNumber(purchaseOrder.getItems()));
         delivery.setDeliveryFee(request.getDeliveryFee());
         purchaseOrder.setStatus("IN DELIVERY");
+        purchaseOrder.setTotalPrice(purchaseOrder.getTotalPrice().add(request.getDeliveryFee()));
         delivery.setPurchaseOrder(purchaseOrder);
         purchaseOrder.setDelivery(delivery);
 
@@ -630,6 +635,10 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             }
         }
 
-        return purchaseOrderToPurchaseOrderResponseDTO(purchaseOrderDb.save(purchaseOrder));
+        // Save the purchase order first
+        PurchaseOrder savedOrder = purchaseOrderDb.save(purchaseOrder);
+        shippingDocumentService.generateFromPurchaseOrder(id);
+
+        return purchaseOrderToPurchaseOrderResponseDTO(savedOrder);
     }
 }

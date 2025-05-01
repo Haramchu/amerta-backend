@@ -35,6 +35,7 @@ import propensi.amesta.repository.CustomerDb;
 import propensi.amesta.repository.Aset.BarangDb;
 import propensi.amesta.repository.Aset.GudangDb;
 import propensi.amesta.repository.Sales.SalesOrderDb;
+import propensi.amesta.service.Shipping.ShippingDocumentService;
 
 @Service
 public class SalesOrderServiceImpl implements SalesOrderService {
@@ -50,6 +51,9 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
     @Autowired
     private GudangDb gudangDb;
+
+    @Autowired
+    private ShippingDocumentService shippingDocumentService;
 
     // STAGE 1: CREATED
     @Override
@@ -419,13 +423,13 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
         List<SalesOrder> salesOrders;
         if (status != null && customerId != null) {
-            salesOrders = salesOrderDb.findByOrderDateBetweenAndStatusAndCustomerId(startDate, endDate, status, customerId);
+            salesOrders = salesOrderDb.findBySalesDateBetweenAndStatusAndCustomerId(startDate, endDate, status, customerId);
         } else if (status != null) {
-            salesOrders = salesOrderDb.findByOrderDateBetweenAndStatus(startDate, endDate, status);
+            salesOrders = salesOrderDb.findBySalesDateBetweenAndStatus(startDate, endDate, status);
         } else if (customerId != null) {
-            salesOrders = salesOrderDb.findByOrderDateBetweenAndCustomerId(startDate, endDate, customerId);
+            salesOrders = salesOrderDb.findBySalesDateBetweenAndCustomerId(startDate, endDate, customerId);
         } else {
-            salesOrders = salesOrderDb.findByOrderDateBetween(startDate, endDate);
+            salesOrders = salesOrderDb.findBySalesDateBetween(startDate, endDate);
         }
         
         return salesOrders.stream()
@@ -546,7 +550,10 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         // juga di dto request (ShippingRequestDTO)
         // dan response (ShippingResponseDTO) sama model (Shipping)
 
-        return salesOrderToSalesOrderResponseDTO(salesOrderDb.save(salesOrder));
+        SalesOrder savedOrder = salesOrderDb.save(salesOrder);
+        shippingDocumentService.generateFromSalesOrder(id);
+
+        return salesOrderToSalesOrderResponseDTO(savedOrder);
     }
 
     @Override

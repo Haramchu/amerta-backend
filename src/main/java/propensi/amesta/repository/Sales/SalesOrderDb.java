@@ -13,20 +13,20 @@ import propensi.amesta.model.Sales.SalesOrder;
 
 @Repository
 public interface SalesOrderDb extends JpaRepository<SalesOrder, String> {
-    List<SalesOrder> findByOrderDateBetween(LocalDate startDate, LocalDate endDate);
+    List<SalesOrder> findBySalesDateBetween(LocalDate startDate, LocalDate endDate);
     List<SalesOrder> findByStatus(String status);
     
     @Query("SELECT so FROM SalesOrder so WHERE so.customer.id = :customerId")
     List<SalesOrder> findByCustomerId(@Param("customerId") UUID customerId);
     
-    @Query("SELECT so FROM SalesOrder so WHERE so.orderDate BETWEEN :startDate AND :endDate AND so.status = :status")
-    List<SalesOrder> findByOrderDateBetweenAndStatus(
+    @Query("SELECT so FROM SalesOrder so WHERE so.salesDate BETWEEN :startDate AND :endDate AND so.status = :status")
+    List<SalesOrder> findBySalesDateBetweenAndStatus(
         @Param("startDate") LocalDate startDate, 
         @Param("endDate") LocalDate endDate, 
         @Param("status") String status);
     
-    @Query("SELECT so FROM SalesOrder so WHERE so.orderDate BETWEEN :startDate AND :endDate AND so.customer.id = :customerId")
-    List<SalesOrder> findByOrderDateBetweenAndCustomerId(
+    @Query("SELECT so FROM SalesOrder so WHERE so.salesDate BETWEEN :startDate AND :endDate AND so.customer.id = :customerId")
+    List<SalesOrder> findBySalesDateBetweenAndCustomerId(
         @Param("startDate") LocalDate startDate, 
         @Param("endDate") LocalDate endDate, 
         @Param("customerId") UUID customerId);
@@ -36,8 +36,8 @@ public interface SalesOrderDb extends JpaRepository<SalesOrder, String> {
         @Param("status") String status, 
         @Param("customerId") UUID customerId);
     
-    @Query("SELECT so FROM SalesOrder so WHERE so.orderDate BETWEEN :startDate AND :endDate AND so.status = :status AND so.customer.id = :customerId")
-    List<SalesOrder> findByOrderDateBetweenAndStatusAndCustomerId(
+    @Query("SELECT so FROM SalesOrder so WHERE so.salesDate BETWEEN :startDate AND :endDate AND so.status = :status AND so.customer.id = :customerId")
+    List<SalesOrder> findBySalesDateBetweenAndStatusAndCustomerId(
         @Param("startDate") LocalDate startDate, 
         @Param("endDate") LocalDate endDate, 
         @Param("status") String status, 
