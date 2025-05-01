@@ -7,5 +7,6 @@ import propensi.amesta.model.Purchase.PurchaseInvoice;
 
 @Repository
 public interface PurchaseInvoiceDb extends JpaRepository<PurchaseInvoice, String> {
-
+    
 }
+

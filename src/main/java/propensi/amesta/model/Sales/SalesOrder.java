@@ -4,11 +4,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+import jakarta.validation.constraints.NotNull;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -17,7 +16,6 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
-import propensi.amesta.enums.Sales.SalesOrderStatus;
 import propensi.amesta.model.Customer;
 
 @Setter
@@ -29,40 +27,32 @@ public class SalesOrder {
     @Id
     private String id;
 
-    @Column(name = "order_date")
-    private LocalDate orderDate;
+    @NotNull(message = "Tanggal pembelian tidak boleh kosong")
+    private LocalDate salesDate;
     
-    @Column(name = "status")
-    @Enumerated(EnumType.STRING)
-    private SalesOrderStatus status;
+    @NotNull(message = "Status pembelian tidak boleh kosong")
+    private String status; 
 
     @ManyToOne
     @JoinColumn(name = "customer_id")
     private Customer customer;
 
-    @OneToMany(mappedBy = "salesOrder", cascade = CascadeType.ALL)
-    private List<SalesOrderItem> items;
-
     @OneToOne(mappedBy = "salesOrder", cascade = CascadeType.ALL)
     private SalesInvoice invoice;
 
     @OneToOne(mappedBy = "salesOrder", cascade = CascadeType.ALL)
-    private Shipping shipping;
-
-    @OneToOne(mappedBy = "salesOrder", cascade = CascadeType.ALL)
     private SalesReceipt receipt;
 
+    @OneToOne(mappedBy = "salesOrder", cascade = CascadeType.ALL)
+    private SalesPayment payment;
+
+    @OneToOne(mappedBy = "salesOrder", cascade = CascadeType.ALL)
+    private Shipping shipping;
+
+    @OneToMany(mappedBy = "salesOrder", cascade = CascadeType.ALL)
+    private List<SalesOrderItem> items;
+
+    @NotNull(message = "Total harga tidak boleh kosong")
     @Column(name = "total_price")
     private BigDecimal totalPrice;
-    
-    public void setStatusFromString(String statusStr) {
-        this.status = SalesOrderStatus.fromString(statusStr);
-        if (this.status == null) {
-            throw new IllegalArgumentException("Status tidak valid: " + statusStr);
-        }
-    }
-    
-    public String getStatusAsString() {
-        return status != null ? status.getStatus() : null;
-    }
 }

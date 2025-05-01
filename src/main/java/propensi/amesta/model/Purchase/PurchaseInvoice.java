@@ -3,9 +3,8 @@ package propensi.amesta.model.Purchase;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
@@ -13,16 +12,16 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import propensi.amesta.enums.Purchase.InvoiceStatus;
 
-@Setter
 @Getter
+@Setter
 @Entity
 @Table(name = "purchase_invoice")
 public class PurchaseInvoice {
 
     @Id
-    private String Id;
+    @Column(name = "id", nullable = false, unique = true)
+    private String id;
 
     @OneToOne
     @JoinColumn(name = "purchase_order_id")
@@ -32,8 +31,7 @@ public class PurchaseInvoice {
     private LocalDate invoiceDate;
 
     @NotNull(message = "Status invoice tidak boleh kosong")
-    @Enumerated(EnumType.STRING)
-    private InvoiceStatus invoiceStatus;
+    private String invoiceStatus;
 
     @NotNull(message = "Biaya invoice tidak boleh kosong")
     private BigDecimal totalAmount; // Amount yang harus dibayar oleh customer, bukan amount yang sudah dibayar
@@ -43,15 +41,4 @@ public class PurchaseInvoice {
 
     @NotNull(message = "Tanggal jatuh tempo tidak boleh kosong")
     private LocalDate dueDate; // untuk PurchaseInvoice
-
-    public void setInvoiceStatusFromString(String statusStr) {
-        this.invoiceStatus = InvoiceStatus.fromString(statusStr);
-        if (this.invoiceStatus == null) {
-            throw new IllegalArgumentException("Status invoice tidak valid: " + statusStr);
-        }
-    }
-    
-    public String getInvoiceStatusAsString() {
-        return invoiceStatus != null ? invoiceStatus.getStatus() : null;
-    }
 }

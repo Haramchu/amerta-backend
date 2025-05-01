@@ -1,4 +1,4 @@
-package propensi.amesta.payload.response.Purchase;
+package propensi.amesta.payload.response.Sales;
 
 import java.util.UUID;
 
@@ -9,11 +9,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class PurchaseOrderItemResponseDTO {
+public class SalesOrderItemResponseDTO {
     private UUID id;
-    private String purchaseOrderId;
+    private String salesOrderId;
     private String barangId;
     private Integer quantity;
     private String gudangTujuan;
-    private Integer pajak;
+    private Integer tax;
 }

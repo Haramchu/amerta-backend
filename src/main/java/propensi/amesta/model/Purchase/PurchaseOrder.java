@@ -33,8 +33,7 @@ public class PurchaseOrder {
     private LocalDate purchaseDate;
     
     @NotNull(message = "Status pembelian tidak boleh kosong")
-    @Enumerated(EnumType.STRING)
-    private PurchaseOrderStatus status; 
+    private String status; 
 
     @ManyToOne
     @JoinColumn(name = "customer_id")
@@ -57,15 +56,4 @@ public class PurchaseOrder {
 
     @NotNull(message = "Total harga tidak boleh kosong")
     private BigDecimal totalPrice;
-    
-    public void setStatusFromString(String statusStr) {
-        this.status = PurchaseOrderStatus.fromString(statusStr);
-        if (this.status == null) {
-            throw new IllegalArgumentException("Status tidak valid: " + statusStr);
-        }
-    }
-    
-    public String getStatusAsString() {
-        return status != null ? status.getStatus() : null;
-    }
 }

@@ -1,4 +1,4 @@
-package propensi.amesta.payload.response.Purchase;
+package propensi.amesta.payload.response.Sales;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -10,9 +10,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class PurchaseInvoiceResponseDTO {
+public class SalesInvoiceResponseDTO {
     private String id;
-    private String purchaseOrderId;
+    private String salesOrderId;
     private LocalDate invoiceDate;
     private String invoiceStatus;
     private BigDecimal totalAmount;

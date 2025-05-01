@@ -7,15 +7,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import propensi.amesta.enums.Purchase.DeliveryStatus;
-import propensi.amesta.enums.Purchase.InvoiceStatus;
-import propensi.amesta.enums.Purchase.PaymentStatus;
-import propensi.amesta.enums.Purchase.PurchaseOrderStatus;
 import propensi.amesta.model.Customer;
 import propensi.amesta.model.Aset.Barang;
 import propensi.amesta.model.Aset.StockBarangPerGudang;
@@ -32,8 +27,8 @@ import propensi.amesta.payload.request.Purchase.PurchaseOrderRequestDTO;
 import propensi.amesta.payload.request.Purchase.PurchasePaymentRequestDTO;
 import propensi.amesta.payload.response.Purchase.DeliveryResponseDTO;
 import propensi.amesta.payload.response.Purchase.PurchaseInvoiceResponseDTO;
-import propensi.amesta.payload.response.Purchase.PurchaseOrderResponseDTO;
 import propensi.amesta.payload.response.Purchase.PurchaseOrderItemResponseDTO;
+import propensi.amesta.payload.response.Purchase.PurchaseOrderResponseDTO;
 import propensi.amesta.payload.response.Purchase.PurchasePaymentResponseDTO;
 import propensi.amesta.payload.response.Purchase.PurchaseReceiptResponseDTO;
 import propensi.amesta.repository.CustomerDb;
@@ -61,7 +56,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     @Override
     public PurchaseOrderResponseDTO addPurchaseOrder(PurchaseOrderRequestDTO request) {
         // Validasi customer ada atau tidak, jika ada cek apakah vendor atau tidak
-        Customer customer = customerDb.findById(request.getCustomerId())
+         Customer customer = customerDb.findById(request.getCustomerId())
                 .orElseThrow(() -> new IllegalArgumentException("Customer tidak ditemukan"));
 
         if (!customer.getRole().equalsIgnoreCase("VENDOR")){
@@ -74,10 +69,14 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             throw new IllegalArgumentException("Tanggal pembelian tidak boleh di masa lalu");
         }
 
-        // Validasi untuk barang harus ada dan kuantitas tidak boleh negatif
+        // Validasi untuk barang harus ada, kuantitas tidak boleh negatif, dan barang aktif
         for (PurchaseOrderItemRequestDTO item : request.getItems()) {
                 if (!barangDb.existsById(item.getBarangId())) {
                         throw new IllegalArgumentException("Barang dengan ID " + item.getBarangId() + " tidak ditemukan");
+                }
+
+                if(barangDb.findById(item.getBarangId()).get().isActive() == false){
+                    throw new IllegalArgumentException("Barang dengan ID " + item.getBarangId() + " tidak aktif");
                 }
 
                 if (item.getQuantity() <= 0) {
@@ -114,6 +113,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         List<PurchaseOrderItemRequestDTO> consolidatedItems = new ArrayList<>(itemMap.values());
         request.setItems(consolidatedItems);
 
+
         // Validasi gudang tujuan harus ada
         for (PurchaseOrderItemRequestDTO item : request.getItems()) {
             gudangDb.findById(item.getGudangTujuan())
@@ -123,7 +123,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         PurchaseOrder purchaseOrder = new PurchaseOrder();
         purchaseOrder.setId(generatePoId());
         purchaseOrder.setCustomer(customer);
-        purchaseOrder.setStatus(PurchaseOrderStatus.CREATED);
+        purchaseOrder.setStatus("CREATED");
         purchaseOrder.setPurchaseDate(request.getPurchaseDate());
 
         BigDecimal total = BigDecimal.ZERO;
@@ -137,7 +137,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 Integer pajak = itemDTO.getPajak(); // pajak dalam persen
                 if (pajak == 0) {
                     total = total.add(itemTotal);
-                } else {
+                }
+                else{
                     BigDecimal pajakValue = itemTotal.multiply(BigDecimal.valueOf(pajak)).divide(BigDecimal.valueOf(100));
                     total = total.add(itemTotal.add(pajakValue));
                 }
@@ -148,7 +149,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 item.setBarang(barang);
                 item.setQuantity(itemDTO.getQuantity());
                 item.setTax(pajak);
-                item.setGudangTujuan(gudangDb.findById(itemDTO.getGudangTujuan())
+                item.setGudangTujuan(gudangDb.findById(itemDTO.getGudangTujuan()) // gaperlu dari dto, bisa juga dari barangnya langsung (asumsi gamau bisa ganti gudang tujuan di po)
                         .orElseThrow(() -> new IllegalArgumentException("Gudang tujuan dengan ID " + itemDTO.getGudangTujuan() + " tidak ditemukan")));
 
                 items.add(item);
@@ -159,93 +160,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
         // TODO: implementasi security di websecurityconfig!!!!!!!!!!!
 
-        // PurchasePayment payment = new PurchasePayment();
-        // payment.setId(generatePaymentId(customer.getName()));
-        // payment.setPaymentDate(paymentDate);
-        // payment.setTotalAmountPayed(BigDecimal.valueOf(0)); // Belum ada total amount payed di tahap ini, karena belum ada pembayaran
-        // payment.setPaymentMethod(request.getPayment().getPaymentMethod());
-        // payment.setPaymentStatus("UNPAID"); // UNPAID, PAID, REFUNDED,
-        // payment.setPurchaseOrder(purchaseOrder);
-        // purchaseOrder.setPayment(payment);
-
-        // Delivery delivery = new Delivery();
-        // delivery.setId(generateDeliveryId(items)); // ID = UUID
-        // delivery.setDeliveryDate(deliveryDate);
-        // delivery.setDeliveryStatus("PENDING"); // PENDING, IN_PROGRESS, DELIVERED, CANCELLED
-        // delivery.setTrackingNumber(generateTrackingNumber(items));
-        // delivery.setDeliveryFee(request.getDelivery().getDeliveryFee());
-        // delivery.setPurchaseOrder(purchaseOrder);
-        // purchaseOrder.setDelivery(delivery);
-
-        // PurchaseInvoice invoice = new PurchaseInvoice();
-        // invoice.setId(generateInvoiceId());
-        // invoice.setInvoiceDate(invoiceDate);
-        // invoice.setInvoiceStatus("DRAFT"); // DRAFT,ISSUED, PAID
-        // invoice.setTotalAmount(total);
-        // invoice.setPurchaseOrder(purchaseOrder);
-        // purchaseOrder.setInvoice(invoice);
-
         return purchaseOrderToPurchaseOrderResponseDTO(purchaseOrderDb.save(purchaseOrder));
-    }
-
-    @Override
-    public List<PurchaseOrderResponseDTO> getAllPurchaseOrders(
-            LocalDate startDate, LocalDate endDate, String status, UUID supplierId) {
-
-        // If no filters are applied, return all purchase orders
-        if (startDate == null && endDate == null && status == null && supplierId == null) {
-            List<PurchaseOrder> purchaseOrders = purchaseOrderDb.findAll();
-            return purchaseOrders.stream()
-                .map(this::purchaseOrderToPurchaseOrderResponseDTO)
-                .toList();
-        }
-
-        // Set default date range if not provided
-        if (startDate == null) {
-            startDate = LocalDate.of(2000, 1, 1);
-        }
-        if (endDate == null) {
-            endDate = LocalDate.now().plusYears(10);
-        }
-
-        List<PurchaseOrder> purchaseOrders;
-        if (status != null && supplierId != null) {
-            // Validate supplier
-            Customer supplier = customerDb.findById(supplierId)
-                    .orElseThrow(() -> new IllegalArgumentException("Supplier tidak ditemukan"));
-            
-            if (!supplier.getRole().equalsIgnoreCase("VENDOR")) {
-                throw new IllegalArgumentException("Customer dengan ID tersebut bukan supplier/vendor");
-            }
-            
-            purchaseOrders = purchaseOrderDb.findByPurchaseDateBetweenAndStatusAndCustomerId(startDate, endDate, status, supplierId);
-        } else if (status != null) {
-            purchaseOrders = purchaseOrderDb.findByPurchaseDateBetweenAndStatus(startDate, endDate, status);
-        } else if (supplierId != null) {
-            // Validate supplier
-            Customer supplier = customerDb.findById(supplierId)
-                    .orElseThrow(() -> new IllegalArgumentException("Supplier tidak ditemukan"));
-            
-            if (!supplier.getRole().equalsIgnoreCase("VENDOR")) {
-                throw new IllegalArgumentException("Customer dengan ID tersebut bukan supplier/vendor");
-            }
-            
-            purchaseOrders = purchaseOrderDb.findByPurchaseDateBetweenAndCustomerId(startDate, endDate, supplierId);
-        } else {
-            purchaseOrders = purchaseOrderDb.findByPurchaseDateBetween(startDate, endDate);
-        }
-        
-        return purchaseOrders.stream()
-            .map(this::purchaseOrderToPurchaseOrderResponseDTO)
-            .toList();
-    }
-
-    @Override
-    public PurchaseOrderResponseDTO getPurchaseOrderById(String id) {
-        PurchaseOrder purchaseOrder = purchaseOrderDb.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Purchase order tidak ditemukan"));
-
-        return purchaseOrderToPurchaseOrderResponseDTO(purchaseOrder);
     }
 
     private PurchaseOrderResponseDTO purchaseOrderToPurchaseOrderResponseDTO(PurchaseOrder purchaseOrder) {
@@ -307,7 +222,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 purchaseOrderItem.getPurchaseOrder().getId(),
                 purchaseOrderItem.getBarang().getId(),
                 purchaseOrderItem.getQuantity(),
-                purchaseOrderItem.getGudangTujuan().getNama()
+                purchaseOrderItem.getGudangTujuan().getNama(),
+                purchaseOrderItem.getTax()
         );
     }
 
@@ -352,7 +268,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         );
     }
     
-    private String generateTrackingNumber(List<PurchaseOrderItem> items) {
+    public String generateTrackingNumber(List<PurchaseOrderItem> items) {
         // Format: UUID-XXX-Y, di mana UUID adalah 6 karakter acak, XXX adalah 3 huruf pertama dari nama barang, dan Y adalah 1 digit angka 
         String uuidPart = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         StringBuilder trackingNumber = new StringBuilder(uuidPart);
@@ -366,7 +282,6 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
     public String generatePoId(){
         // Format: PO-YYYY-MM-DD-XXXXX, di mana YYYY adalah tahun, MM adalah bulan dalam angka romawi, DD adalah tanggal, dan XXXXX adalah 5 karakter acak
-    private String generatePoId(){
         String id = "PO-";
         String datePart = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd"))
         .replace("-01-", "-I-")
@@ -415,7 +330,6 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
     public String generateDeliveryId(List<PurchaseOrderItem> items) {
         // Format: DEL-XXX-DD-MM-XXXXX, di mana XXX adalah 3 huruf pertama dari nama barang, DD adalah tanggal dalam angka romawi, MM adalah bulan dalam angka romawi, dan XXXXX adalah 5 karakter acak
-    private String generateDeliveryId(List<PurchaseOrderItem> items) {
         String prefix = "DEL-";
     
         String namaBarang = items.get(0).getBarang().getNama().replace(" ", "");
@@ -442,15 +356,11 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
     public String generatePaymentId(String customerName) {
         // Format: PAY-XXX-MM-YY-XXXXX, di mana XXX adalah 3 huruf pertama dari nama customer, MM adalah bulan dalam angka romawi, YY adalah tahun dalam 2 digit, dan XXXXX adalah 5 karakter acak
-    private String generatePaymentId(String customerName) {
         String prefix = "PAY-";
     
         String kodeCustomer = customerName.replace(" ", "").length() >= 3
             ? customerName.replace(" ", "").substring(0, 3).toUpperCase()
             : customerName.replace(" ", "").toUpperCase();
-        String kodeCustomer = customerName.length() >= 3
-            ? customerName.substring(0, 3).toUpperCase().replace(" ", "")
-            : customerName.toUpperCase().replace(" ", "");
     
         String monthPart = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("MM"));
         String romanMonth = switch (monthPart) {
@@ -491,6 +401,66 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     
         return prefix + kodeBarang + "-" + datePart + "-" + randomPart;
     }
+    
+    @Override
+    public List<PurchaseOrderResponseDTO> getAllPurchaseOrders(
+            LocalDate startDate, LocalDate endDate, String status, UUID supplierId) {
+
+        // If no filters are applied, return all purchase orders
+        if (startDate == null && endDate == null && status == null && supplierId == null) {
+            List<PurchaseOrder> purchaseOrders = purchaseOrderDb.findAll();
+            return purchaseOrders.stream()
+                .map(this::purchaseOrderToPurchaseOrderResponseDTO)
+                .toList();
+        }
+
+        // Set default date range if not provided
+        if (startDate == null) {
+            startDate = LocalDate.of(2000, 1, 1);
+        }
+        if (endDate == null) {
+            endDate = LocalDate.now().plusYears(10);
+        }
+
+        List<PurchaseOrder> purchaseOrders;
+        if (status != null && supplierId != null) {
+            // Validate supplier
+            Customer supplier = customerDb.findById(supplierId)
+                    .orElseThrow(() -> new IllegalArgumentException("Supplier tidak ditemukan"));
+            
+            if (!supplier.getRole().equalsIgnoreCase("VENDOR")) {
+                throw new IllegalArgumentException("Customer dengan ID tersebut bukan supplier/vendor");
+            }
+            
+            purchaseOrders = purchaseOrderDb.findByPurchaseDateBetweenAndStatusAndCustomerId(startDate, endDate, status, supplierId);
+        } else if (status != null) {
+            purchaseOrders = purchaseOrderDb.findByPurchaseDateBetweenAndStatus(startDate, endDate, status);
+        } else if (supplierId != null) {
+            // Validate supplier
+            Customer supplier = customerDb.findById(supplierId)
+                    .orElseThrow(() -> new IllegalArgumentException("Supplier tidak ditemukan"));
+            
+            if (!supplier.getRole().equalsIgnoreCase("VENDOR")) {
+                throw new IllegalArgumentException("Customer dengan ID tersebut bukan supplier/vendor");
+            }
+            
+            purchaseOrders = purchaseOrderDb.findByPurchaseDateBetweenAndCustomerId(startDate, endDate, supplierId);
+        } else {
+            purchaseOrders = purchaseOrderDb.findByPurchaseDateBetween(startDate, endDate);
+        }
+        
+        return purchaseOrders.stream()
+            .map(this::purchaseOrderToPurchaseOrderResponseDTO)
+            .toList();
+    }
+
+    @Override
+    public PurchaseOrderResponseDTO getPurchaseOrderById(String id) {
+        PurchaseOrder purchaseOrder = purchaseOrderDb.findById(id)
+                .orElseThrow(() -> new RuntimeException("Purchase Order tidak ditemukan"));
+
+        return purchaseOrderToPurchaseOrderResponseDTO(purchaseOrder);
+    }
 
     // Stages: 
     // 1. CREATED = PO baru saja dibuat, menunggu konfirmasi dari vendor
@@ -522,14 +492,14 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         PurchaseInvoice invoice = new PurchaseInvoice();
         invoice.setId(generateInvoiceId());
         invoice.setInvoiceDate(invoiceDate);
-        invoice.setInvoiceStatus(InvoiceStatus.ISSUED); // ISSUED, PAID (PAS UDAH BAYAR BARU UBAH KE INI)
+        invoice.setInvoiceStatus("ISSUED"); // ISSUED, PAID (PAS UDAH BAYAR BARU UBAH KE INI)
         invoice.setTotalAmount(purchaseOrder.getTotalPrice());
         invoice.setPurchaseOrder(purchaseOrder);
         invoice.setPaymentTerms(request.getPaymentTerms());
         invoice.setDueDate(invoiceDate.plusDays(request.getPaymentTerms())); // Jatuh tempo invoice = tanggal invoice + payment terms
         purchaseOrder.setInvoice(invoice);
 
-        purchaseOrder.setStatus(PurchaseOrderStatus.CONFIRMED);
+        purchaseOrder.setStatus("CONFIRMED");
 
         // TODO: tambahin attribute di invoice sesuai dengan kebutuhan, utk ricky, ubah juga di dto request (PurchaseOrderInvoiceRequestDTO) 
         // dan response (PurchaseInvoiceResponseDTO) sama model (PurchaseInvoice)
@@ -580,13 +550,13 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         if (newTotalPaid.compareTo(totalPrice) > 0) {
             throw new IllegalArgumentException("Jumlah pembayaran melebihi total harga");
         } else if (newTotalPaid.compareTo(totalPrice) == 0) {
-            payment.setPaymentStatus(PaymentStatus.PAID);
-            purchaseOrder.setStatus(PurchaseOrderStatus.PAID);
-            purchaseOrder.getInvoice().setInvoiceStatus(InvoiceStatus.PAID);
+            payment.setPaymentStatus("PAID");
+            purchaseOrder.setStatus("PAID");
+            purchaseOrder.getInvoice().setInvoiceStatus("PAID");
         } else {
-            payment.setPaymentStatus(PaymentStatus.PARTIALLY_PAID);
-            purchaseOrder.setStatus(PurchaseOrderStatus.CONFIRMED);
-            purchaseOrder.getInvoice().setInvoiceStatus(InvoiceStatus.ISSUED);
+            payment.setPaymentStatus("PARTIALLY PAID");
+            purchaseOrder.setStatus("CONFIRMED"); // tetap CONFIRMED hingga lunas
+            purchaseOrder.getInvoice().setInvoiceStatus("PARTIALLY PAID");
         }
 
         payment.setTotalAmountPayed(newTotalPaid);
@@ -620,10 +590,10 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         Delivery delivery = new Delivery();
         delivery.setId(generateDeliveryId(purchaseOrder.getItems()));
         delivery.setDeliveryDate(deliveryDate);
-        delivery.setDeliveryStatus(DeliveryStatus.IN_DELIVERY); // IN DELIVERY, DELIVERED (KETIKA UDAH SAMPAI NANTI TAHAP SELANJUTNYA)
+        delivery.setDeliveryStatus("IN DELIVERY"); // IN DELIVERY, DELIVERED (KETIKA UDAH SAMPAI NANTI TAHAP SELANJUTNYA)
         delivery.setTrackingNumber(generateTrackingNumber(purchaseOrder.getItems()));
         delivery.setDeliveryFee(request.getDeliveryFee());
-        purchaseOrder.setStatus(PurchaseOrderStatus.IN_DELIVERY);
+        purchaseOrder.setStatus("IN DELIVERY");
         delivery.setPurchaseOrder(purchaseOrder);
         purchaseOrder.setDelivery(delivery);
 
@@ -649,10 +619,10 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         receipt.setId(generateReceiptId(purchaseOrder.getItems()));
         receipt.setReceiptDate(purchaseOrder.getPayment().getPaymentDate()); // tanggal nota = tanggal pembayaran
         receipt.setAmountPayed(purchaseOrder.getPayment().getTotalAmountPayed());
-        purchaseOrder.setStatus(PurchaseOrderStatus.COMPLETED);
+        purchaseOrder.setStatus("COMPLETED");
         receipt.setPurchaseOrder(purchaseOrder);
         purchaseOrder.setReceipt(receipt);
-        purchaseOrder.getDelivery().setDeliveryStatus(DeliveryStatus.DELIVERED); // update status delivery jadi delivered
+        purchaseOrder.getDelivery().setDeliveryStatus("DELIVERED"); // update status delivery jadi delivered
 
         // TODO: tambahin attribute di purchase receipt sesuai dengan kebutuhan, utk michael, ubah juga di response (PurchaseReceiptResponseDTO) sama model (PurchaseReceipt)
 
