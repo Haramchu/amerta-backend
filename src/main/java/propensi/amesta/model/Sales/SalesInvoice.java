@@ -8,8 +8,11 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-@Setter
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 @Getter
+@Setter
 @Entity
 @Table(name = "sales_invoice")
 public class SalesInvoice {

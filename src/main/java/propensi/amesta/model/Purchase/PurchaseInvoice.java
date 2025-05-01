@@ -8,14 +8,18 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-@Setter
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 @Getter
+@Setter
 @Entity
 @Table(name = "purchase_invoice")
 public class PurchaseInvoice {
 
     @Id
-    private String Id;
+    @Column(name = "id", nullable = false, unique = true)
+    private String id;
 
     @OneToOne
     @JoinColumn(name = "purchase_order_id")

@@ -69,10 +69,14 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             throw new IllegalArgumentException("Tanggal pembelian tidak boleh di masa lalu");
         }
 
-        // Validasi untuk barang harus ada dan kuantitas tidak boleh negatif
+        // Validasi untuk barang harus ada, kuantitas tidak boleh negatif, dan barang aktif
         for (PurchaseOrderItemRequestDTO item : request.getItems()) {
                 if (!barangDb.existsById(item.getBarangId())) {
                         throw new IllegalArgumentException("Barang dengan ID " + item.getBarangId() + " tidak ditemukan");
+                }
+
+                if(barangDb.findById(item.getBarangId()).get().isActive() == false){
+                    throw new IllegalArgumentException("Barang dengan ID " + item.getBarangId() + " tidak aktif");
                 }
 
                 if (item.getQuantity() <= 0) {
@@ -218,8 +222,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 purchaseOrderItem.getPurchaseOrder().getId(),
                 purchaseOrderItem.getBarang().getId(),
                 purchaseOrderItem.getQuantity(),
-                purchaseOrderItem.getGudangTujuan().getNama()
-
+                purchaseOrderItem.getGudangTujuan().getNama(),
+                purchaseOrderItem.getTax()
         );
     }
 
@@ -552,6 +556,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         delivery.setTrackingNumber(generateTrackingNumber(purchaseOrder.getItems()));
         delivery.setDeliveryFee(request.getDeliveryFee());
         purchaseOrder.setStatus("IN DELIVERY");
+        purchaseOrder.setTotalPrice(purchaseOrder.getTotalPrice().add(request.getDeliveryFee())); // total price = total price + delivery fee
         delivery.setPurchaseOrder(purchaseOrder);
         purchaseOrder.setDelivery(delivery);
 

@@ -58,14 +58,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         Customer customer = customerDb.findById(request.getCustomerId())
                 .orElseThrow(() -> new IllegalArgumentException("Customer tidak ditemukan"));
 
-        if (!customer.getRole().equalsIgnoreCase("VENDOR")) {
-            throw new IllegalArgumentException("Customer harus merupakan vendor");
-        }
-
-        // Validasi untuk tanggal pembelian tidak boleh di masa lalu
-        LocalDate salesDate = request.getSalesDate();
-        if (salesDate.isBefore(LocalDate.now())) {
-            throw new IllegalArgumentException("Tanggal pembelian tidak boleh di masa lalu");
+        if (!customer.getRole().equalsIgnoreCase("CUSTOMER")) {
+            throw new IllegalArgumentException("Customer harus merupakan CUSTOMER, bukan VENDOR");
         }
 
         // Validasi untuk barang harus ada dan kuantitas tidak boleh negatif
@@ -220,8 +214,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
                 salesOrderItem.getSalesOrder().getId(),
                 salesOrderItem.getBarang().getId(),
                 salesOrderItem.getQuantity(),
-                salesOrderItem.getGudangTujuan().getNama()
-
+                salesOrderItem.getGudangTujuan().getNama(),
+                salesOrderItem.getTax()
         );
     }
 
@@ -525,6 +519,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         shipping.setShippingStatus("IN SHIPPING"); // IN SHIPPING, SHIPPED (KETIKA UDAH SAMPAI NANTI TAHAP SELANJUTNYA)
         shipping.setTrackingNumber(generateTrackingNumber(salesOrder.getItems()));
         shipping.setShippingFee(request.getShippingFee());
+        salesOrder.setTotalPrice(salesOrder.getTotalPrice().add(request.getShippingFee())); // Update total price
         salesOrder.setStatus("IN SHIPPING");
         shipping.setSalesOrder(salesOrder);
         salesOrder.setShipping(shipping);
