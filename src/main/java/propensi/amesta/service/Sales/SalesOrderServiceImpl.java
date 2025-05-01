@@ -519,7 +519,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         shipping.setShippingStatus("IN SHIPPING"); // IN SHIPPING, SHIPPED (KETIKA UDAH SAMPAI NANTI TAHAP SELANJUTNYA)
         shipping.setTrackingNumber(generateTrackingNumber(salesOrder.getItems()));
         shipping.setShippingFee(request.getShippingFee());
-        salesOrder.setTotalPrice(salesOrder.getTotalPrice().add(request.getShippingFee())); // Update total price
+        salesOrder.setTotalPrice(salesOrder.getTotalPrice().subtract(request.getShippingFee())); // Update total price
         salesOrder.setStatus("IN SHIPPING");
         shipping.setSalesOrder(salesOrder);
         salesOrder.setShipping(shipping);
@@ -587,7 +587,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         payment.setPaymentMethod(request.getPaymentMethod());
 
         BigDecimal additionalPaid = request.getTotalAmountPayed();
-        BigDecimal totalPrice = salesOrder.getTotalPrice();
+        BigDecimal totalPrice = salesOrder.getInvoice().getTotalAmount();
         BigDecimal currentTotalPaid = payment.getTotalAmountPayed();
         BigDecimal newTotalPaid = currentTotalPaid.add(additionalPaid);
 
