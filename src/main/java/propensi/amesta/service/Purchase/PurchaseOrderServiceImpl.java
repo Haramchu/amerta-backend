@@ -556,6 +556,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         delivery.setTrackingNumber(generateTrackingNumber(purchaseOrder.getItems()));
         delivery.setDeliveryFee(request.getDeliveryFee());
         purchaseOrder.setStatus("IN DELIVERY");
+        purchaseOrder.setTotalPrice(purchaseOrder.getTotalPrice().add(request.getDeliveryFee())); // total price = total price + delivery fee
         delivery.setPurchaseOrder(purchaseOrder);
         purchaseOrder.setDelivery(delivery);
 
