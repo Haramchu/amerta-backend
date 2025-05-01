@@ -32,7 +32,6 @@ import propensi.amesta.payload.response.Purchase.PurchaseOrderItemResponseDTO;
 import propensi.amesta.payload.response.Purchase.PurchaseOrderResponseDTO;
 import propensi.amesta.payload.response.Purchase.PurchasePaymentResponseDTO;
 import propensi.amesta.payload.response.Purchase.PurchaseReceiptResponseDTO;
-import propensi.amesta.payload.response.Sales.SalesOrderResponseDTO;
 import propensi.amesta.repository.CustomerDb;
 import propensi.amesta.repository.Aset.BarangDb;
 import propensi.amesta.repository.Aset.GudangDb;

@@ -1,12 +1,9 @@
 package propensi.amesta.controller.Purchase;
 
-import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -141,7 +138,7 @@ public class PurchaseOrderController {
 
     @PutMapping("/confirm/{id}")
     public ResponseEntity<?> confirmPurchaseOrder(@PathVariable String id, 
-    @Valid @RequestBody PurchaseOrderInvoiceRequestDTO PoInvoiceRequestDTO, BindingResult bindingResult) {
+    @Valid @RequestBody PurchaseOrderInvoiceRequestDTO POInvoiceRequestDTO, BindingResult bindingResult) {
         BaseResponseDTO<PurchaseOrderResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
         
         if (bindingResult.hasErrors()) {
@@ -156,7 +153,7 @@ public class PurchaseOrderController {
         }
 
         try {
-            PurchaseOrderResponseDTO purchaseOrderResponseDTO = purchaseOrderService.confirmPurchaseOrder(id, PoInvoiceRequestDTO);
+            PurchaseOrderResponseDTO purchaseOrderResponseDTO = purchaseOrderService.confirmPurchaseOrder(id, POInvoiceRequestDTO);
             baseResponseDTO.setStatus(HttpStatus.OK.value());
             baseResponseDTO.setMessage("Purchase Order berhasil dikonfirmasi.");
             baseResponseDTO.setData(purchaseOrderResponseDTO);
@@ -180,7 +177,7 @@ public class PurchaseOrderController {
 
     @PutMapping("/payment/{id}")
     public ResponseEntity<?> payPurchaseOrder(@PathVariable String id, 
-    @Valid @RequestBody PurchasePaymentRequestDTO PoPaymentRequestDTO, BindingResult bindingResult) {
+    @Valid @RequestBody PurchasePaymentRequestDTO POPaymentRequestDTO, BindingResult bindingResult) {
         BaseResponseDTO<PurchaseOrderResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
         
         if (bindingResult.hasErrors()) {
@@ -195,7 +192,7 @@ public class PurchaseOrderController {
         }
 
         try {
-            PurchaseOrderResponseDTO purchaseOrderResponseDTO = purchaseOrderService.payPurchaseOrder(id, PoPaymentRequestDTO);
+            PurchaseOrderResponseDTO purchaseOrderResponseDTO = purchaseOrderService.payPurchaseOrder(id, POPaymentRequestDTO);
             baseResponseDTO.setStatus(HttpStatus.OK.value());
             baseResponseDTO.setMessage("Purchase Order berhasil dikonfirmasi.");
             baseResponseDTO.setData(purchaseOrderResponseDTO);
@@ -219,7 +216,7 @@ public class PurchaseOrderController {
 
     @PutMapping("/delivery/{id}")
     public ResponseEntity<?> deliverPurchaseOrder(@PathVariable String id, 
-    @Valid @RequestBody DeliveryRequestDTO deliveryPoRequestDTO, BindingResult bindingResult) {
+    @Valid @RequestBody DeliveryRequestDTO deliveryPORequestDTO, BindingResult bindingResult) {
         BaseResponseDTO<PurchaseOrderResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
         
         if (bindingResult.hasErrors()) {
@@ -234,7 +231,7 @@ public class PurchaseOrderController {
         }
 
         try {
-            PurchaseOrderResponseDTO purchaseOrderResponseDTO = purchaseOrderService.deliverPurchaseOrder(id, deliveryPoRequestDTO);
+            PurchaseOrderResponseDTO purchaseOrderResponseDTO = purchaseOrderService.deliverPurchaseOrder(id, deliveryPORequestDTO);
             baseResponseDTO.setStatus(HttpStatus.OK.value());
             baseResponseDTO.setMessage("Pesanan di Purchase Order sedang dikirim.");
             baseResponseDTO.setData(purchaseOrderResponseDTO);
@@ -253,11 +250,10 @@ public class PurchaseOrderController {
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        
     }
 
-    @PutMapping("/complete/{id}")
-    public ResponseEntity<?> deliverPurchaseOrder(@PathVariable String id) {
+    @PutMapping("/complete-delivery/{id}")
+    public ResponseEntity<?> completeDelivery(@PathVariable String id) {
         BaseResponseDTO<PurchaseOrderResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
         
         try {
@@ -280,6 +276,5 @@ public class PurchaseOrderController {
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        
     }
 }
