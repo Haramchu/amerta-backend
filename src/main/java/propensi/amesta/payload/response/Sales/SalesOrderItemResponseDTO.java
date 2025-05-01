@@ -15,4 +15,5 @@ public class SalesOrderItemResponseDTO {
     private String barangId;
     private Integer quantity;
     private String gudangTujuan;
+    private Integer tax;
 }
