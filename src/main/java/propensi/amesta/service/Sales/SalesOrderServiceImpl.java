@@ -545,10 +545,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         // juga di dto request (ShippingRequestDTO)
         // dan response (ShippingResponseDTO) sama model (Shipping)
 
-        SalesOrder savedOrder = salesOrderDb.save(salesOrder);
-        shippingDocumentService.generateFromSalesOrder(id);
-
-        return salesOrderToSalesOrderResponseDTO(savedOrder);
+        return salesOrderToSalesOrderResponseDTO(salesOrderDb.save(salesOrder));
     }
 
     @Override

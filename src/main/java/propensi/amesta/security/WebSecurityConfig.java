@@ -67,7 +67,7 @@ public class WebSecurityConfig {
                 // TODO: implement security untuk add customer.
 
                 .requestMatchers("/api/purchase-order/add").hasAnyAuthority("direktur", "sales", "general_manager", "administrasi")
-                .requestMatchers("/api/purchase-order/").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/purchase-order/viewall").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
                 .requestMatchers("/api/purchase-order/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
                 .requestMatchers("/api/purchase-order/confirm/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
                 .requestMatchers("/api/purchase-order/payment/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
@@ -81,17 +81,6 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/sales-order/payment/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
                 .requestMatchers("/api/sales-order/shipping/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
                 .requestMatchers("/api/sales-order/confirm-shipping/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
-
-                .requestMatchers("/api/shipping/create").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "sales", "administrasi")
-                .requestMatchers("/api/shipping/generate/purchase-order/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "sales", "administrasi")
-                .requestMatchers("/api/shipping/generate/sales-order/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "sales", "administrasi")
-                .requestMatchers("/api/shipping/").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "sales", "administrasi", "komisaris")
-                .requestMatchers("/api/shipping/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "sales", "administrasi", "komisaris")
-                .requestMatchers("/api/shipping/search").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "sales", "administrasi", "komisaris")
-                .requestMatchers("/api/shipping/update-status/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "sales", "administrasi")
-                .requestMatchers("/api/shipping/update/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "sales", "administrasi")
-                .requestMatchers("/api/shipping/delete/{id}").hasAnyAuthority("direktur", "general_manager")
-                .requestMatchers("/api/shipping/export-pdf/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "sales", "administrasi", "komisaris")
                 .anyRequest().authenticated()    
             )
             .formLogin(form -> form

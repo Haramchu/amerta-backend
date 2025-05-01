@@ -615,10 +615,6 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             }
         }
 
-        // Save the purchase order first
-        PurchaseOrder savedOrder = purchaseOrderDb.save(purchaseOrder);
-        shippingDocumentService.generateFromPurchaseOrder(id);
-
-        return purchaseOrderToPurchaseOrderResponseDTO(savedOrder);
+        return purchaseOrderToPurchaseOrderResponseDTO(purchaseOrderDb.save(purchaseOrder));
     }
 }
