@@ -50,7 +50,8 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/barang/transfer").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi")
                 .requestMatchers("/api/barang/transfer/viewall").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
                 .requestMatchers("/api/barang/transfer/view/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
-
+                .requestMatchers("/api/barang/all-gudang/{id}").hasAnyAuthority("direktur", "sales", "general_manager", "administrasi", "komisaris")
+                
                 .requestMatchers("/api/penerimaan/create").hasAnyAuthority("direktur", "administrasi")
                 .requestMatchers("/api/penerimaan/viewall").hasAnyAuthority("direktur", "komisaris")
                 .requestMatchers("/api/penerimaan/view/{id}").hasAnyAuthority("direktur", "komisaris")
@@ -81,6 +82,19 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/sales-order/payment/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
                 .requestMatchers("/api/sales-order/shipping/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
                 .requestMatchers("/api/sales-order/confirm-shipping/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+
+
+                .requestMatchers("/api/sales-receipt/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/sales-receipt/viewall").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/purchase-receipt/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/purchase-receipt/viewall").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+
+                .requestMatchers("/api/purchase-invoice/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+                .requestMatchers("/api/purchase-invoice/viewall").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+
+                .requestMatchers("/api/sales-invoice/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+                .requestMatchers("/api/sales-invoice/viewall").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+
                 .anyRequest().authenticated()    
             )
             .formLogin(form -> form
