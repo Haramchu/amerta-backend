@@ -27,5 +27,4 @@ public class SalesOrderItemRequestDTO {
     @Min(value = 1, message = "Pajak tidak boleh negatif.")
     @Digits(integer = Integer.MAX_VALUE, fraction = 0, message = "Pajak harus merupakan angka yang valid.")
     private Integer pajak;
-
 }

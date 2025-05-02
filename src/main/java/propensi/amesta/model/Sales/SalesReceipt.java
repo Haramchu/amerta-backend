@@ -3,7 +3,11 @@ package propensi.amesta.model.Sales;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,5 +26,4 @@ public class SalesReceipt {
 
     private LocalDate receiptDate;
     private BigDecimal amountReceived;
-
 }

@@ -1,4 +1,4 @@
-package propensi.amesta.payload.request;
+package propensi.amesta.payload.request.Aset;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -15,7 +15,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class UpdateBarangRequestDTO {
+public class BarangRequestDTO {
+
     @NotEmpty(message = "Nama barang harus diisi")
     private String nama;
 
@@ -35,7 +36,7 @@ public class UpdateBarangRequestDTO {
     @NotNull(message = "Harga jual barang harus diisi.")
     @DecimalMin(value = "1.0", message = "Harga barang minimal 1.")
     private BigDecimal hargaJual;
-    
+
     @NotNull(message= "List stok barang harus diisi")
     @Size(min = 1, message = "Harus ada minimal satu stok barang")
     private List<StockBarangRequestDTO> listStockBarang;

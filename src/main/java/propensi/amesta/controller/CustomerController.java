@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import propensi.amesta.payload.request.CustomerRequestDTO;
-import propensi.amesta.payload.response.BarangResponseDTO;
 import propensi.amesta.payload.response.BaseResponseDTO;
 import propensi.amesta.payload.response.CustomerResponseDTO;
 import propensi.amesta.service.CustomerService;

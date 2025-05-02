@@ -23,5 +23,4 @@ public class SalesPaymentRequestDTO {
     @NotNull(message = "Pembayaran tidak boleh kosong")
     @DecimalMin(value = "1.0", message = "Pembayaran minimal 1.")
     private BigDecimal totalAmountPayed;
-
 }

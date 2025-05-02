@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
-import propensi.amesta.payload.response.ExtractJwtResponseDTO;
+import propensi.amesta.payload.response.Auth.ExtractJwtResponseDTO;
  
 @Component
 public class JwtUtils {

@@ -4,8 +4,16 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 import propensi.amesta.model.Customer;
@@ -17,7 +25,7 @@ import propensi.amesta.model.Customer;
 public class SalesOrder {
 
     @Id
-    private String Id;
+    private String id;
 
     @NotNull(message = "Tanggal pembelian tidak boleh kosong")
     private LocalDate salesDate;
@@ -45,5 +53,6 @@ public class SalesOrder {
     private List<SalesOrderItem> items;
 
     @NotNull(message = "Total harga tidak boleh kosong")
+    @Column(name = "total_price")
     private BigDecimal totalPrice;
 }

@@ -5,6 +5,4 @@ import org.springframework.stereotype.Repository;
 import propensi.amesta.model.Sales.SalesInvoice;
 
 @Repository
-public interface SalesInvoiceDb extends JpaRepository<SalesInvoice, String> {
-    
-}
+public interface SalesInvoiceDb extends JpaRepository<SalesInvoice, String> {}

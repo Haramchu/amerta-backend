@@ -15,7 +15,7 @@ import jakarta.validation.Validator;
 import propensi.amesta.model.EndUser.User;
 import propensi.amesta.payload.request.LoginJwtRequestDTO;
 import propensi.amesta.payload.response.BaseResponseDTO;
-import propensi.amesta.payload.response.LoginJwtResponseDTO;
+import propensi.amesta.payload.response.Auth.LoginJwtResponseDTO;
 import propensi.amesta.security.jwt.JwtUtils;
 import propensi.amesta.service.UserService;
 

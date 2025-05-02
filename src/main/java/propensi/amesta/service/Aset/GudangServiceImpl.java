@@ -11,12 +11,12 @@ import propensi.amesta.model.Aset.AlamatGudang;
 import propensi.amesta.model.Aset.Gudang;
 import propensi.amesta.model.Aset.StockBarangPerGudang;
 import propensi.amesta.model.EndUser.KepalaGudang;
-import propensi.amesta.payload.request.AlamatGudangRequestDTO;
-import propensi.amesta.payload.request.GudangRequestDTO;
-import propensi.amesta.payload.response.AlamatGudangResponseDTO;
-import propensi.amesta.payload.response.BarangResponseDTO;
-import propensi.amesta.payload.response.GudangResponseDTO;
-import propensi.amesta.payload.response.KepalaGudangResponseDTO;
+import propensi.amesta.payload.request.Aset.AlamatGudangRequestDTO;
+import propensi.amesta.payload.request.Aset.GudangRequestDTO;
+import propensi.amesta.payload.response.Aset.AlamatGudangResponseDTO;
+import propensi.amesta.payload.response.Aset.BarangResponseDTO;
+import propensi.amesta.payload.response.Aset.GudangResponseDTO;
+import propensi.amesta.payload.response.Aset.KepalaGudangResponseDTO;
 import propensi.amesta.repository.Aset.GudangDb;
 import propensi.amesta.repository.EndUser.KepalaGudangDb;
 

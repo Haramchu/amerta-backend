@@ -1,4 +1,4 @@
-package propensi.amesta.payload.response;
+package propensi.amesta.payload.response.Aset;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
