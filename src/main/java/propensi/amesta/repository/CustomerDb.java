@@ -10,8 +10,6 @@ import propensi.amesta.model.Customer;
 @Repository
 public interface CustomerDb extends JpaRepository<Customer, UUID> {
     
-    // Customer findByEmail(String email);
-
-    // Customer findByUsername(String username);
+    Customer findByEmail(String email);
 
 }

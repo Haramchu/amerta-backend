@@ -3,7 +3,6 @@ package propensi.amesta.service;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -87,26 +86,13 @@ public class UserServiceImpl implements UserService {
         }
         User newUser;
         switch (userRequest.getRole().toLowerCase()) {
-            case "administrasi":
-                newUser = new Administrasi();
-                break;
-            case "direktur":
-                newUser = new Direktur();
-                break;
-            case "sales":
-                newUser = new Sales();
-                break;
-            case "general_manager":
-                newUser = new GeneralManager();
-                break;
-            case "kepala_gudang":
-                newUser = new KepalaGudang();
-                break;
-            case "komisaris":
-                newUser = new Komisaris();
-                break;
-            default:
-                throw new IllegalArgumentException("Role tidak valid: " + userRequest.getRole());
+            case "administrasi" -> newUser = new Administrasi();
+            case "direktur" -> newUser = new Direktur();
+            case "sales" -> newUser = new Sales();
+            case "general_manager" -> newUser = new GeneralManager();
+            case "kepala_gudang" -> newUser = new KepalaGudang();
+            case "komisaris" -> newUser = new Komisaris();
+            default -> throw new IllegalArgumentException("Role tidak valid: " + userRequest.getRole());
         }
         newUser.setName(userRequest.getName());
         newUser.setUsername(userRequest.getUsername());

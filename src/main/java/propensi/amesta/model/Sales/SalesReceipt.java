@@ -1,6 +1,13 @@
 package propensi.amesta.model.Sales;
 
-import jakarta.persistence.*;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,4 +20,10 @@ public class SalesReceipt {
     @Id
     private String Id;
 
+    @OneToOne
+    @JoinColumn(name = "sales_order_id")
+    private SalesOrder salesOrder;
+
+    private LocalDate receiptDate;
+    private BigDecimal amountReceived;
 }

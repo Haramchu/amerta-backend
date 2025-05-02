@@ -17,12 +17,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
-import propensi.amesta.payload.request.BarangRequestDTO;
-import propensi.amesta.payload.request.TransferBarangRequestDTO;
-import propensi.amesta.payload.request.UpdateBarangRequestDTO;
-import propensi.amesta.payload.response.BarangResponseDTO;
+import propensi.amesta.payload.request.Aset.BarangRequestDTO;
+import propensi.amesta.payload.request.Aset.TransferBarangRequestDTO;
+import propensi.amesta.payload.request.Aset.UpdateBarangRequestDTO;
 import propensi.amesta.payload.response.BaseResponseDTO;
-import propensi.amesta.payload.response.TransferBarangResponseDTO;
+import propensi.amesta.payload.response.NamaGudangPerBarangResponseDTO;
+import propensi.amesta.payload.response.Aset.BarangResponseDTO;
+import propensi.amesta.payload.response.Aset.TransferBarangResponseDTO;
 import propensi.amesta.service.Aset.BarangService;
 import propensi.amesta.service.Aset.TransferBarangService;
 
@@ -240,6 +241,29 @@ public class BarangController {
             baseResponseDTO.setStatus(HttpStatus.OK.value());
             baseResponseDTO.setMessage("Transfer barang berhasil ditemukan.");
             baseResponseDTO.setData(transferBarangResponseDTO);
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            baseResponseDTO.setStatus(HttpStatus.NOT_FOUND.value());
+            baseResponseDTO.setMessage(e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/all-gudang/{id}")
+    public ResponseEntity<?> getAllNamaGudangPerBarang(@PathVariable String id) {
+        BaseResponseDTO<NamaGudangPerBarangResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
+        try {
+           NamaGudangPerBarangResponseDTO namaGudangPerBarangResponseDTO = barangService.getAllNamaGudangPerBarang(id);
+            baseResponseDTO.setStatus(HttpStatus.OK.value());
+            baseResponseDTO.setMessage("List nama gudang per barang berhasil ditemukan.");
+            baseResponseDTO.setData(namaGudangPerBarangResponseDTO);
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
         } catch (IllegalArgumentException e) {

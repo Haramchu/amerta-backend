@@ -4,7 +4,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,12 +15,11 @@ import propensi.amesta.model.Aset.Gudang;
 import propensi.amesta.model.Aset.KuantitasBarangPerTransfer;
 import propensi.amesta.model.Aset.StockBarangPerGudang;
 import propensi.amesta.model.Aset.TransferBarang;
-import propensi.amesta.payload.request.BarangTransferDTO;
-import propensi.amesta.payload.request.TransferBarangRequestDTO;
-import propensi.amesta.payload.response.TransferBarangResponseDTO;
+import propensi.amesta.payload.request.Aset.BarangTransferDTO;
+import propensi.amesta.payload.request.Aset.TransferBarangRequestDTO;
+import propensi.amesta.payload.response.Aset.TransferBarangResponseDTO;
 import propensi.amesta.repository.Aset.BarangDb;
 import propensi.amesta.repository.Aset.GudangDb;
-import propensi.amesta.repository.Aset.KuantitasBarangPerTransferDb;
 import propensi.amesta.repository.Aset.StockBarangPerGudangDb;
 import propensi.amesta.repository.Aset.TransferBarangDb;
 
@@ -39,10 +37,6 @@ public class TransferBarangServiceImpl implements TransferBarangService {
 
     @Autowired
     private StockBarangPerGudangDb stockBarangPerGudangDb;
-
-    @Autowired
-    private KuantitasBarangPerTransferDb kuantitasBarangPerTransferDb;
-
 
     @Override
     public TransferBarangResponseDTO addTransferBarang(TransferBarangRequestDTO request) {
@@ -125,7 +119,6 @@ public class TransferBarangServiceImpl implements TransferBarangService {
             transferBarang.getCreatedDate()
         );
     }
-
 
     @Override
     public List<TransferBarangResponseDTO> getAllTransferBarang() {
