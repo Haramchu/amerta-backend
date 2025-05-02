@@ -52,7 +52,8 @@ public class AmestaApplication {
             if (kp.isPresent() && kp.get() instanceof KepalaGudang) {
                 KepalaGudang kepalaGudang = (KepalaGudang) kp.get();
                 Gudang gud = createGudangDummy(kepalaGudang, gudangDb);
-                createBarangDummy(gud, barangDb);
+                Gudang gud2 = createGudangDummy2(kepalaGudang, gudangDb);
+                createBarangDummy(gud, barangDb, gud2);
             }
 
             createCustomerDummy(customerDb);
@@ -105,7 +106,27 @@ public class AmestaApplication {
         return gudangDb.save(gudang);
     }
 
-    private void createBarangDummy(Gudang gudang, BarangDb barangDb) {
+    private Gudang createGudangDummy2(KepalaGudang kepalaGudang, GudangDb gudangDb){
+        AlamatGudang alamatGudang = new AlamatGudang();
+        alamatGudang.setAlamat("Jl. Gudang No. 2");
+        alamatGudang.setKota("Jakarta 2");
+        alamatGudang.setProvinsi("DKI Jakarta 2");
+        alamatGudang.setKodePos("12345 2");
+
+        Gudang gudang = new Gudang();
+        gudang.setNama("Gudang 2");
+        gudang.setDeskripsi("Gudang 2 Deskripsi");
+        gudang.setKapasitas(1000000);
+        gudang.setKepalaGudang(kepalaGudang);
+        gudang.setAlamatGudang(alamatGudang);
+        gudang.setCreatedDate(new Date());
+        gudang.setUpdatedDate(new Date());
+        alamatGudang.setGudang(gudang);
+
+        return gudangDb.save(gudang);
+    }
+
+    private void createBarangDummy(Gudang gudang, BarangDb barangDb, Gudang gudang2) {
         for (int i = 0; i < 50; i++) {
             String id = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd"))
             .replace("-01-", "-I-")
@@ -136,7 +157,12 @@ public class AmestaApplication {
             StockBarangPerGudang stockBarang = new StockBarangPerGudang();
             stockBarang.setBarang(barang);
             stockBarang.setStock(10+i);
-            stockBarang.setGudang(gudang);
+            if (i % 2 == 0) {
+                stockBarang.setGudang(gudang);
+            }
+            else{
+                stockBarang.setGudang(gudang2);
+            }
             listBarang.add(stockBarang);
 
             barang.setListStockBarang(listBarang);
