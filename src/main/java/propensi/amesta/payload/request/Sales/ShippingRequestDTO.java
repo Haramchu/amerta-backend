@@ -18,5 +18,4 @@ public class ShippingRequestDTO {
     @NotNull(message = "Biaya pengiriman tidak boleh kosong")
     @DecimalMin(value = "0", message = "Biaya pengiriman minimal 0") // boleh gratis ongkir
     private BigDecimal shippingFee;
-
 }

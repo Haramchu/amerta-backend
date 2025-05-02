@@ -1,11 +1,12 @@
-package propensi.amesta.payload.response;
+package propensi.amesta.payload.response.Aset;
 
 import java.util.Date;
 import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import propensi.amesta.payload.request.BarangTransferDTO;
+import propensi.amesta.payload.request.Aset.BarangTransferDTO;
 
 @Data
 @NoArgsConstructor

@@ -11,6 +11,7 @@ import propensi.amesta.payload.response.Sales.SalesOrderResponseDTO;
 public interface SalesOrderService {
     SalesOrderResponseDTO addSalesOrder(SalesOrderRequestDTO request);
     List<SalesOrderResponseDTO> getAllSalesOrders();
+    List<SalesOrderResponseDTO> getSalesOrdersByStatus(String status);
     SalesOrderResponseDTO getSalesOrderById(String id);
 
     SalesOrderResponseDTO confirmShipping(String id);

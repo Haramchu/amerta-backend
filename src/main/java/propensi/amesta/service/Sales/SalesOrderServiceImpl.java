@@ -415,6 +415,23 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     }
 
     @Override
+    public List<SalesOrderResponseDTO> getSalesOrdersByStatus(String status) {
+        List<SalesOrder> allSalesOrders = salesOrderDb.findAll();
+        List<SalesOrder> filteredSalesOrders = allSalesOrders.stream()
+            .filter(order -> status.equalsIgnoreCase(order.getStatus()))
+            .toList();
+        
+        List<SalesOrderResponseDTO> salesOrderResponseDTOs = new ArrayList<>();
+
+        for (SalesOrder salesOrder : filteredSalesOrders) {
+            SalesOrderResponseDTO salesOrderResponseDTO = salesOrderToSalesOrderResponseDTO(salesOrder);
+            salesOrderResponseDTOs.add(salesOrderResponseDTO);
+        }
+
+        return salesOrderResponseDTOs;
+    }
+
+    @Override
     public SalesOrderResponseDTO getSalesOrderById(String id) {
         SalesOrder salesOrder = salesOrderDb.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sales Order tidak ditemukan"));
@@ -463,7 +480,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         return salesOrderToSalesOrderResponseDTO(salesOrderDb.save(salesOrder));
     }
 
-    // STAGE 3: IN DELIVERY, SURAT JALAN (JESS)
+    // STAGE 3: IN SHIPPING, SURAT JALAN (JESS)
     @Override
     public SalesOrderResponseDTO shipSalesOrder(String id, ShippingRequestDTO request) {
         // Validasi untuk sales order ada atau tidak
@@ -620,5 +637,4 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
         return salesOrderToSalesOrderResponseDTO(salesOrderDb.save(salesOrder));
     }
-
 }

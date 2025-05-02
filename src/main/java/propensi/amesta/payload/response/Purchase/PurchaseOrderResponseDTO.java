@@ -29,8 +29,5 @@ public class PurchaseOrderResponseDTO {
     // Receipt (Nota), untuk Michael
     private PurchaseReceiptResponseDTO receipt;
 
-    private PurchasePaymentResponseDTO payment;
-
-
- 
+    private PurchasePaymentResponseDTO payment; 
 }

@@ -51,7 +51,6 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     @Autowired
     private GudangDb gudangDb;
 
-
     // STAGE 1: CREATED
     @Override
     public PurchaseOrderResponseDTO addPurchaseOrder(PurchaseOrderRequestDTO request) {
@@ -157,8 +156,6 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
         purchaseOrder.setItems(items);
         purchaseOrder.setTotalPrice(total);
-
-        // TODO: implementasi security di websecurityconfig!!!!!!!!!!!
 
         return purchaseOrderToPurchaseOrderResponseDTO(purchaseOrderDb.save(purchaseOrder));
     }
@@ -280,7 +277,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         return trackingNumber.toString();
     }
 
-    public String generatePoId(){
+    public String generatePoId() {
         // Format: PO-YYYY-MM-DD-XXXXX, di mana YYYY adalah tahun, MM adalah bulan dalam angka romawi, DD adalah tanggal, dan XXXXX adalah 5 karakter acak
         String id = "PO-";
         String datePart = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd"))
@@ -304,7 +301,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         return poId;
     }
 
-    private String generateInvoiceId(){
+    private String generateInvoiceId() {
         // Format: INV-YYYY-MM-DD-XXXXX, di mana YYYY adalah tahun, MM adalah bulan dalam angka romawi, DD adalah tanggal, dan XXXXX adalah 5 karakter acak
         String id = "INV-";
         String datePart = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd"))
@@ -402,13 +399,29 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         return prefix + kodeBarang + "-" + datePart + "-" + randomPart;
     }
     
-
     @Override
     public List<PurchaseOrderResponseDTO> getAllPurchaseOrders() {
         List<PurchaseOrder> purchaseOrders = purchaseOrderDb.findAll();
         List<PurchaseOrderResponseDTO> purchaseOrderResponseDTOs = new ArrayList<>();
 
         for (PurchaseOrder purchaseOrder : purchaseOrders) {
+            PurchaseOrderResponseDTO purchaseOrderResponseDTO = purchaseOrderToPurchaseOrderResponseDTO(purchaseOrder);
+            purchaseOrderResponseDTOs.add(purchaseOrderResponseDTO);
+        }
+
+        return purchaseOrderResponseDTOs;
+    }
+
+    @Override
+    public List<PurchaseOrderResponseDTO> getPurchaseOrdersByStatus(String status) {
+        List<PurchaseOrder> allpurchaseOrders = purchaseOrderDb.findAll();
+        List<PurchaseOrder> filteredpurchaseOrders = allpurchaseOrders.stream()
+            .filter(order -> status.equalsIgnoreCase(order.getStatus()))
+            .toList();
+        
+        List<PurchaseOrderResponseDTO> purchaseOrderResponseDTOs = new ArrayList<>();
+
+        for (PurchaseOrder purchaseOrder : filteredpurchaseOrders) {
             PurchaseOrderResponseDTO purchaseOrderResponseDTO = purchaseOrderToPurchaseOrderResponseDTO(purchaseOrder);
             purchaseOrderResponseDTOs.add(purchaseOrderResponseDTO);
         }
@@ -491,7 +504,6 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         }
 
         PurchasePayment payment = purchaseOrder.getPayment();
-
         if (payment == null) {
             payment = new PurchasePayment();
             payment.setId(generatePaymentId(purchaseOrder.getCustomer().getName()));
@@ -501,12 +513,11 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
         payment.setPaymentDate(paymentDate);
         payment.setPaymentMethod(request.getPaymentMethod()); // kalo udah partially paid, ini prefilled dari yang udah ada (frontend), 
-                                                                // jadi payment methodnya sama terus
+                                                              // jadi payment methodnya sama terus
  
         BigDecimal additionalPaid = request.getTotalAmountPayed();
         BigDecimal totalPrice = purchaseOrder.getTotalPrice();
         BigDecimal currentTotalPaid = payment.getTotalAmountPayed();
-
         BigDecimal newTotalPaid = currentTotalPaid.add(additionalPaid);
 
         if (newTotalPaid.compareTo(totalPrice) > 0) {
@@ -549,14 +560,24 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             throw new IllegalArgumentException("Tanggal pengiriman tidak boleh sebelum tanggal pembelian dan tanggal tagihan");
         }
 
+        // Tambah stok barang
+        for (PurchaseOrderItem item : purchaseOrder.getItems()) {
+            Barang barang = item.getBarang();
+            for (StockBarangPerGudang stock : barang.getListStockBarang()) {
+                if (stock.getGudang().getNama().equals(item.getGudangTujuan().getNama())) {
+                    stock.setStock(stock.getStock() + item.getQuantity());
+                }
+            }
+        }
+
         Delivery delivery = new Delivery();
         delivery.setId(generateDeliveryId(purchaseOrder.getItems()));
         delivery.setDeliveryDate(deliveryDate);
         delivery.setDeliveryStatus("IN DELIVERY"); // IN DELIVERY, DELIVERED (KETIKA UDAH SAMPAI NANTI TAHAP SELANJUTNYA)
         delivery.setTrackingNumber(generateTrackingNumber(purchaseOrder.getItems()));
         delivery.setDeliveryFee(request.getDeliveryFee());
-        purchaseOrder.setStatus("IN DELIVERY");
-        purchaseOrder.setTotalPrice(purchaseOrder.getTotalPrice().add(request.getDeliveryFee())); // total price = total price + delivery fee
+        purchaseOrder.setTotalPrice(purchaseOrder.getTotalPrice().add(request.getDeliveryFee()));
+        purchaseOrder.setStatus("IN DELIVERY"); // total price = total price + delivery fee
         delivery.setPurchaseOrder(purchaseOrder);
         purchaseOrder.setDelivery(delivery);
 
@@ -601,9 +622,4 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
         return purchaseOrderToPurchaseOrderResponseDTO(purchaseOrderDb.save(purchaseOrder));
     }
-
-    
-
-
-    
 }

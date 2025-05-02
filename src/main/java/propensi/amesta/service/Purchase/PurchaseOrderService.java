@@ -11,9 +11,9 @@ import propensi.amesta.payload.response.Purchase.PurchaseOrderResponseDTO;
 public interface PurchaseOrderService {
     PurchaseOrderResponseDTO addPurchaseOrder(PurchaseOrderRequestDTO request);
     List<PurchaseOrderResponseDTO> getAllPurchaseOrders();
+    List<PurchaseOrderResponseDTO> getPurchaseOrdersByStatus(String status);
     PurchaseOrderResponseDTO getPurchaseOrderById(String id);
 
-    // UPDATE PURCHASE ORDER
     PurchaseOrderResponseDTO confirmPurchaseOrder(String id, PurchaseOrderInvoiceRequestDTO request);
     PurchaseOrderResponseDTO payPurchaseOrder(String id, PurchasePaymentRequestDTO request);
     PurchaseOrderResponseDTO deliverPurchaseOrder(String id, DeliveryRequestDTO request);

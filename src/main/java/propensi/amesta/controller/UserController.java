@@ -17,8 +17,8 @@ import jakarta.validation.Valid;
 import propensi.amesta.model.EndUser.User;
 import propensi.amesta.payload.request.TambahKaryawanRequestDTO;
 import propensi.amesta.payload.response.BaseResponseDTO;
-import propensi.amesta.payload.response.LoginJwtResponseDTO;
 import propensi.amesta.payload.response.UserResponseDTO;
+import propensi.amesta.payload.response.Auth.LoginJwtResponseDTO;
 import propensi.amesta.service.UserService;
 
 import org.springframework.web.bind.annotation.GetMapping;

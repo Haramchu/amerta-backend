@@ -28,11 +28,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import propensi.amesta.exceptions.GlobalExceptionHandler;
-import propensi.amesta.payload.request.AlamatGudangRequestDTO;
-import propensi.amesta.payload.request.GudangRequestDTO;
-import propensi.amesta.payload.response.AlamatGudangResponseDTO;
-import propensi.amesta.payload.response.GudangResponseDTO;
-import propensi.amesta.payload.response.KepalaGudangResponseDTO;
+import propensi.amesta.payload.request.Aset.AlamatGudangRequestDTO;
+import propensi.amesta.payload.request.Aset.GudangRequestDTO;
+import propensi.amesta.payload.response.Aset.AlamatGudangResponseDTO;
+import propensi.amesta.payload.response.Aset.GudangResponseDTO;
+import propensi.amesta.payload.response.Aset.KepalaGudangResponseDTO;
 import propensi.amesta.service.Aset.GudangService;
 
 @ExtendWith(MockitoExtension.class)

@@ -1,4 +1,4 @@
-package propensi.amesta.payload.response;
+package propensi.amesta.payload.response.Aset;
 
 import java.util.Date;
 import java.util.List;

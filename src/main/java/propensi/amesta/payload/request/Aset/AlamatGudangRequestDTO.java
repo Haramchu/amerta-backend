@@ -1,4 +1,4 @@
-package propensi.amesta.payload.request;
+package propensi.amesta.payload.request.Aset;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
