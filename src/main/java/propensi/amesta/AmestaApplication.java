@@ -33,154 +33,127 @@ import propensi.amesta.service.UserService;
 
 @SpringBootApplication
 public class AmestaApplication {
-	public static void main(String[] args) {
-		SpringApplication.run(AmestaApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(AmestaApplication.class, args);
+    }
 
-	// @Bean
-    // @Transactional
-    // CommandLineRunner run(UserDb userDb, UserService userService, GudangDb gudangDb, BarangDb barangDb, CustomerDb customerDb) {
-    //     return args -> {
-    //         createUserIfNotExists(userDb, userService, new Administrasi(), "admin", "admin@example.com", "admin", "ADMIN");
-    //         createUserIfNotExists(userDb, userService, new Direktur(), "direktur", "direktur@example.com", "direktur", "DIREKTUR");
-    //         createUserIfNotExists(userDb, userService, new Sales(), "sales", "sales@example.com", "sales", "SALES");
-    //         createUserIfNotExists(userDb, userService, new GeneralManager(), "general_manager", "gm@example.com", "general_manager", "GENERAL_MANAGER");
-    //         createUserIfNotExists(userDb, userService, new KepalaGudang(), "kepala_gudang", "kg@example.com", "kepala_gudang", "KEPALA_GUDANG");
-    //         createUserIfNotExists(userDb, userService, new Komisaris(), "komisaris", "komisaris@example.com", "komisaris", "KOMISARIS");
+    @Bean
+    @Transactional
+    CommandLineRunner run(UserDb userDb, UserService userService, GudangDb gudangDb, BarangDb barangDb, CustomerDb customerDb) {
+        return args -> {
+            createUserIfNotExists(userDb, userService, new Administrasi(), "admin", "admin@example.com", "admin", "ADMIN");
+            createUserIfNotExists(userDb, userService, new Direktur(), "direktur", "direktur@example.com", "direktur", "DIREKTUR");
+            createUserIfNotExists(userDb, userService, new Sales(), "sales", "sales@example.com", "sales", "SALES");
+            createUserIfNotExists(userDb, userService, new GeneralManager(), "general_manager", "gm@example.com", "general_manager", "GENERAL_MANAGER");
+            createUserIfNotExists(userDb, userService, new KepalaGudang(), "kepala_gudang", "kg@example.com", "kepala_gudang", "KEPALA_GUDANG");
+            createUserIfNotExists(userDb, userService, new Komisaris(), "komisaris", "komisaris@example.com", "komisaris", "KOMISARIS");
 
-    //         Optional<User> kp = userDb.findByUsername("kepala_gudang");
-    //         if (kp.isPresent() && kp.get() instanceof KepalaGudang) {
-    //             KepalaGudang kepalaGudang = (KepalaGudang) kp.get();
-    //             Gudang gud = createGudangDummy(kepalaGudang, gudangDb);
-    //             Gudang gud2 = createGudangDummy2(kepalaGudang, gudangDb);
-    //             createBarangDummy(gud, barangDb, gud2);
-    //         }
+            Optional<User> kp = userDb.findByUsername("kepala_gudang");
+            if (kp.isPresent() && kp.get() instanceof KepalaGudang kepalaGudang) {
+                Gudang gud = createGudangIfNotExists("Gudang 1", "Jl. Gudang No. 1", kepalaGudang, gudangDb);
+                Gudang gud2 = createGudangIfNotExists("Gudang 2", "Jl. Gudang No. 2", kepalaGudang, gudangDb);
+                createBarangDummyIfNotExists(barangDb, gud, gud2);
+            }
 
-    //         createCustomerDummy(customerDb);
-    //     };
-    // }
+            createCustomerIfNotExists(customerDb, "customer@example.com");
+        };
+    }
 
-    // private void createUserIfNotExists(UserDb userDb, UserService userService, User user, String username, String email, String password, String role) {
-    //     Optional<User> existingUser = userDb.findByUsername(username);
-    //     if (existingUser.isEmpty()) {
-    //         user.setName(username);
-    //         user.setUsername(username);
-    //         user.setEmail(email);
-    //         user.setPassword(userService.hashPassword(password));
-    //         user.setGender(false);
-    //         user.setPhone("08123456789");
-    //         user.setHomePhone("021567890");
-    //         user.setBusinessPhone("021123456");
-    //         user.setWhatsappNumber("08123456789");
-    //         user.setEntryDate(new Date());
-    //         user.setKtpNumber("1234567890123456");
-    //         user.setNotes("User dummy untuk testing");
-    //         user.setRole(role);
-    //         user.setCreatedDate(new Date());
-    //         user.setUpdatedAt(new Date());
+    private void createUserIfNotExists(UserDb userDb, UserService userService, User user, String username, String email, String password, String role) {
+        Optional<User> existingUser = userDb.findByUsername(username);
+        if (existingUser.isEmpty()) {
+            user.setName(username);
+            user.setUsername(username);
+            user.setEmail(email);
+            user.setPassword(userService.hashPassword(password));
+            user.setGender(false);
+            user.setPhone("08123456789");
+            user.setHomePhone("021567890");
+            user.setBusinessPhone("021123456");
+            user.setWhatsappNumber("08123456789");
+            user.setEntryDate(new Date());
+            user.setKtpNumber("1234567890123456");
+            user.setNotes("User dummy untuk testing");
+            user.setRole(role);
+            user.setCreatedDate(new Date());
+            user.setUpdatedAt(new Date());
+            userDb.save(user);
+            System.out.println("User " + username + " berhasil ditambahkan.");
+        } else {
+            System.out.println("User " + username + " sudah ada, tidak ditambahkan.");
+        }
+    }
 
-    //         userDb.save(user);
-    //         System.out.println("User " + username + " berhasil ditambahkan.");
-    //     } else {
-    //         System.out.println("User " + username + " sudah ada, tidak ditambahkan.");
-    //     }
-    // }
+    private Gudang createGudangIfNotExists(String nama, String alamat, KepalaGudang kepalaGudang, GudangDb gudangDb) {
+        Optional<Gudang> existing = gudangDb.findByNama(nama);
+        if (existing.isPresent()) return existing.get();
 
-    // private Gudang createGudangDummy(KepalaGudang kepalaGudang, GudangDb gudangDb){
-    //     AlamatGudang alamatGudang = new AlamatGudang();
-    //     alamatGudang.setAlamat("Jl. Gudang No. 1");
-    //     alamatGudang.setKota("Jakarta");
-    //     alamatGudang.setProvinsi("DKI Jakarta");
-    //     alamatGudang.setKodePos("12345");
+        AlamatGudang alamatGudang = new AlamatGudang();
+        alamatGudang.setAlamat(alamat);
+        alamatGudang.setKota("Jakarta");
+        alamatGudang.setProvinsi("DKI Jakarta");
+        alamatGudang.setKodePos("12345");
 
-    //     Gudang gudang = new Gudang();
-    //     gudang.setNama("Gudang 1");
-    //     gudang.setDeskripsi("Gudang 1 Deskripsi");
-    //     gudang.setKapasitas(1000000);
-    //     gudang.setKepalaGudang(kepalaGudang);
-    //     gudang.setAlamatGudang(alamatGudang);
-    //     gudang.setCreatedDate(new Date());
-    //     gudang.setUpdatedDate(new Date());
-    //     alamatGudang.setGudang(gudang);
+        Gudang gudang = new Gudang();
+        gudang.setNama(nama);
+        gudang.setDeskripsi(nama + " Deskripsi");
+        gudang.setKapasitas(1000000);
+        gudang.setKepalaGudang(kepalaGudang);
+        gudang.setAlamatGudang(alamatGudang);
+        gudang.setCreatedDate(new Date());
+        gudang.setUpdatedDate(new Date());
+        alamatGudang.setGudang(gudang);
 
-    //     return gudangDb.save(gudang);
-    // }
+        return gudangDb.save(gudang);
+    }
 
-    // private Gudang createGudangDummy2(KepalaGudang kepalaGudang, GudangDb gudangDb){
-    //     AlamatGudang alamatGudang = new AlamatGudang();
-    //     alamatGudang.setAlamat("Jl. Gudang No. 2");
-    //     alamatGudang.setKota("Jakarta 2");
-    //     alamatGudang.setProvinsi("DKI Jakarta 2");
-    //     alamatGudang.setKodePos("12345 2");
+    private void createBarangDummyIfNotExists(BarangDb barangDb, Gudang gudang, Gudang gudang2) {
+        for (int i = 0; i < 50; i++) {
+            String namaBarang = "Barang " + i;
+            if (barangDb.findByNama(namaBarang).isPresent()) continue;
 
-    //     Gudang gudang = new Gudang();
-    //     gudang.setNama("Gudang 2");
-    //     gudang.setDeskripsi("Gudang 2 Deskripsi");
-    //     gudang.setKapasitas(1000000);
-    //     gudang.setKepalaGudang(kepalaGudang);
-    //     gudang.setAlamatGudang(alamatGudang);
-    //     gudang.setCreatedDate(new Date());
-    //     gudang.setUpdatedDate(new Date());
-    //     alamatGudang.setGudang(gudang);
+            String id = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                .replace("-01-", "-I-").replace("-02-", "-II-").replace("-03-", "-III-")
+                .replace("-04-", "-IV-").replace("-05-", "-V-").replace("-06-", "-VI-")
+                .replace("-07-", "-VII-").replace("-08-", "-VIII-").replace("-09-", "-IX-")
+                .replace("-10-", "-X-").replace("-11-", "-XI-").replace("-12-", "-XII-");
+            id += "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
-    //     return gudangDb.save(gudang);
-    // }
+            Barang barang = new Barang();
+            barang.setId(id);
+            barang.setNama(namaBarang);
+            barang.setKategori("Kategori " + i);
+            barang.setMerk("Merk " + i);
+            barang.setActive(true);
+            barang.setHargaBeli(BigDecimal.valueOf(10000 + (i * 500)));
+            barang.setHargaJual(BigDecimal.valueOf(20000 + (i * 500)));
 
-    // private void createBarangDummy(Gudang gudang, BarangDb barangDb, Gudang gudang2) {
-    //     for (int i = 0; i < 50; i++) {
-    //         String id = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-    //         .replace("-01-", "-I-")
-    //         .replace("-02-", "-II-")
-    //         .replace("-03-", "-III-")
-    //         .replace("-04-", "-IV-")
-    //         .replace("-05-", "-V-")
-    //         .replace("-06-", "-VI-")
-    //         .replace("-07-", "-VII-")
-    //         .replace("-08-", "-VIII-")
-    //         .replace("-09-", "-IX-")
-    //         .replace("-10-", "-X-")
-    //         .replace("-11-", "-XI-")
-    //         .replace("-12-", "-XII-");
-    
-    //         id += "-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+            StockBarangPerGudang stockBarang = new StockBarangPerGudang();
+            stockBarang.setBarang(barang);
+            stockBarang.setStock(10 + i);
+            stockBarang.setGudang((i % 2 == 0) ? gudang : gudang2);
 
-    //         Barang barang = new Barang();
-    //         barang.setId(id);
-    //         barang.setNama("Barang " + i);
-    //         barang.setKategori("Kategori " + i);
-    //         barang.setMerk("Merk " + i);
-    //         barang.setActive(true);
-    //         barang.setHargaBeli(BigDecimal.valueOf(10000 + (i * 500)));
-    //         barang.setHargaJual(BigDecimal.valueOf(20000 + (i * 500)));
+            List<StockBarangPerGudang> listBarang = new ArrayList<>();
+            listBarang.add(stockBarang);
+            barang.setListStockBarang(listBarang);
 
-    //         List<StockBarangPerGudang> listBarang = new ArrayList<>();
-    //         StockBarangPerGudang stockBarang = new StockBarangPerGudang();
-    //         stockBarang.setBarang(barang);
-    //         stockBarang.setStock(10+i);
-    //         if (i % 2 == 0) {
-    //             stockBarang.setGudang(gudang);
-    //         }
-    //         else{
-    //             stockBarang.setGudang(gudang2);
-    //         }
-    //         listBarang.add(stockBarang);
+            barangDb.save(barang);
+        }
+    }
 
-    //         barang.setListStockBarang(listBarang);
+    private void createCustomerIfNotExists(CustomerDb customerDb, String email) {
+        Customer existing = customerDb.findByEmail(email);
+        if (existing != null) return;
 
-    //         barangDb.save(barang);
-    //     }
-    // }
-
-    // private void createCustomerDummy(CustomerDb customerDb){
-    //     Customer customer = new Customer();
-    //     customer.setId(UUID.randomUUID());
-    //     customer.setName("Customer 1");
-    //     customer.setPhone("08123456789");
-    //     customer.setHandphone("08123456789");
-    //     customer.setWhatsapp("08123456789");
-    //     customer.setEmail("customer@example.com");
-    //     customer.setAddress("Jl. Customer No. 1");
-    //     customer.setRole("VENDOR");
-    //     customerDb.save(customer);
-    // }
+        Customer customer = new Customer();
+        customer.setId(UUID.randomUUID());
+        customer.setName("Customer 1");
+        customer.setPhone("08123456789");
+        customer.setHandphone("08123456789");
+        customer.setWhatsapp("08123456789");
+        customer.setEmail(email);
+        customer.setAddress("Jl. Customer No. 1");
+        customer.setRole("VENDOR");
+        customerDb.save(customer);
+    }
 }
