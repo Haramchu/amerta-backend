@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CustomerServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">amesta</a> &gt; <a href="index.source.html" class="el_package">propensi.amesta.service</a> &gt; <span class="el_source">CustomerServiceImpl.java</span></div><h1>CustomerServiceImpl.java</h1><pre class="source lang-java linenums">package propensi.amesta.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import propensi.amesta.model.Customer;
+import propensi.amesta.payload.request.CustomerRequestDTO;
+import propensi.amesta.payload.response.CustomerResponseDTO;
+import propensi.amesta.repository.CustomerDb;
+
+import java.util.List;
+import java.util.UUID;
+
+@Service
+<span class="nc" id="L14">public class CustomerServiceImpl implements CustomerService {</span>
+
+    @Autowired
+    private CustomerDb customerDb;
+
+    public CustomerResponseDTO addCustomer(CustomerRequestDTO request) {
+<span class="nc" id="L20">        Customer existing = customerDb.findByEmail(request.getEmail());</span>
+<span class="nc bnc" id="L21" title="All 2 branches missed.">        if (existing != null) {</span>
+<span class="nc" id="L22">            throw new IllegalArgumentException(&quot;Email sudah terdaftar.&quot;);</span>
+        }
+
+<span class="nc" id="L25">        Customer customer = new Customer();</span>
+<span class="nc" id="L26">        customer.setId(UUID.randomUUID());</span>
+<span class="nc" id="L27">        customer.setName(request.getName());</span>
+<span class="nc" id="L28">        customer.setPhone(request.getPhone());</span>
+<span class="nc" id="L29">        customer.setHandphone(request.getHandphone());</span>
+<span class="nc" id="L30">        customer.setWhatsapp(request.getWhatsapp());</span>
+<span class="nc" id="L31">        customer.setEmail(request.getEmail());</span>
+<span class="nc" id="L32">        customer.setAddress(request.getAddress());</span>
+<span class="nc" id="L33">        customer.setRole(request.getRole());</span>
+
+<span class="nc" id="L35">        Customer saved = customerDb.save(customer);</span>
+
+<span class="nc" id="L37">        return customerToCustomerResponseDTO(saved);</span>
+    }
+
+    private CustomerResponseDTO customerToCustomerResponseDTO(Customer customer) {
+<span class="nc" id="L41">        return new CustomerResponseDTO(</span>
+<span class="nc" id="L42">                customer.getId(),</span>
+<span class="nc" id="L43">                customer.getName(),</span>
+<span class="nc" id="L44">                customer.getPhone(),</span>
+<span class="nc" id="L45">                customer.getHandphone(),</span>
+<span class="nc" id="L46">                customer.getWhatsapp(),</span>
+<span class="nc" id="L47">                customer.getEmail(),</span>
+<span class="nc" id="L48">                customer.getAddress(),</span>
+<span class="nc" id="L49">                customer.getRole()</span>
+        );
+    }
+
+    public List&lt;CustomerResponseDTO&gt; getAllCustomer() {
+
+<span class="nc" id="L55">        List&lt;Customer&gt; customers = customerDb.findAll();</span>
+        
+<span class="nc" id="L57">        return customers.stream()</span>
+<span class="nc" id="L58">                .map(this::customerToCustomerResponseDTO)</span>
+<span class="nc" id="L59">                .toList();</span>
+    }
+
+    public CustomerResponseDTO getCustomerById(UUID idCustomer) {
+<span class="nc" id="L63">        Customer customer = customerDb.findById(idCustomer).orElseThrow(() -&gt; new IllegalArgumentException(&quot;Customer tidak ditemukan.&quot;));</span>
+<span class="nc" id="L64">        return customerToCustomerResponseDTO(customer);</span>
+    }
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

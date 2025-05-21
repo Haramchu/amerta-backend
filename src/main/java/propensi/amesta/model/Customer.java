@@ -36,5 +36,4 @@ public class Customer {
     private List<PurchaseOrder> purchaseOrders;
 
     private String role;
-
 }

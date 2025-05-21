@@ -1,0 +1,641 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SalesOrderServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">amesta</a> &gt; <a href="index.source.html" class="el_package">propensi.amesta.service.Sales</a> &gt; <span class="el_source">SalesOrderServiceImpl.java</span></div><h1>SalesOrderServiceImpl.java</h1><pre class="source lang-java linenums">package propensi.amesta.service.Sales;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import propensi.amesta.model.Customer;
+import propensi.amesta.model.Aset.Barang;
+import propensi.amesta.model.Aset.StockBarangPerGudang;
+import propensi.amesta.model.Sales.Shipping;
+import propensi.amesta.model.Sales.SalesInvoice;
+import propensi.amesta.model.Sales.SalesOrder;
+import propensi.amesta.model.Sales.SalesOrderItem;
+import propensi.amesta.model.Sales.SalesPayment;
+import propensi.amesta.model.Sales.SalesReceipt;
+import propensi.amesta.payload.request.Sales.ShippingRequestDTO;
+import propensi.amesta.payload.request.Sales.SalesOrderInvoiceRequestDTO;
+import propensi.amesta.payload.request.Sales.SalesOrderItemRequestDTO;
+import propensi.amesta.payload.request.Sales.SalesOrderRequestDTO;
+import propensi.amesta.payload.request.Sales.SalesPaymentRequestDTO;
+import propensi.amesta.payload.response.Sales.ShippingResponseDTO;
+import propensi.amesta.payload.response.Sales.SalesInvoiceResponseDTO;
+import propensi.amesta.payload.response.Sales.SalesOrderItemResponseDTO;
+import propensi.amesta.payload.response.Sales.SalesOrderResponseDTO;
+import propensi.amesta.payload.response.Sales.SalesPaymentResponseDTO;
+import propensi.amesta.payload.response.Sales.SalesReceiptResponseDTO;
+import propensi.amesta.repository.CustomerDb;
+import propensi.amesta.repository.Aset.BarangDb;
+import propensi.amesta.repository.Aset.GudangDb;
+import propensi.amesta.repository.Sales.SalesOrderDb;
+
+@Service
+<span class="nc" id="L40">public class SalesOrderServiceImpl implements SalesOrderService {</span>
+
+    @Autowired
+    private CustomerDb customerDb;
+
+    @Autowired
+    private BarangDb barangDb;
+
+    @Autowired
+    private SalesOrderDb salesOrderDb;
+
+    @Autowired
+    private GudangDb gudangDb;
+
+    // STAGE 1: CREATED
+    @Override
+    public SalesOrderResponseDTO addSalesOrder(SalesOrderRequestDTO request) {
+        // Validasi customer ada atau tidak, jika ada cek apakah vendor atau tidak
+<span class="nc" id="L58">        Customer customer = customerDb.findById(request.getCustomerId())</span>
+<span class="nc" id="L59">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Customer tidak ditemukan&quot;));</span>
+
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        if (!customer.getRole().equalsIgnoreCase(&quot;CUSTOMER&quot;)) {</span>
+<span class="nc" id="L62">            throw new IllegalArgumentException(&quot;Customer harus merupakan CUSTOMER, bukan VENDOR&quot;);</span>
+        }
+
+        // Validasi untuk barang harus ada dan kuantitas tidak boleh negatif
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        for (SalesOrderItemRequestDTO item : request.getItems()) {</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">            if (!barangDb.existsById(item.getBarangId())) {</span>
+<span class="nc" id="L68">                throw new IllegalArgumentException(&quot;Barang dengan ID &quot; + item.getBarangId() + &quot; tidak ditemukan&quot;);</span>
+            }
+
+<span class="nc bnc" id="L71" title="All 2 branches missed.">            if (item.getQuantity() &lt;= 0) {</span>
+<span class="nc" id="L72">                throw new IllegalArgumentException(&quot;Kuantitas barang tidak boleh negatif atau nol&quot;);</span>
+            }
+<span class="nc" id="L74">        }</span>
+
+        // Validasi multiple entry, jika barang dan gudang tujuan sama di
+        // SalesOrderItem, kuantitas dijumlahkan, validasi pajaknya juga untuk barang
+        // yang dan gudang tujuan sama, pajak juga harus sama
+<span class="nc" id="L79">        Map&lt;String, SalesOrderItemRequestDTO&gt; itemMap = new HashMap&lt;&gt;();</span>
+
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        for (SalesOrderItemRequestDTO item : request.getItems()) {</span>
+<span class="nc" id="L82">            String key = item.getBarangId() + &quot;|&quot; + item.getGudangTujuan();</span>
+
+<span class="nc bnc" id="L84" title="All 2 branches missed.">            if (itemMap.containsKey(key)) {</span>
+<span class="nc" id="L85">                SalesOrderItemRequestDTO existing = itemMap.get(key);</span>
+
+                // Validasi pajak harus sama
+<span class="nc bnc" id="L88" title="All 2 branches missed.">                if (!existing.getPajak().equals(item.getPajak())) {</span>
+<span class="nc" id="L89">                    throw new IllegalArgumentException(&quot;Barang dengan ID &quot; + item.getBarangId() + &quot; dan gudang tujuan &quot;</span>
+<span class="nc" id="L90">                            + item.getGudangTujuan() + &quot; memiliki pajak yang berbeda&quot;);</span>
+                }
+
+                // Kalau pajak sama, jumlahkan quantity
+<span class="nc" id="L94">                existing.setQuantity(existing.getQuantity() + item.getQuantity());</span>
+<span class="nc" id="L95">            } else {</span>
+<span class="nc" id="L96">                itemMap.put(key, new SalesOrderItemRequestDTO(</span>
+<span class="nc" id="L97">                        item.getBarangId(),</span>
+<span class="nc" id="L98">                        item.getQuantity(),</span>
+<span class="nc" id="L99">                        item.getGudangTujuan(),</span>
+<span class="nc" id="L100">                        item.getPajak()));</span>
+            }
+<span class="nc" id="L102">        }</span>
+
+<span class="nc" id="L104">        List&lt;SalesOrderItemRequestDTO&gt; consolidatedItems = new ArrayList&lt;&gt;(itemMap.values());</span>
+<span class="nc" id="L105">        request.setItems(consolidatedItems);</span>
+
+        // Validasi gudang tujuan harus ada
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        for (SalesOrderItemRequestDTO item : request.getItems()) {</span>
+<span class="nc" id="L109">            gudangDb.findById(item.getGudangTujuan())</span>
+<span class="nc" id="L110">                    .orElseThrow(() -&gt; new IllegalArgumentException(</span>
+<span class="nc" id="L111">                            &quot;Gudang tujuan dengan ID &quot; + item.getGudangTujuan() + &quot; tidak ditemukan&quot;));</span>
+<span class="nc" id="L112">        }</span>
+
+<span class="nc" id="L114">        SalesOrder salesOrder = new SalesOrder();</span>
+<span class="nc" id="L115">        salesOrder.setId(generatePoId());</span>
+<span class="nc" id="L116">        salesOrder.setCustomer(customer);</span>
+<span class="nc" id="L117">        salesOrder.setStatus(&quot;CREATED&quot;);</span>
+<span class="nc" id="L118">        salesOrder.setSalesDate(request.getSalesDate());</span>
+
+<span class="nc" id="L120">        BigDecimal total = BigDecimal.ZERO;</span>
+<span class="nc" id="L121">        List&lt;SalesOrderItem&gt; items = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        for (SalesOrderItemRequestDTO itemDTO : request.getItems()) {</span>
+<span class="nc" id="L123">            Barang barang = barangDb.findById(itemDTO.getBarangId())</span>
+<span class="nc" id="L124">                    .orElseThrow(() -&gt; new IllegalArgumentException(</span>
+<span class="nc" id="L125">                            &quot;Barang dengan ID &quot; + itemDTO.getBarangId() + &quot; tidak ditemukan&quot;));</span>
+
+<span class="nc" id="L127">            BigDecimal unitPrice = barang.getHargaJual();</span>
+<span class="nc" id="L128">            BigDecimal itemTotal = unitPrice.multiply(BigDecimal.valueOf(itemDTO.getQuantity()));</span>
+<span class="nc" id="L129">            Integer pajak = itemDTO.getPajak(); // pajak dalam persen</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">            if (pajak == 0) {</span>
+<span class="nc" id="L131">                total = total.add(itemTotal);</span>
+            } else {
+<span class="nc" id="L133">                BigDecimal pajakValue = itemTotal.multiply(BigDecimal.valueOf(pajak)).divide(BigDecimal.valueOf(100));</span>
+<span class="nc" id="L134">                total = total.add(itemTotal.add(pajakValue));</span>
+            }
+
+<span class="nc" id="L137">            SalesOrderItem item = new SalesOrderItem();</span>
+<span class="nc" id="L138">            item.setId(UUID.randomUUID()); // ID = UUID</span>
+<span class="nc" id="L139">            item.setSalesOrder(salesOrder);</span>
+<span class="nc" id="L140">            item.setBarang(barang);</span>
+<span class="nc" id="L141">            item.setQuantity(itemDTO.getQuantity());</span>
+<span class="nc" id="L142">            item.setTax(pajak);</span>
+<span class="nc" id="L143">            item.setGudangTujuan(gudangDb.findById(itemDTO.getGudangTujuan()) // gaperlu dari dto, bisa juga dari</span>
+                                                                              // barangnya langsung (asumsi gamau bisa
+                                                                              // ganti gudang tujuan di po)
+<span class="nc" id="L146">                    .orElseThrow(() -&gt; new IllegalArgumentException(</span>
+<span class="nc" id="L147">                            &quot;Gudang tujuan dengan ID &quot; + itemDTO.getGudangTujuan() + &quot; tidak ditemukan&quot;)));</span>
+
+<span class="nc" id="L149">            items.add(item);</span>
+<span class="nc" id="L150">        }</span>
+
+<span class="nc" id="L152">        salesOrder.setItems(items);</span>
+<span class="nc" id="L153">        salesOrder.setTotalPrice(total);</span>
+
+        // TODO: implementasi security di websecurityconfig!!!!!!!!!!!
+
+<span class="nc" id="L157">        return salesOrderToSalesOrderResponseDTO(salesOrderDb.save(salesOrder));</span>
+    }
+
+    private SalesOrderResponseDTO salesOrderToSalesOrderResponseDTO(SalesOrder salesOrder) {
+<span class="nc" id="L161">        SalesPaymentResponseDTO payment = null;</span>
+<span class="nc" id="L162">        SalesInvoiceResponseDTO invoice = null;</span>
+<span class="nc" id="L163">        ShippingResponseDTO shipping = null;</span>
+<span class="nc" id="L164">        SalesReceiptResponseDTO receipt = null;</span>
+
+<span class="nc bnc" id="L166" title="All 2 branches missed.">        if (salesOrder.getPayment() != null) {</span>
+<span class="nc" id="L167">            payment = salesPaymentToSalesPaymentResponseDTO(salesOrder.getPayment());</span>
+        }
+
+<span class="nc bnc" id="L170" title="All 2 branches missed.">        if (salesOrder.getInvoice() != null) {</span>
+<span class="nc" id="L171">            invoice = salesInvoiceToSalesInvoiceResponseDTO(salesOrder.getInvoice());</span>
+        }
+
+<span class="nc bnc" id="L174" title="All 2 branches missed.">        if (salesOrder.getShipping() != null) {</span>
+<span class="nc" id="L175">            shipping = shippingToShippingResponseDTO(salesOrder.getShipping());</span>
+        }
+
+<span class="nc bnc" id="L178" title="All 2 branches missed.">        if (salesOrder.getReceipt() != null) {</span>
+<span class="nc" id="L179">            receipt = salesReceiptToSalesReceiptResponseDTO(salesOrder.getReceipt());</span>
+        }
+
+<span class="nc" id="L182">        List&lt;SalesOrderItemResponseDTO&gt; items = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">        for (SalesOrderItem item : salesOrder.getItems()) {</span>
+<span class="nc" id="L184">            items.add(salesOrderItemToSalesOrderItemResponseDTO(item));</span>
+<span class="nc" id="L185">        }</span>
+
+<span class="nc" id="L187">        return new SalesOrderResponseDTO(</span>
+<span class="nc" id="L188">                salesOrder.getId(),</span>
+<span class="nc" id="L189">                salesOrder.getCustomer().getId(),</span>
+<span class="nc" id="L190">                salesOrder.getSalesDate(),</span>
+<span class="nc" id="L191">                salesOrder.getStatus(),</span>
+                items,
+<span class="nc" id="L193">                salesOrder.getTotalPrice(),</span>
+                invoice,
+                shipping,
+                receipt,
+                payment);
+
+    }
+
+    private SalesPaymentResponseDTO salesPaymentToSalesPaymentResponseDTO(SalesPayment salesPayment) {
+<span class="nc" id="L202">        return new SalesPaymentResponseDTO(</span>
+<span class="nc" id="L203">                salesPayment.getId(),</span>
+<span class="nc" id="L204">                salesPayment.getSalesOrder().getId(),</span>
+<span class="nc" id="L205">                salesPayment.getPaymentDate(),</span>
+<span class="nc" id="L206">                salesPayment.getPaymentMethod(),</span>
+<span class="nc" id="L207">                salesPayment.getPaymentStatus(),</span>
+<span class="nc" id="L208">                salesPayment.getTotalAmountPayed());</span>
+    }
+
+    private SalesOrderItemResponseDTO salesOrderItemToSalesOrderItemResponseDTO(SalesOrderItem salesOrderItem) {
+<span class="nc" id="L212">        return new SalesOrderItemResponseDTO(</span>
+<span class="nc" id="L213">                salesOrderItem.getId(),</span>
+<span class="nc" id="L214">                salesOrderItem.getSalesOrder().getId(),</span>
+<span class="nc" id="L215">                salesOrderItem.getBarang().getId(),</span>
+<span class="nc" id="L216">                salesOrderItem.getQuantity(),</span>
+<span class="nc" id="L217">                salesOrderItem.getGudangTujuan().getNama(),</span>
+<span class="nc" id="L218">                salesOrderItem.getTax()</span>
+        );
+    }
+
+    private ShippingResponseDTO shippingToShippingResponseDTO(Shipping shipping) {
+<span class="nc" id="L223">        return new ShippingResponseDTO(</span>
+<span class="nc" id="L224">                shipping.getId(),</span>
+<span class="nc" id="L225">                shipping.getSalesOrder().getId(),</span>
+<span class="nc" id="L226">                shipping.getShippingDate(),</span>
+<span class="nc" id="L227">                shipping.getShippingStatus(),</span>
+<span class="nc" id="L228">                shipping.getTrackingNumber(),</span>
+<span class="nc" id="L229">                shipping.getShippingFee());</span>
+    }
+
+    private SalesInvoiceResponseDTO salesInvoiceToSalesInvoiceResponseDTO(SalesInvoice salesInvoice) {
+<span class="nc" id="L233">        BigDecimal remainingAmount = salesInvoice.getTotalAmount();</span>
+
+<span class="nc bnc" id="L235" title="All 2 branches missed.">        if (salesInvoice.getSalesOrder().getPayment() != null) {</span>
+<span class="nc" id="L236">            remainingAmount = salesInvoice.getTotalAmount()</span>
+<span class="nc" id="L237">                    .subtract(salesInvoice.getSalesOrder().getPayment().getTotalAmountPayed());</span>
+        } else {
+<span class="nc" id="L239">            remainingAmount = salesInvoice.getTotalAmount();</span>
+        }
+
+<span class="nc" id="L242">        return new SalesInvoiceResponseDTO(</span>
+<span class="nc" id="L243">                salesInvoice.getId(),</span>
+<span class="nc" id="L244">                salesInvoice.getSalesOrder().getId(),</span>
+<span class="nc" id="L245">                salesInvoice.getInvoiceDate(),</span>
+<span class="nc" id="L246">                salesInvoice.getInvoiceStatus(),</span>
+<span class="nc" id="L247">                salesInvoice.getTotalAmount(),</span>
+<span class="nc" id="L248">                salesInvoice.getPaymentTerms(),</span>
+<span class="nc" id="L249">                salesInvoice.getDueDate(),</span>
+                remainingAmount);
+    }
+
+    private SalesReceiptResponseDTO salesReceiptToSalesReceiptResponseDTO(SalesReceipt salesReceipt) {
+<span class="nc" id="L254">        return new SalesReceiptResponseDTO(</span>
+<span class="nc" id="L255">                salesReceipt.getId(),</span>
+<span class="nc" id="L256">                salesReceipt.getSalesOrder().getId(),</span>
+<span class="nc" id="L257">                salesReceipt.getReceiptDate(),</span>
+<span class="nc" id="L258">                salesReceipt.getAmountReceived());</span>
+    }
+
+    public String generateTrackingNumber(List&lt;SalesOrderItem&gt; items) {
+        // Format: UUID-XXX-Y, di mana UUID adalah 6 karakter acak, XXX adalah 3 huruf
+        // pertama dari nama barang, dan Y adalah 1 digit angka
+<span class="nc" id="L264">        String uuidPart = UUID.randomUUID().toString().substring(0, 6).toUpperCase();</span>
+<span class="nc" id="L265">        StringBuilder trackingNumber = new StringBuilder(uuidPart);</span>
+
+<span class="nc" id="L267">        String y = String.valueOf(items.size());</span>
+
+<span class="nc" id="L269">        trackingNumber.append(&quot;-&quot;)</span>
+<span class="nc" id="L270">                .append(items.get(0).getBarang().getNama().replace(&quot; &quot;, &quot;&quot;).substring(0, 3).toUpperCase()).append(y);</span>
+
+<span class="nc" id="L272">        return trackingNumber.toString();</span>
+    }
+
+    public String generatePoId() {
+        // Format: PO-YYYY-MM-DD-XXXXX, di mana YYYY adalah tahun, MM adalah bulan dalam
+        // angka romawi, DD adalah tanggal, dan XXXXX adalah 5 karakter acak
+<span class="nc" id="L278">        String id = &quot;SO-&quot;;</span>
+<span class="nc" id="L279">        String datePart = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd&quot;))</span>
+<span class="nc" id="L280">                .replace(&quot;-01-&quot;, &quot;-I-&quot;)</span>
+<span class="nc" id="L281">                .replace(&quot;-02-&quot;, &quot;-II-&quot;)</span>
+<span class="nc" id="L282">                .replace(&quot;-03-&quot;, &quot;-III-&quot;)</span>
+<span class="nc" id="L283">                .replace(&quot;-04-&quot;, &quot;-IV-&quot;)</span>
+<span class="nc" id="L284">                .replace(&quot;-05-&quot;, &quot;-V-&quot;)</span>
+<span class="nc" id="L285">                .replace(&quot;-06-&quot;, &quot;-VI-&quot;)</span>
+<span class="nc" id="L286">                .replace(&quot;-07-&quot;, &quot;-VII-&quot;)</span>
+<span class="nc" id="L287">                .replace(&quot;-08-&quot;, &quot;-VIII-&quot;)</span>
+<span class="nc" id="L288">                .replace(&quot;-09-&quot;, &quot;-IX-&quot;)</span>
+<span class="nc" id="L289">                .replace(&quot;-10-&quot;, &quot;-X-&quot;)</span>
+<span class="nc" id="L290">                .replace(&quot;-11-&quot;, &quot;-XI-&quot;)</span>
+<span class="nc" id="L291">                .replace(&quot;-12-&quot;, &quot;-XII-&quot;);</span>
+
+<span class="nc" id="L293">        String uuidPart = UUID.randomUUID().toString().substring(0, 5).toUpperCase();</span>
+
+<span class="nc" id="L295">        String poId = id + datePart + &quot;-&quot; + uuidPart;</span>
+
+<span class="nc" id="L297">        return poId;</span>
+    }
+
+    private String generateInvoiceId() {
+        // Format: INV-YYYY-MM-DD-XXXXX, di mana YYYY adalah tahun, MM adalah bulan
+        // dalam angka romawi, DD adalah tanggal, dan XXXXX adalah 5 karakter acak
+<span class="nc" id="L303">        String id = &quot;INVS-&quot;;</span>
+<span class="nc" id="L304">        String datePart = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd&quot;))</span>
+<span class="nc" id="L305">                .replace(&quot;-01-&quot;, &quot;-I-&quot;)</span>
+<span class="nc" id="L306">                .replace(&quot;-02-&quot;, &quot;-II-&quot;)</span>
+<span class="nc" id="L307">                .replace(&quot;-03-&quot;, &quot;-III-&quot;)</span>
+<span class="nc" id="L308">                .replace(&quot;-04-&quot;, &quot;-IV-&quot;)</span>
+<span class="nc" id="L309">                .replace(&quot;-05-&quot;, &quot;-V-&quot;)</span>
+<span class="nc" id="L310">                .replace(&quot;-06-&quot;, &quot;-VI-&quot;)</span>
+<span class="nc" id="L311">                .replace(&quot;-07-&quot;, &quot;-VII-&quot;)</span>
+<span class="nc" id="L312">                .replace(&quot;-08-&quot;, &quot;-VIII-&quot;)</span>
+<span class="nc" id="L313">                .replace(&quot;-09-&quot;, &quot;-IX-&quot;)</span>
+<span class="nc" id="L314">                .replace(&quot;-10-&quot;, &quot;-X-&quot;)</span>
+<span class="nc" id="L315">                .replace(&quot;-11-&quot;, &quot;-XI-&quot;)</span>
+<span class="nc" id="L316">                .replace(&quot;-12-&quot;, &quot;-XII-&quot;);</span>
+
+<span class="nc" id="L318">        String uuidPart = UUID.randomUUID().toString().substring(0, 5).toUpperCase();</span>
+
+<span class="nc" id="L320">        String invoiceId = id + datePart + &quot;-&quot; + uuidPart;</span>
+
+<span class="nc" id="L322">        return invoiceId;</span>
+    }
+
+    public String generateShippingId(List&lt;SalesOrderItem&gt; items) {
+        // Format: SHP-XXX-DD-MM-XXXXX, di mana XXX adalah 3 huruf pertama dari nama
+        // barang, DD adalah tanggal dalam angka romawi, MM adalah bulan dalam angka
+        // romawi, dan XXXXX adalah 5 karakter acak
+<span class="nc" id="L329">        String prefix = &quot;SHP-&quot;;</span>
+
+<span class="nc" id="L331">        String namaBarang = items.get(0).getBarang().getNama().replace(&quot; &quot;, &quot;&quot;);</span>
+<span class="nc bnc" id="L332" title="All 2 branches missed.">        String kodeBarang = namaBarang.length() &gt;= 3 ? namaBarang.substring(0, 3).toUpperCase()</span>
+<span class="nc" id="L333">                : namaBarang.toUpperCase();</span>
+
+<span class="nc" id="L335">        String tanggal = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern(&quot;dd-MM&quot;))</span>
+<span class="nc" id="L336">                .replace(&quot;-01&quot;, &quot;I&quot;)</span>
+<span class="nc" id="L337">                .replace(&quot;-02&quot;, &quot;II&quot;)</span>
+<span class="nc" id="L338">                .replace(&quot;-03&quot;, &quot;III&quot;)</span>
+<span class="nc" id="L339">                .replace(&quot;-04&quot;, &quot;IV&quot;)</span>
+<span class="nc" id="L340">                .replace(&quot;-05&quot;, &quot;V&quot;)</span>
+<span class="nc" id="L341">                .replace(&quot;-06&quot;, &quot;VI&quot;)</span>
+<span class="nc" id="L342">                .replace(&quot;-07&quot;, &quot;VII&quot;)</span>
+<span class="nc" id="L343">                .replace(&quot;-08&quot;, &quot;VIII&quot;)</span>
+<span class="nc" id="L344">                .replace(&quot;-09&quot;, &quot;IX&quot;)</span>
+<span class="nc" id="L345">                .replace(&quot;-10&quot;, &quot;X&quot;)</span>
+<span class="nc" id="L346">                .replace(&quot;-11&quot;, &quot;XI&quot;)</span>
+<span class="nc" id="L347">                .replace(&quot;-12&quot;, &quot;XII&quot;);</span>
+
+<span class="nc" id="L349">        String randomPart = UUID.randomUUID().toString().replaceAll(&quot;-&quot;, &quot;&quot;).substring(0, 5).toUpperCase();</span>
+
+<span class="nc" id="L351">        return prefix + kodeBarang + &quot;-&quot; + tanggal + &quot;-&quot; + randomPart;</span>
+    }
+
+    public String generatePaymentId(String customerName) {
+        // Format: RCV-XXX-MM-YY-XXXXX, di mana XXX adalah 3 huruf pertama dari nama
+        // customer, MM adalah bulan dalam angka romawi, YY adalah tahun dalam 2 digit,
+        // dan XXXXX adalah 5 karakter acak
+<span class="nc" id="L358">        String prefix = &quot;RCV-&quot;;</span>
+
+<span class="nc bnc" id="L360" title="All 2 branches missed.">        String kodeCustomer = customerName.replace(&quot; &quot;, &quot;&quot;).length() &gt;= 3</span>
+<span class="nc" id="L361">                ? customerName.replace(&quot; &quot;, &quot;&quot;).substring(0, 3).toUpperCase()</span>
+<span class="nc" id="L362">                : customerName.replace(&quot; &quot;, &quot;&quot;).toUpperCase();</span>
+
+<span class="nc" id="L364">        String monthPart = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern(&quot;MM&quot;));</span>
+<span class="nc bnc" id="L365" title="All 13 branches missed.">        String romanMonth = switch (monthPart) {</span>
+<span class="nc" id="L366">            case &quot;01&quot; -&gt; &quot;I&quot;;</span>
+<span class="nc" id="L367">            case &quot;02&quot; -&gt; &quot;II&quot;;</span>
+<span class="nc" id="L368">            case &quot;03&quot; -&gt; &quot;III&quot;;</span>
+<span class="nc" id="L369">            case &quot;04&quot; -&gt; &quot;IV&quot;;</span>
+<span class="nc" id="L370">            case &quot;05&quot; -&gt; &quot;V&quot;;</span>
+<span class="nc" id="L371">            case &quot;06&quot; -&gt; &quot;VI&quot;;</span>
+<span class="nc" id="L372">            case &quot;07&quot; -&gt; &quot;VII&quot;;</span>
+<span class="nc" id="L373">            case &quot;08&quot; -&gt; &quot;VIII&quot;;</span>
+<span class="nc" id="L374">            case &quot;09&quot; -&gt; &quot;IX&quot;;</span>
+<span class="nc" id="L375">            case &quot;10&quot; -&gt; &quot;X&quot;;</span>
+<span class="nc" id="L376">            case &quot;11&quot; -&gt; &quot;XI&quot;;</span>
+<span class="nc" id="L377">            case &quot;12&quot; -&gt; &quot;XII&quot;;</span>
+<span class="nc" id="L378">            default -&gt; &quot;&quot;;</span>
+        };
+<span class="nc" id="L380">        String year = String.valueOf(java.time.LocalDate.now().getYear()).substring(2);</span>
+
+<span class="nc" id="L382">        String randomPart = UUID.randomUUID().toString().replaceAll(&quot;-&quot;, &quot;&quot;).substring(0, 5).toUpperCase();</span>
+
+<span class="nc" id="L384">        return prefix + kodeCustomer + &quot;-&quot; + romanMonth + year + &quot;-&quot; + randomPart;</span>
+    }
+
+    public String generateReceiptId(List&lt;SalesOrderItem&gt; items) {
+        // Format: RECS-XXX-DDMMYY-XXXXX
+
+<span class="nc" id="L390">        String prefix = &quot;RECS-&quot;;</span>
+
+<span class="nc" id="L392">        String namaBarang = items.get(0).getBarang().getNama().replace(&quot; &quot;, &quot;&quot;);</span>
+<span class="nc bnc" id="L393" title="All 2 branches missed.">        String kodeBarang = namaBarang.length() &gt;= 3</span>
+<span class="nc" id="L394">                ? namaBarang.substring(0, 3).toUpperCase()</span>
+<span class="nc" id="L395">                : namaBarang.toUpperCase();</span>
+
+<span class="nc" id="L397">        String datePart = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern(&quot;ddMMyy&quot;));</span>
+
+<span class="nc" id="L399">        String randomPart = UUID.randomUUID().toString().replaceAll(&quot;-&quot;, &quot;&quot;).substring(0, 5).toUpperCase();</span>
+
+<span class="nc" id="L401">        return prefix + kodeBarang + &quot;-&quot; + datePart + &quot;-&quot; + randomPart;</span>
+    }
+
+    @Override
+    public List&lt;SalesOrderResponseDTO&gt; getAllSalesOrders() {
+<span class="nc" id="L406">        List&lt;SalesOrder&gt; salesOrders = salesOrderDb.findAll();</span>
+<span class="nc" id="L407">        List&lt;SalesOrderResponseDTO&gt; salesOrderResponseDTOs = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L409" title="All 2 branches missed.">        for (SalesOrder salesOrder : salesOrders) {</span>
+<span class="nc" id="L410">            SalesOrderResponseDTO salesOrderResponseDTO = salesOrderToSalesOrderResponseDTO(salesOrder);</span>
+<span class="nc" id="L411">            salesOrderResponseDTOs.add(salesOrderResponseDTO);</span>
+<span class="nc" id="L412">        }</span>
+
+<span class="nc" id="L414">        return salesOrderResponseDTOs;</span>
+    }
+
+    @Override
+    public List&lt;SalesOrderResponseDTO&gt; getSalesOrdersByStatus(String status) {
+<span class="nc" id="L419">        List&lt;SalesOrder&gt; allSalesOrders = salesOrderDb.findAll();</span>
+<span class="nc" id="L420">        List&lt;SalesOrder&gt; filteredSalesOrders = allSalesOrders.stream()</span>
+<span class="nc" id="L421">            .filter(order -&gt; status.equalsIgnoreCase(order.getStatus()))</span>
+<span class="nc" id="L422">            .toList();</span>
+        
+<span class="nc" id="L424">        List&lt;SalesOrderResponseDTO&gt; salesOrderResponseDTOs = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L426" title="All 2 branches missed.">        for (SalesOrder salesOrder : filteredSalesOrders) {</span>
+<span class="nc" id="L427">            SalesOrderResponseDTO salesOrderResponseDTO = salesOrderToSalesOrderResponseDTO(salesOrder);</span>
+<span class="nc" id="L428">            salesOrderResponseDTOs.add(salesOrderResponseDTO);</span>
+<span class="nc" id="L429">        }</span>
+
+<span class="nc" id="L431">        return salesOrderResponseDTOs;</span>
+    }
+
+    @Override
+    public SalesOrderResponseDTO getSalesOrderById(String id) {
+<span class="nc" id="L436">        SalesOrder salesOrder = salesOrderDb.findById(id)</span>
+<span class="nc" id="L437">                .orElseThrow(() -&gt; new RuntimeException(&quot;Sales Order tidak ditemukan&quot;));</span>
+
+<span class="nc" id="L439">        return salesOrderToSalesOrderResponseDTO(salesOrder);</span>
+    }
+
+    // STAGE 2: CONFIRMED, FAKTUR (RICKY)
+    @Override
+    public SalesOrderResponseDTO confirmSalesOrder(String id, SalesOrderInvoiceRequestDTO request) {
+        // Validasi untuk sales order ada atau tidak
+<span class="nc" id="L446">        SalesOrder salesOrder = salesOrderDb.findById(id)</span>
+<span class="nc" id="L447">                .orElseThrow(() -&gt; new RuntimeException(&quot;Sales Order tidak ditemukan&quot;));</span>
+
+        // Validasi tahapan sales order harus &quot;CREATED&quot;
+<span class="nc bnc" id="L450" title="All 2 branches missed.">        if (!salesOrder.getStatus().equalsIgnoreCase(&quot;CREATED&quot;)) {</span>
+<span class="nc" id="L451">            throw new IllegalArgumentException(&quot;sales Order harus dalam status CREATED untuk melakukan konfirmasi&quot;);</span>
+        }
+
+        // Validasi untuk tanggal invoice tidak boleh sebelum tanggal penjualan dan
+        // tidak boleh di masa lalu
+<span class="nc" id="L456">        LocalDate invoiceDate = request.getInvoiceDate(); // ini input tanggal sendiri dari frontend</span>
+<span class="nc" id="L457">        LocalDate salesDate = salesOrder.getSalesDate();</span>
+
+<span class="nc bnc" id="L459" title="All 4 branches missed.">        if (invoiceDate.isBefore(salesDate) || invoiceDate.isBefore(LocalDate.now())) {</span>
+<span class="nc" id="L460">            throw new IllegalArgumentException(&quot;Tanggal invoice tidak boleh sebelum tanggal penjualan&quot;);</span>
+        }
+
+<span class="nc" id="L463">        SalesInvoice invoice = new SalesInvoice();</span>
+<span class="nc" id="L464">        invoice.setId(generateInvoiceId());</span>
+<span class="nc" id="L465">        invoice.setInvoiceDate(invoiceDate);</span>
+<span class="nc" id="L466">        invoice.setInvoiceStatus(&quot;ISSUED&quot;); // ISSUED, PAID (PAS UDAH BAYAR BARU UBAH KE INI)</span>
+<span class="nc" id="L467">        invoice.setTotalAmount(salesOrder.getTotalPrice());</span>
+<span class="nc" id="L468">        invoice.setSalesOrder(salesOrder);</span>
+<span class="nc" id="L469">        invoice.setPaymentTerms(request.getPaymentTerms());</span>
+<span class="nc" id="L470">        invoice.setDueDate(invoiceDate.plusDays(request.getPaymentTerms())); // Jatuh tempo invoice = tanggal invoice +</span>
+                                                                             // payment terms
+<span class="nc" id="L472">        salesOrder.setInvoice(invoice);</span>
+
+<span class="nc" id="L474">        salesOrder.setStatus(&quot;CONFIRMED&quot;);</span>
+
+        // TODO: tambahin attribute di invoice sesuai dengan kebutuhan, utk ricky, ubah
+        // juga di dto request (SalesOrderInvoiceRequestDTO)
+        // dan response (SalesInvoiceResponseDTO) sama model (SalesInvoice)
+
+<span class="nc" id="L480">        return salesOrderToSalesOrderResponseDTO(salesOrderDb.save(salesOrder));</span>
+    }
+
+    // STAGE 3: IN SHIPPING, SURAT JALAN (JESS)
+    @Override
+    public SalesOrderResponseDTO shipSalesOrder(String id, ShippingRequestDTO request) {
+        // Validasi untuk sales order ada atau tidak
+<span class="nc" id="L487">        SalesOrder salesOrder = salesOrderDb.findById(id)</span>
+<span class="nc" id="L488">                .orElseThrow(() -&gt; new RuntimeException(&quot;Sales Order tidak ditemukan&quot;));</span>
+
+        // Validasi tahapan sales order harus &quot;PAID&quot; dan invoice harus &quot;PAID&quot;
+<span class="nc bnc" id="L491" title="All 2 branches missed.">        if (!salesOrder.getStatus().equalsIgnoreCase(&quot;CONFIRMED&quot;)) {</span>
+<span class="nc" id="L492">            throw new IllegalArgumentException(&quot;Sales Order harus dalam status CONFIRMED untuk melakukan pengiriman&quot;);</span>
+        }
+
+<span class="nc" id="L495">        LocalDate salesDate = salesOrder.getSalesDate();</span>
+<span class="nc" id="L496">        LocalDate invoiceDate = salesOrder.getInvoice().getInvoiceDate();</span>
+<span class="nc" id="L497">        LocalDate shippingDate = request.getShippingDate();</span>
+<span class="nc bnc" id="L498" title="All 4 branches missed.">        if (shippingDate.isBefore(salesDate) || shippingDate.isBefore(invoiceDate)) {</span>
+<span class="nc" id="L499">            throw new IllegalArgumentException(&quot;Tanggal pengiriman tidak boleh sebelum tanggal penjualan dan invoice&quot;);</span>
+        }
+
+        // Cek stok barang cukup
+<span class="nc bnc" id="L503" title="All 2 branches missed.">        for (SalesOrderItem item : salesOrder.getItems()) {</span>
+<span class="nc" id="L504">            Barang barang = item.getBarang();</span>
+<span class="nc" id="L505">            boolean found = false;</span>
+<span class="nc bnc" id="L506" title="All 2 branches missed.">            for (StockBarangPerGudang stock : barang.getListStockBarang()) {</span>
+<span class="nc bnc" id="L507" title="All 2 branches missed.">                if (stock.getGudang().getNama().equals(item.getGudangTujuan().getNama())) {</span>
+<span class="nc" id="L508">                    found = true;</span>
+<span class="nc bnc" id="L509" title="All 2 branches missed.">                    if (stock.getStock() &lt; item.getQuantity()) {</span>
+<span class="nc" id="L510">                        throw new IllegalArgumentException(</span>
+<span class="nc" id="L511">                                &quot;Stok barang &quot; + barang.getNama() + &quot; di gudang &quot; + stock.getGudang().getNama()</span>
+                                        + &quot; tidak mencukupi&quot;);
+                    }
+                }
+<span class="nc" id="L515">            }</span>
+<span class="nc bnc" id="L516" title="All 2 branches missed.">            if (!found) {</span>
+<span class="nc" id="L517">                throw new IllegalArgumentException(</span>
+<span class="nc" id="L518">                        &quot;Stok barang &quot; + barang.getNama() + &quot; di gudang &quot; + item.getGudangTujuan().getNama()</span>
+                                + &quot; tidak ditemukan&quot;);
+            }
+<span class="nc" id="L521">        }</span>
+
+        // Kurangi stok barang
+<span class="nc bnc" id="L524" title="All 2 branches missed.">        for (SalesOrderItem item : salesOrder.getItems()) {</span>
+<span class="nc" id="L525">            Barang barang = item.getBarang();</span>
+<span class="nc bnc" id="L526" title="All 2 branches missed.">            for (StockBarangPerGudang stock : barang.getListStockBarang()) {</span>
+<span class="nc bnc" id="L527" title="All 2 branches missed.">                if (stock.getGudang().getNama().equals(item.getGudangTujuan().getNama())) {</span>
+<span class="nc" id="L528">                    stock.setStock(stock.getStock() - item.getQuantity());</span>
+                }
+<span class="nc" id="L530">            }</span>
+<span class="nc" id="L531">        }</span>
+
+<span class="nc" id="L533">        Shipping shipping = new Shipping();</span>
+<span class="nc" id="L534">        shipping.setId(generateShippingId(salesOrder.getItems()));</span>
+<span class="nc" id="L535">        shipping.setShippingDate(shippingDate);</span>
+<span class="nc" id="L536">        shipping.setShippingStatus(&quot;IN SHIPPING&quot;); // IN SHIPPING, SHIPPED (KETIKA UDAH SAMPAI NANTI TAHAP SELANJUTNYA)</span>
+<span class="nc" id="L537">        shipping.setTrackingNumber(generateTrackingNumber(salesOrder.getItems()));</span>
+<span class="nc" id="L538">        shipping.setShippingFee(request.getShippingFee());</span>
+<span class="nc" id="L539">        salesOrder.setTotalPrice(salesOrder.getTotalPrice().subtract(request.getShippingFee())); // Update total price</span>
+<span class="nc" id="L540">        salesOrder.setStatus(&quot;IN SHIPPING&quot;);</span>
+<span class="nc" id="L541">        shipping.setSalesOrder(salesOrder);</span>
+<span class="nc" id="L542">        salesOrder.setShipping(shipping);</span>
+
+        // TODO: tambahin attribute di shipping sesuai dengan kebutuhan, utk jess, ubah
+        // juga di dto request (ShippingRequestDTO)
+        // dan response (ShippingResponseDTO) sama model (Shipping)
+
+<span class="nc" id="L548">        return salesOrderToSalesOrderResponseDTO(salesOrderDb.save(salesOrder));</span>
+    }
+
+    @Override
+    public SalesOrderResponseDTO confirmShipping(String id) {
+<span class="nc" id="L553">        SalesOrder salesOrder = salesOrderDb.findById(id)</span>
+<span class="nc" id="L554">                .orElseThrow(() -&gt; new RuntimeException(&quot;Sales Order tidak ditemukan&quot;));</span>
+
+<span class="nc bnc" id="L556" title="All 2 branches missed.">        if (!salesOrder.getStatus().equalsIgnoreCase(&quot;IN SHIPPING&quot;)) {</span>
+<span class="nc" id="L557">            throw new IllegalArgumentException(</span>
+                    &quot;Sales Order harus dalam status IN SHIPPING untuk konfirmasi pengiriman&quot;);
+        }
+
+<span class="nc bnc" id="L561" title="All 2 branches missed.">        if (salesOrder.getShipping() == null) {</span>
+<span class="nc" id="L562">            throw new IllegalArgumentException(&quot;Shipping belum dibuat untuk Sales Order ini&quot;);</span>
+        }
+
+<span class="nc bnc" id="L565" title="All 2 branches missed.">        if (!salesOrder.getShipping().getShippingStatus().equalsIgnoreCase(&quot;IN SHIPPING&quot;)) {</span>
+<span class="nc" id="L566">            throw new IllegalArgumentException(&quot;Shipping sudah dikonfirmasi sebelumnya atau status tidak valid&quot;);</span>
+        }
+
+        // Update status shipping menjadi SHIPPED
+<span class="nc" id="L570">        salesOrder.getShipping().setShippingStatus(&quot;SHIPPED&quot;);</span>
+<span class="nc" id="L571">        salesOrder.setStatus(&quot;SHIPPED&quot;);</span>
+
+<span class="nc" id="L573">        return salesOrderToSalesOrderResponseDTO(salesOrderDb.save(salesOrder));</span>
+    }
+
+    // STAGE 4: PAID
+    @Override
+    public SalesOrderResponseDTO paySalesOrder(String id, SalesPaymentRequestDTO request) {
+        // Validasi untuk sales order ada atau tidak
+<span class="nc" id="L580">        SalesOrder salesOrder = salesOrderDb.findById(id)</span>
+<span class="nc" id="L581">                .orElseThrow(() -&gt; new RuntimeException(&quot;Sales Order tidak ditemukan&quot;));</span>
+
+<span class="nc bnc" id="L583" title="All 2 branches missed.">        if (!salesOrder.getShipping().getShippingStatus().equalsIgnoreCase(&quot;SHIPPED&quot;)) {</span>
+<span class="nc" id="L584">            throw new IllegalArgumentException(&quot;Barang harus sudah diterima (SHIPPED) sebelum melakukan pembayaran&quot;);</span>
+        }
+
+<span class="nc" id="L587">        LocalDate salesDate = salesOrder.getSalesDate();</span>
+<span class="nc" id="L588">        LocalDate invoiceDate = salesOrder.getInvoice().getInvoiceDate();</span>
+<span class="nc" id="L589">        LocalDate paymentDate = request.getPaymentDate();</span>
+
+<span class="nc bnc" id="L591" title="All 4 branches missed.">        if (paymentDate.isBefore(salesDate) || paymentDate.isBefore(invoiceDate)) {</span>
+<span class="nc" id="L592">            throw new IllegalArgumentException(&quot;Tanggal pembayaran tidak boleh sebelum tanggal penjualan dan invoice&quot;);</span>
+        }
+
+<span class="nc" id="L595">        SalesPayment payment = salesOrder.getPayment();</span>
+<span class="nc bnc" id="L596" title="All 2 branches missed.">        if (payment == null) {</span>
+<span class="nc" id="L597">            payment = new SalesPayment();</span>
+<span class="nc" id="L598">            payment.setId(generatePaymentId(salesOrder.getCustomer().getName()));</span>
+<span class="nc" id="L599">            payment.setSalesOrder(salesOrder);</span>
+<span class="nc" id="L600">            payment.setTotalAmountPayed(BigDecimal.ZERO);</span>
+        }
+
+<span class="nc" id="L603">        payment.setPaymentDate(paymentDate);</span>
+<span class="nc" id="L604">        payment.setPaymentMethod(request.getPaymentMethod());</span>
+
+<span class="nc" id="L606">        BigDecimal additionalPaid = request.getTotalAmountPayed();</span>
+<span class="nc" id="L607">        BigDecimal totalPrice = salesOrder.getInvoice().getTotalAmount();</span>
+<span class="nc" id="L608">        BigDecimal currentTotalPaid = payment.getTotalAmountPayed();</span>
+<span class="nc" id="L609">        BigDecimal newTotalPaid = currentTotalPaid.add(additionalPaid);</span>
+
+<span class="nc bnc" id="L611" title="All 2 branches missed.">        if (newTotalPaid.compareTo(totalPrice) &gt; 0) {</span>
+<span class="nc" id="L612">            throw new IllegalArgumentException(&quot;Jumlah pembayaran melebihi total harga&quot;);</span>
+<span class="nc bnc" id="L613" title="All 2 branches missed.">        } else if (newTotalPaid.compareTo(totalPrice) == 0) {</span>
+<span class="nc" id="L614">            payment.setPaymentStatus(&quot;PAID&quot;);</span>
+<span class="nc" id="L615">            salesOrder.getInvoice().setInvoiceStatus(&quot;PAID&quot;);</span>
+
+            // Jika sudah lunas, otomatis update status salesOrder menjadi COMPLETED dan
+            // buat SalesReceipt
+<span class="nc" id="L619">            SalesReceipt receipt = new SalesReceipt();</span>
+<span class="nc" id="L620">            receipt.setId(generateReceiptId(salesOrder.getItems()));</span>
+<span class="nc" id="L621">            receipt.setReceiptDate(paymentDate);</span>
+<span class="nc" id="L622">            receipt.setAmountReceived(newTotalPaid);</span>
+<span class="nc" id="L623">            receipt.setSalesOrder(salesOrder);</span>
+<span class="nc" id="L624">            salesOrder.setReceipt(receipt);</span>
+
+<span class="nc" id="L626">            salesOrder.setStatus(&quot;COMPLETED&quot;);</span>
+
+            // Update shipping status jadi SHIPPED
+<span class="nc" id="L629">            salesOrder.getShipping().setShippingStatus(&quot;SHIPPED&quot;);</span>
+<span class="nc" id="L630">        } else {</span>
+<span class="nc" id="L631">            payment.setPaymentStatus(&quot;PARTIALLY PAID&quot;);</span>
+<span class="nc" id="L632">            salesOrder.getInvoice().setInvoiceStatus(&quot;PARTIALLY PAID&quot;);</span>
+        }
+
+<span class="nc" id="L635">        payment.setTotalAmountPayed(newTotalPaid);</span>
+<span class="nc" id="L636">        salesOrder.setPayment(payment);</span>
+
+<span class="nc" id="L638">        return salesOrderToSalesOrderResponseDTO(salesOrderDb.save(salesOrder));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
