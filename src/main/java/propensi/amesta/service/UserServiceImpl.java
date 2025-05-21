@@ -3,6 +3,7 @@ package propensi.amesta.service;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,6 +18,7 @@ import propensi.amesta.model.EndUser.Komisaris;
 import propensi.amesta.model.EndUser.Sales;
 import propensi.amesta.model.EndUser.User;
 import propensi.amesta.payload.request.TambahKaryawanRequestDTO;
+import propensi.amesta.payload.request.UpdateEmployeeRequestDTO;
 import propensi.amesta.payload.response.UserResponseDTO;
 import propensi.amesta.repository.EndUser.UserDb;
 import propensi.amesta.security.service.UserDetailsServiceImpl;
@@ -113,4 +115,32 @@ public class UserServiceImpl implements UserService {
         return userToUserResponseDTO(userNew);
     }
 
+    @Override
+    public UserResponseDTO updateEmployee(UUID idEmployee, UpdateEmployeeRequestDTO request) {
+        User employee = userDb.findById(idEmployee)
+                .orElseThrow(() -> new IllegalArgumentException("Employee tidak ditemukan."));
+
+        // Check if email is being changed and if it's already taken
+        if (!employee.getEmail().equals(request.getEmail())) {
+            Optional<User> existingWithEmail = userDb.findByEmail(request.getEmail());
+            if (existingWithEmail.isPresent()) {
+                throw new IllegalArgumentException("Email sudah terdaftar.");
+            }
+        }
+
+        employee.setName(request.getName());
+        employee.setUsername(request.getUsername());
+        employee.setEmail(request.getEmail());
+        employee.setGender(request.isGender());
+        employee.setPhone(request.getPhone());
+        employee.setHomePhone(request.getHomePhone());
+        employee.setBusinessPhone(request.getBusinessPhone());
+        employee.setWhatsappNumber(request.getWhatsappNumber());
+        employee.setEntryDate(request.getEntryDate());
+        employee.setKtpNumber(request.getKtpNumber());
+        employee.setNotes(request.getNotes());
+
+        User updated = userDb.save(employee);
+        return userToUserResponseDTO(updated);
+    }
 }
