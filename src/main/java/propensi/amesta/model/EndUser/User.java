@@ -1,7 +1,6 @@
 package propensi.amesta.model.EndUser;
 
 import java.util.Date;
-import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -34,7 +33,7 @@ import lombok.Setter;
 public class User {
 
     @Id
-    private UUID id = UUID.randomUUID();
+    private String id;
 
     @NotNull
     @Size(max = 100)
@@ -92,6 +91,14 @@ public class User {
     @Size(max = 500)
     @Column(name = "notes")
     private String notes;
+
+    @Temporal(TemporalType.DATE)
+    @Column(name = "birth_date")
+    private Date birthDate;
+
+    @NotNull
+    @Column(name = "employee_status", nullable = false)
+    private boolean employeeStatus;
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)

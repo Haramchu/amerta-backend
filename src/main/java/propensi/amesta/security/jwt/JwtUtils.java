@@ -23,7 +23,7 @@ public class JwtUtils {
     @Value("${amesta.app.jwtExpirationMs}")
     private int jwtExpirationMs;
  
-    public String generateJwtToken(UUID id, String nama, String username, String email, String role){
+    public String generateJwtToken(String id, String nama, String username, String email, String role){
         return Jwts.builder()
         .subject(email)
         .claim("id", id)

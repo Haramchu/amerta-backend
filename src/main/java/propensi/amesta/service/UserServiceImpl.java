@@ -17,6 +17,7 @@ import propensi.amesta.model.EndUser.Komisaris;
 import propensi.amesta.model.EndUser.Sales;
 import propensi.amesta.model.EndUser.User;
 import propensi.amesta.payload.request.TambahKaryawanRequestDTO;
+import propensi.amesta.payload.request.UpdateProfileRequestDTO;
 import propensi.amesta.payload.response.UserResponseDTO;
 import propensi.amesta.repository.EndUser.UserDb;
 import propensi.amesta.security.service.UserDetailsServiceImpl;
@@ -40,6 +41,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserByEmail(String email) {
         return userDb.findByEmail(email)
+                .orElseThrow(() -> new NoSuchElementException("User not found for the provided email"));
+    }
+
+    @Override
+    public User getUserById(String id) {
+        return userDb.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("User not found for the provided email"));
     }
 
@@ -74,6 +81,8 @@ public class UserServiceImpl implements UserService {
                 user.getEntryDate(),
                 user.getKtpNumber(),
                 user.getNotes(),
+                user.getBirthDate(),
+                user.isEmployeeStatus(),
                 user.getCreatedDate(),
                 user.getUpdatedAt(),
                 user.getRole());
@@ -106,11 +115,69 @@ public class UserServiceImpl implements UserService {
         newUser.setEntryDate(userRequest.getEntryDate());
         newUser.setKtpNumber(userRequest.getKtpNumber());
         newUser.setNotes(userRequest.getNotes());
+        newUser.setBirthDate(userRequest.getBirthDate());
+        newUser.setEmployeeStatus(userRequest.isEmployeeStatus());
         newUser.setRole(userRequest.getRole());
+
+        String generatedId = generateUserId(newUser);
+        newUser.setId(generatedId);
          
         User userNew = userDb.save(newUser);
 
         return userToUserResponseDTO(userNew);
     }
+
+    @Override
+    public UserResponseDTO updateProfile(String id, UpdateProfileRequestDTO request) {
+        User currentUser = getUserById(id);
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+        if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+
+            if (request.getOldPassword() == null || request.getOldPassword().isEmpty()) {
+                throw new IllegalArgumentException("Password lama wajib diisi.");
+            }
+
+            if (!passwordEncoder.matches(request.getOldPassword(), currentUser.getPassword())) {
+                throw new IllegalArgumentException("Password lama tidak sesuai.");
+            }
+
+            List<User> allUsers = userDb.findAll();
+            for (User u : allUsers) {
+                if (!u.getId().equals(currentUser.getId())) {
+                    if (passwordEncoder.matches(request.getPassword(), u.getPassword())) {
+                        throw new IllegalArgumentException("Password sudah digunakan.");
+                    }
+                }
+            }
+
+            currentUser.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
+
+        User updated = userDb.save(currentUser);
+        return userToUserResponseDTO(updated);
+    }
+
+
+    private String generateUserId(User user) {
+        String roleCode = switch (user.getRole().toLowerCase()) {
+            case "administrasi" -> "ADM";
+            case "direktur" -> "DIR";
+            case "sales" -> "SAL";
+            case "general_manager" -> "GM";
+            case "kepala_gudang" -> "KG";
+            case "komisaris" -> "KOM";
+            default -> "UNK";
+        };
+
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyyMMdd");
+        String datePart = sdf.format(user.getEntryDate());
+
+        String username = user.getUsername();
+        String suffix = username.length() >= 3 ? username.substring(username.length() - 3) : username;
+
+        return roleCode + "-" + datePart + "-" + suffix.toUpperCase();
+    }
+
 
 }
