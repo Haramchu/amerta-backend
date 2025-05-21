@@ -1,6 +1,7 @@
 package propensi.amesta.repository.Aset;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -26,4 +27,6 @@ public interface GudangDb extends JpaRepository<Gudang, String> {
            "LOWER(a.kota) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
            "LOWER(a.provinsi) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
     List<Gudang> findByNameOrCityOrProvince(@Param("searchTerm") String searchTerm);
+
+    Optional<Gudang> findByNama(String nama);
 }

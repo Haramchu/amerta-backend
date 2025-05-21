@@ -68,6 +68,10 @@ public class SalesOrderServiceImpl implements SalesOrderService {
                 throw new IllegalArgumentException("Barang dengan ID " + item.getBarangId() + " tidak ditemukan");
             }
 
+            if(barangDb.findById(item.getBarangId()).get().isActive() == false){
+                throw new IllegalArgumentException("Barang dengan ID " + item.getBarangId() + " tidak aktif");
+            }
+
             if (item.getQuantity() <= 0) {
                 throw new IllegalArgumentException("Kuantitas barang tidak boleh negatif atau nol");
             }

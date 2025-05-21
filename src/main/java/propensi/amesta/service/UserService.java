@@ -14,6 +14,8 @@ public interface UserService {
 
     User getUserByEmail(String email);
 
+    UserResponseDTO getById (String id);
+
     User getUserById(String id);
 
     String hashPassword(String password);

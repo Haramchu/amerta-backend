@@ -33,11 +33,11 @@ import propensi.amesta.service.UserService;
 
 @SpringBootApplication
 public class AmestaApplication {
-	public static void main(String[] args) {
-		SpringApplication.run(AmestaApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(AmestaApplication.class, args);
+    }
 
-	@Bean
+    @Bean
     @Transactional
     CommandLineRunner run(UserDb userDb, UserService userService, GudangDb gudangDb, BarangDb barangDb, CustomerDb customerDb) {
         return args -> {
@@ -49,14 +49,13 @@ public class AmestaApplication {
             createUserIfNotExists(userDb, userService, new Komisaris(), "komisaris", "komisaris@example.com", "komisaris", "KOMISARIS");
 
             Optional<User> kp = userDb.findByUsername("kepala_gudang");
-            if (kp.isPresent() && kp.get() instanceof KepalaGudang) {
-                KepalaGudang kepalaGudang = (KepalaGudang) kp.get();
-                Gudang gud = createGudangDummy(kepalaGudang, gudangDb);
-                Gudang gud2 = createGudangDummy2(kepalaGudang, gudangDb);
-                createBarangDummy(gud, barangDb, gud2);
+            if (kp.isPresent() && kp.get() instanceof KepalaGudang kepalaGudang) {
+                Gudang gud = createGudangIfNotExists("Gudang 1", "Jl. Gudang No. 1", kepalaGudang, gudangDb);
+                Gudang gud2 = createGudangIfNotExists("Gudang 2", "Jl. Gudang No. 2", kepalaGudang, gudangDb);
+                createBarangDummyIfNotExists(barangDb, gud, gud2);
             }
 
-            createCustomerDummy(customerDb);
+            createCustomerIfNotExists(customerDb, "customer@example.com");
         };
     }
 
@@ -81,11 +80,9 @@ public class AmestaApplication {
             user.setCreatedDate(now);
             user.setUpdatedAt(now);
 
-            // Set tambahan untuk data baru
-            user.setBirthDate(now); // bisa diganti dengan tanggal statis kalau mau
+            user.setBirthDate(now);
             user.setEmployeeStatus(true);
 
-            // Generate ID sesuai format baru
             String id = generateCustomUserId(user);
             user.setId(id);
 
@@ -119,16 +116,19 @@ public class AmestaApplication {
         return roleCode + "-" + datePart + "-" + suffix.toUpperCase();
     }
 
-    private Gudang createGudangDummy(KepalaGudang kepalaGudang, GudangDb gudangDb){
+    private Gudang createGudangIfNotExists(String nama, String alamat, KepalaGudang kepalaGudang, GudangDb gudangDb) {
+        Optional<Gudang> existing = gudangDb.findByNama(nama);
+        if (existing.isPresent()) return existing.get();
+
         AlamatGudang alamatGudang = new AlamatGudang();
-        alamatGudang.setAlamat("Jl. Gudang No. 1");
+        alamatGudang.setAlamat(alamat);
         alamatGudang.setKota("Jakarta");
         alamatGudang.setProvinsi("DKI Jakarta");
         alamatGudang.setKodePos("12345");
 
         Gudang gudang = new Gudang();
-        gudang.setNama("Gudang 1");
-        gudang.setDeskripsi("Gudang 1 Deskripsi");
+        gudang.setNama(nama);
+        gudang.setDeskripsi(nama + " Deskripsi");
         gudang.setKapasitas(1000000);
         gudang.setKepalaGudang(kepalaGudang);
         gudang.setAlamatGudang(alamatGudang);
@@ -139,79 +139,51 @@ public class AmestaApplication {
         return gudangDb.save(gudang);
     }
 
-    private Gudang createGudangDummy2(KepalaGudang kepalaGudang, GudangDb gudangDb){
-        AlamatGudang alamatGudang = new AlamatGudang();
-        alamatGudang.setAlamat("Jl. Gudang No. 2");
-        alamatGudang.setKota("Jakarta 2");
-        alamatGudang.setProvinsi("DKI Jakarta 2");
-        alamatGudang.setKodePos("12345 2");
-
-        Gudang gudang = new Gudang();
-        gudang.setNama("Gudang 2");
-        gudang.setDeskripsi("Gudang 2 Deskripsi");
-        gudang.setKapasitas(1000000);
-        gudang.setKepalaGudang(kepalaGudang);
-        gudang.setAlamatGudang(alamatGudang);
-        gudang.setCreatedDate(new Date());
-        gudang.setUpdatedDate(new Date());
-        alamatGudang.setGudang(gudang);
-
-        return gudangDb.save(gudang);
-    }
-
-    private void createBarangDummy(Gudang gudang, BarangDb barangDb, Gudang gudang2) {
+    private void createBarangDummyIfNotExists(BarangDb barangDb, Gudang gudang, Gudang gudang2) {
         for (int i = 0; i < 50; i++) {
+            String namaBarang = "Barang " + i;
+            if (barangDb.findByNama(namaBarang).isPresent()) continue;
+
             String id = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-            .replace("-01-", "-I-")
-            .replace("-02-", "-II-")
-            .replace("-03-", "-III-")
-            .replace("-04-", "-IV-")
-            .replace("-05-", "-V-")
-            .replace("-06-", "-VI-")
-            .replace("-07-", "-VII-")
-            .replace("-08-", "-VIII-")
-            .replace("-09-", "-IX-")
-            .replace("-10-", "-X-")
-            .replace("-11-", "-XI-")
-            .replace("-12-", "-XII-");
-    
-            id += "-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+                .replace("-01-", "-I-").replace("-02-", "-II-").replace("-03-", "-III-")
+                .replace("-04-", "-IV-").replace("-05-", "-V-").replace("-06-", "-VI-")
+                .replace("-07-", "-VII-").replace("-08-", "-VIII-").replace("-09-", "-IX-")
+                .replace("-10-", "-X-").replace("-11-", "-XI-").replace("-12-", "-XII-");
+            id += "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
             Barang barang = new Barang();
             barang.setId(id);
-            barang.setNama("Barang " + i);
+            barang.setNama(namaBarang);
             barang.setKategori("Kategori " + i);
             barang.setMerk("Merk " + i);
             barang.setActive(true);
             barang.setHargaBeli(BigDecimal.valueOf(10000 + (i * 500)));
             barang.setHargaJual(BigDecimal.valueOf(20000 + (i * 500)));
 
-            List<StockBarangPerGudang> listBarang = new ArrayList<>();
             StockBarangPerGudang stockBarang = new StockBarangPerGudang();
             stockBarang.setBarang(barang);
-            stockBarang.setStock(10+i);
-            if (i % 2 == 0) {
-                stockBarang.setGudang(gudang);
-            }
-            else{
-                stockBarang.setGudang(gudang2);
-            }
-            listBarang.add(stockBarang);
+            stockBarang.setStock(10 + i);
+            stockBarang.setGudang((i % 2 == 0) ? gudang : gudang2);
 
+            List<StockBarangPerGudang> listBarang = new ArrayList<>();
+            listBarang.add(stockBarang);
             barang.setListStockBarang(listBarang);
 
             barangDb.save(barang);
         }
     }
 
-    private void createCustomerDummy(CustomerDb customerDb){
+    private void createCustomerIfNotExists(CustomerDb customerDb, String email) {
+        Customer existing = customerDb.findByEmail(email);
+        if (existing != null) return;
+
         Customer customer = new Customer();
         customer.setId(UUID.randomUUID());
         customer.setName("Customer 1");
         customer.setPhone("08123456789");
         customer.setHandphone("08123456789");
         customer.setWhatsapp("08123456789");
-        customer.setEmail("customer@example.com");
+        customer.setEmail(email);
         customer.setAddress("Jl. Customer No. 1");
         customer.setRole("VENDOR");
         customerDb.save(customer);

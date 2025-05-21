@@ -41,13 +41,21 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserByEmail(String email) {
         return userDb.findByEmail(email)
-                .orElseThrow(() -> new NoSuchElementException("User not found for the provided email"));
+                .orElseThrow(() -> new NoSuchElementException("User tidak ditemukan"));
+    }
+
+    @Override
+    public UserResponseDTO getById (String id){
+        User user = userDb.findById(id)
+                .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
+
+        return userToUserResponseDTO(user);
     }
 
     @Override
     public User getUserById(String id) {
         return userDb.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("User not found for the provided email"));
+                .orElseThrow(() -> new NoSuchElementException("User tidak ditemukan"));
     }
 
     @Override

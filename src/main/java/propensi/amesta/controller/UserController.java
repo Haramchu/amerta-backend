@@ -2,24 +2,19 @@ package propensi.amesta.controller;
 
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.method.P;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
-import propensi.amesta.model.EndUser.User;
 import propensi.amesta.payload.request.TambahKaryawanRequestDTO;
 import propensi.amesta.payload.request.UpdateProfileRequestDTO;
 import propensi.amesta.payload.response.BaseResponseDTO;
 import propensi.amesta.payload.response.UserResponseDTO;
-import propensi.amesta.payload.response.Auth.LoginJwtResponseDTO;
 import propensi.amesta.service.UserService;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -58,6 +53,24 @@ public class UserController {
         baseResponseDTO.setMessage("User successfully retrieved!");
         baseResponseDTO.setTimestamp(new Date());
         return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+    }
+
+    @GetMapping("/profile/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable String id) {
+        BaseResponseDTO<UserResponseDTO> response = new BaseResponseDTO<>();
+        try {
+            UserResponseDTO user = userService.getById(id);
+            response.setStatus(HttpStatus.OK.value());
+            response.setMessage("User berhasil ditemukan.");
+            response.setData(user);
+            response.setTimestamp(new Date());
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            response.setStatus(HttpStatus.NOT_FOUND.value());
+            response.setMessage("User tidak ditemukan: " + e.getMessage());
+            response.setTimestamp(new Date());
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
     }
 
     @PostMapping("/register")
