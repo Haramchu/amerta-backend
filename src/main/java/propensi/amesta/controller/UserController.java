@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import propensi.amesta.model.EndUser.User;
 import propensi.amesta.payload.request.TambahKaryawanRequestDTO;
+import propensi.amesta.payload.request.UpdateProfileRequestDTO;
 import propensi.amesta.payload.request.UpdateEmployeeRequestDTO;
 import propensi.amesta.payload.response.BaseResponseDTO;
 import propensi.amesta.payload.response.UserResponseDTO;
@@ -23,7 +24,9 @@ import propensi.amesta.payload.response.Auth.LoginJwtResponseDTO;
 import propensi.amesta.service.UserService;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -79,6 +82,31 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new BaseResponseDTO<>(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                             "Terjadi kesalahan saat registrasi!", new Date(), null));
+        }
+    }
+
+    @PutMapping("/update-profile/{id}")
+    public ResponseEntity<?> updateProfile(
+            @PathVariable("id") String id,
+            @RequestBody @Valid UpdateProfileRequestDTO request) {
+
+        var baseResponseDTO = new BaseResponseDTO<UserResponseDTO>();
+
+        try {
+            UserResponseDTO updatedUser = userService.updateProfile(id, request);
+            baseResponseDTO.setStatus(HttpStatus.OK.value());
+            baseResponseDTO.setData(updatedUser);
+            baseResponseDTO.setMessage("Profil berhasil diperbarui!");
+            baseResponseDTO.setTimestamp(new Date());
+
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new BaseResponseDTO<>(HttpStatus.BAD_REQUEST.value(), e.getMessage(), new Date(), null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new BaseResponseDTO<>(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            "Terjadi kesalahan saat update profil!", new Date(), null));
         }
     }
 

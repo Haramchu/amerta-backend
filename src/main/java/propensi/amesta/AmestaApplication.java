@@ -62,6 +62,8 @@ public class AmestaApplication {
     private void createUserIfNotExists(UserDb userDb, UserService userService, User user, String username, String email, String password, String role) {
         Optional<User> existingUser = userDb.findByUsername(username);
         if (existingUser.isEmpty()) {
+            Date now = new Date();
+
             user.setName(username);
             user.setUsername(username);
             user.setEmail(email);
@@ -71,12 +73,21 @@ public class AmestaApplication {
             user.setHomePhone("021567890");
             user.setBusinessPhone("021123456");
             user.setWhatsappNumber("08123456789");
-            user.setEntryDate(new Date());
+            user.setEntryDate(now);
             user.setKtpNumber("1234567890123456");
             user.setNotes("User dummy untuk testing");
             user.setRole(role);
-            user.setCreatedDate(new Date());
-            user.setUpdatedAt(new Date());
+            user.setCreatedDate(now);
+            user.setUpdatedAt(now);
+
+            // Set tambahan untuk data baru
+            user.setBirthDate(now); // bisa diganti dengan tanggal statis kalau mau
+            user.setEmployeeStatus(true);
+
+            // Generate ID sesuai format baru
+            String id = generateCustomUserId(user);
+            user.setId(id);
+
             userDb.save(user);
             System.out.println("User " + username + " berhasil ditambahkan.");
         } else {
@@ -84,10 +95,30 @@ public class AmestaApplication {
         }
     }
 
-    private Gudang createGudangIfNotExists(String nama, String alamat, KepalaGudang kepalaGudang, GudangDb gudangDb) {
-        Optional<Gudang> existing = gudangDb.findByNama(nama);
-        if (existing.isPresent()) return existing.get();
+    private String generateCustomUserId(User user) {
+        // Ambil singkatan role
+        String roleCode = switch (user.getRole().toLowerCase()) {
+            case "admin" -> "ADM";
+            case "direktur" -> "DIR";
+            case "sales" -> "SAL";
+            case "general_manager" -> "GM";
+            case "kepala_gudang" -> "KG";
+            case "komisaris" -> "KOM";
+            default -> "UNK";
+        };
 
+        // Format tanggal entry
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyyMMdd");
+        String datePart = sdf.format(user.getEntryDate());
+
+        // Ambil 3 huruf terakhir username
+        String username = user.getUsername();
+        String suffix = username.length() >= 3 ? username.substring(username.length() - 3) : username;
+
+        return roleCode + "-" + datePart + "-" + suffix.toUpperCase();
+    }
+
+    private Gudang createGudangIfNotExists(String nama, String alamat, KepalaGudang kepalaGudang, GudangDb gudangDb) {
         AlamatGudang alamatGudang = new AlamatGudang();
         alamatGudang.setAlamat(alamat);
         alamatGudang.setKota("Jakarta");
