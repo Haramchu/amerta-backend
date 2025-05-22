@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import propensi.amesta.payload.request.CustomerRequestDTO;
+import propensi.amesta.payload.request.CustomerUpdateRequestDTO;
 import propensi.amesta.payload.response.BaseResponseDTO;
 import propensi.amesta.payload.response.CustomerResponseDTO;
 import propensi.amesta.service.CustomerService;
@@ -27,32 +28,33 @@ public class CustomerController {
 
     @PostMapping("/add")
     public ResponseEntity<?> addCustomer(@Valid @RequestBody CustomerRequestDTO requestDTO) {
-        BaseResponseDTO<CustomerResponseDTO> response = new BaseResponseDTO<>();
+        BaseResponseDTO<CustomerResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
 
         try {
             CustomerResponseDTO result = customerService.addCustomer(requestDTO);
 
-            response.setStatus(HttpStatus.CREATED.value());
-            response.setMessage("Customer berhasil ditambahkan!");
-            response.setTimestamp(new Date());
-            response.setData(result);
+            baseResponseDTO.setStatus(HttpStatus.CREATED.value());
+            baseResponseDTO.setMessage("Customer berhasil ditambahkan!");
+            baseResponseDTO.setTimestamp(new Date());
+            baseResponseDTO.setData(result);
 
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.CREATED);
 
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new BaseResponseDTO<>(HttpStatus.BAD_REQUEST.value(), e.getMessage(), new Date(), null));
-
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage(e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new BaseResponseDTO<>(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                            "Terjadi kesalahan saat menambahkan customer!", new Date(), null));
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping("/viewall")
     public ResponseEntity<?> getAllCustomers() {
-
         BaseResponseDTO<List<CustomerResponseDTO>> baseResponseDTO = new BaseResponseDTO<>();
         try {
             List<CustomerResponseDTO> listCustomer = customerService.getAllCustomer();
@@ -72,7 +74,6 @@ public class CustomerController {
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
     }
 
     @GetMapping("/{idCustomer}")
@@ -98,4 +99,30 @@ public class CustomerController {
         }
     }
 
+    @PutMapping("/update/{idCustomer}")
+    public ResponseEntity<?> updateCustomer(@PathVariable("idCustomer") UUID idCustomer, @Valid @RequestBody CustomerUpdateRequestDTO requestDTO) {
+        BaseResponseDTO<CustomerResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
+
+        try {
+            CustomerResponseDTO result = customerService.updateCustomer(idCustomer, requestDTO);
+
+            baseResponseDTO.setStatus(HttpStatus.OK.value());
+            baseResponseDTO.setMessage("Customer berhasil diperbarui!");
+            baseResponseDTO.setTimestamp(new Date());
+            baseResponseDTO.setData(result);
+
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+
+        } catch (IllegalArgumentException e) {
+            baseResponseDTO.setStatus(HttpStatus.BAD_REQUEST.value());
+            baseResponseDTO.setMessage(e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

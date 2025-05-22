@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import propensi.amesta.model.Customer;
 import propensi.amesta.payload.request.CustomerRequestDTO;
+import propensi.amesta.payload.request.CustomerUpdateRequestDTO;
 import propensi.amesta.payload.response.CustomerResponseDTO;
 import propensi.amesta.repository.CustomerDb;
 
@@ -51,7 +52,6 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     public List<CustomerResponseDTO> getAllCustomer() {
-
         List<Customer> customers = customerDb.findAll();
         
         return customers.stream()
@@ -63,5 +63,27 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = customerDb.findById(idCustomer).orElseThrow(() -> new IllegalArgumentException("Customer tidak ditemukan."));
         return customerToCustomerResponseDTO(customer);
     }
-    
+
+    public CustomerResponseDTO updateCustomer(UUID idCustomer, CustomerUpdateRequestDTO request) {
+        Customer customer = customerDb.findById(idCustomer)
+                .orElseThrow(() -> new IllegalArgumentException("Customer tidak ditemukan."));
+
+        // Check if email is being changed and if it's already taken
+        if (!customer.getEmail().equals(request.getEmail())) {
+            Customer existingWithEmail = customerDb.findByEmail(request.getEmail());
+            if (existingWithEmail != null) {
+                throw new IllegalArgumentException("Email sudah terdaftar.");
+            }
+        }
+
+        customer.setName(request.getName());
+        customer.setPhone(request.getPhone());
+        customer.setHandphone(request.getHandphone());
+        customer.setWhatsapp(request.getWhatsapp());
+        customer.setEmail(request.getEmail());
+        customer.setAddress(request.getAddress());
+
+        Customer updated = customerDb.save(customer);
+        return customerToCustomerResponseDTO(updated);
+    }
 }

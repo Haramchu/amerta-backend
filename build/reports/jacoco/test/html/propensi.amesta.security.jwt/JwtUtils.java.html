@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JwtUtils.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">amesta</a> &gt; <a href="index.source.html" class="el_package">propensi.amesta.security.jwt</a> &gt; <span class="el_source">JwtUtils.java</span></div><h1>JwtUtils.java</h1><pre class="source lang-java linenums">package propensi.amesta.security.jwt;
+
+import java.util.Date;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+ 
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
+import propensi.amesta.payload.response.Auth.ExtractJwtResponseDTO;
+ 
+@Component
+<span class="nc" id="L17">public class JwtUtils {</span>
+<span class="nc" id="L18">    private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);</span>
+ 
+    @Value(&quot;${amesta.app.jwtSecret}&quot;)
+    private String jwtSecret;
+ 
+    @Value(&quot;${amesta.app.jwtExpirationMs}&quot;)
+    private int jwtExpirationMs;
+ 
+    public String generateJwtToken(UUID id, String nama, String username, String email, String role){
+<span class="nc" id="L27">        return Jwts.builder()</span>
+<span class="nc" id="L28">        .subject(email)</span>
+<span class="nc" id="L29">        .claim(&quot;id&quot;, id)</span>
+<span class="nc" id="L30">        .claim(&quot;nama&quot;, nama)</span>
+<span class="nc" id="L31">        .claim(&quot;username&quot;, username)</span>
+<span class="nc" id="L32">        .claim(&quot;email&quot;, email)</span>
+<span class="nc" id="L33">        .claim(&quot;role&quot;, role)</span>
+<span class="nc" id="L34">        .issuedAt(new Date())</span>
+<span class="nc" id="L35">        .expiration(new Date((new Date()).getTime() + jwtExpirationMs))</span>
+<span class="nc" id="L36">        .signWith(Keys.hmacShaKeyFor(jwtSecret.getBytes()))</span>
+<span class="nc" id="L37">        .compact();</span>
+    }
+ 
+    public String getUserNameFromJwtToken(String token){
+<span class="nc" id="L41">        Claims claims = getPayload(token);</span>
+<span class="nc" id="L42">        return claims.getSubject();</span>
+    }
+
+    public String getRoleFromJwtToken(String token) {
+<span class="nc" id="L46">        Claims claims = getPayload(token);</span>
+<span class="nc" id="L47">        return claims.get(&quot;role&quot;, String.class); </span>
+    }
+ 
+    public boolean validateJwtToken(String authToken){
+        try{
+<span class="nc" id="L52">            Jwts.parser().verifyWith(Keys.hmacShaKeyFor(jwtSecret.getBytes())).build().parse(authToken);</span>
+<span class="nc" id="L53">            return true;</span>
+<span class="nc" id="L54">        }catch(SignatureException e){</span>
+<span class="nc" id="L55">            logger.error(&quot;Invalid JWT signature: {}&quot;, e.getMessage());</span>
+<span class="nc" id="L56">        }catch(IllegalArgumentException e){</span>
+<span class="nc" id="L57">            logger.error(&quot;JWT claims string is empty: {}&quot;, e.getMessage());</span>
+<span class="nc" id="L58">        }catch(MalformedJwtException e){</span>
+<span class="nc" id="L59">            logger.error(&quot;Invalid JWT token: {}&quot;, e.getMessage());</span>
+<span class="nc" id="L60">        }catch(ExpiredJwtException e){</span>
+<span class="nc" id="L61">            logger.error(&quot;JWT token is expired: {}&quot;, e.getMessage());</span>
+<span class="nc" id="L62">        }catch(UnsupportedJwtException e){</span>
+<span class="nc" id="L63">            logger.error(&quot;JWT token is unsupported: {}&quot;, e.getMessage());</span>
+<span class="nc" id="L64">        }</span>
+<span class="nc" id="L65">        return false;</span>
+    }
+
+    public String getSignature() {
+<span class="nc" id="L69">        return jwtSecret;</span>
+    }
+
+    public Claims getPayload(String token) {
+<span class="nc" id="L73">        JwtParser jwtParser = Jwts.parser().verifyWith(Keys.hmacShaKeyFor(jwtSecret.getBytes())).build();</span>
+<span class="nc" id="L74">        Claims claims = jwtParser.parse(token).accept(Jws.CLAIMS).getPayload();</span>
+<span class="nc" id="L75">        return claims;</span>
+    }
+
+    public ExtractJwtResponseDTO extractJwt(String token) {
+<span class="nc" id="L79">        ExtractJwtResponseDTO jwtResponse = new ExtractJwtResponseDTO();</span>
+<span class="nc" id="L80">        Claims result = this.extractAllClaims(token);</span>
+
+<span class="nc" id="L82">        jwtResponse.setUsername(result.getSubject());</span>
+<span class="nc" id="L83">        jwtResponse.setNama((String) result.get(&quot;nama&quot;));</span>
+<span class="nc" id="L84">        jwtResponse.setId(UUID.fromString((String) result.get(&quot;id&quot;)));</span>
+<span class="nc" id="L85">        jwtResponse.setEmail((String) result.get(&quot;email&quot;));</span>
+<span class="nc" id="L86">        jwtResponse.setUsername((String) result.get(&quot;username&quot;));</span>
+<span class="nc" id="L87">        jwtResponse.setRole((String) result.get(&quot;role&quot;));</span>
+
+<span class="nc" id="L89">        jwtResponse.setToken(token);</span>
+
+<span class="nc" id="L91">        return jwtResponse;</span>
+    }
+
+    private Claims extractAllClaims(String token) {
+<span class="nc" id="L95">        JwtParser jwtParser = Jwts.parser().verifyWith(Keys.hmacShaKeyFor(jwtSecret.getBytes())).build();</span>
+<span class="nc" id="L96">        Claims claims = jwtParser.parse(token).accept(Jws.CLAIMS).getPayload();</span>
+<span class="nc" id="L97">        return claims;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

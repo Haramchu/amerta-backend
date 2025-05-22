@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import propensi.amesta.payload.request.TambahKaryawanRequestDTO;
 import propensi.amesta.payload.request.UpdateProfileRequestDTO;
+import propensi.amesta.payload.request.UpdateEmployeeRequestDTO;
 import propensi.amesta.payload.response.BaseResponseDTO;
 import propensi.amesta.payload.response.UserResponseDTO;
 import propensi.amesta.service.UserService;
@@ -120,4 +121,30 @@ public class UserController {
         }
     }
 
+    @PutMapping("/update/{idEmployee}")
+    public ResponseEntity<?> updateEmployee(@PathVariable String idEmployee, @Valid @RequestBody UpdateEmployeeRequestDTO requestDTO) {
+        BaseResponseDTO<UserResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
+
+        try {
+            UserResponseDTO result = userService.updateEmployee(idEmployee, requestDTO);
+
+            baseResponseDTO.setStatus(HttpStatus.OK.value());
+            baseResponseDTO.setMessage("Employee berhasil diperbarui!");
+            baseResponseDTO.setTimestamp(new Date());
+            baseResponseDTO.setData(result);
+
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+
+        } catch (IllegalArgumentException e) {
+            baseResponseDTO.setStatus(HttpStatus.BAD_REQUEST.value());
+            baseResponseDTO.setMessage(e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
