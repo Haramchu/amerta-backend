@@ -3,6 +3,7 @@ package propensi.amesta.service;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -46,7 +47,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDTO getById (String id){
+    public UserResponseDTO getById (UUID id){
         User user = userDb.findById(id)
                 .orElseThrow(() -> new RuntimeException("Employee tidak ditemukan"));
 
@@ -54,7 +55,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getUserById(String id) {
+    public User getUserById(UUID id) {
         return userDb.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Employee tidak ditemukan"));
     }
@@ -127,9 +128,6 @@ public class UserServiceImpl implements UserService {
         newUser.setBirthDate(userRequest.getBirthDate());
         newUser.setEmployeeStatus(userRequest.isEmployeeStatus());
         newUser.setRole(userRequest.getRole());
-
-        String generatedId = generateUserId(newUser);
-        newUser.setId(generatedId);
          
         User userNew = userDb.save(newUser);
 
@@ -137,7 +135,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDTO updateProfile(String id, UpdateProfileRequestDTO request) {
+    public UserResponseDTO updateProfile(UUID id, UpdateProfileRequestDTO request) {
         User currentUser = getUserById(id);
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -167,33 +165,8 @@ public class UserServiceImpl implements UserService {
         return userToUserResponseDTO(updated);
     }
 
-
-    private String generateUserId(User user) {
-        String roleCode = switch (user.getRole().toLowerCase()) {
-            case "administrasi" -> "ADM";
-            case "direktur" -> "DIR";
-            case "sales" -> "SAL";
-            case "general_manager" -> "GM";
-            case "kepala_gudang" -> "KG";
-            case "komisaris" -> "KOM";
-            default -> "UNK";
-        };
-
-        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyyMMdd");
-        String datePart = sdf.format(user.getEntryDate());
-
-        String username = user.getUsername();
-        String suffix = username.length() >= 3 ? username.substring(username.length() - 3) : username;
-
-        int randomNumber = new java.util.Random().nextInt(1000);
-        String randomSuffix = String.format("%03d", randomNumber);
-
-        return roleCode + "-" + datePart + "-" + suffix.toUpperCase() + randomSuffix;
-    }
-
-
     @Override
-    public UserResponseDTO updateEmployee(String idEmployee, UpdateEmployeeRequestDTO request) {
+    public UserResponseDTO updateEmployee(UUID idEmployee, UpdateEmployeeRequestDTO request) {
         User employee = userDb.findById(idEmployee)
                 .orElseThrow(() -> new IllegalArgumentException("Employee tidak ditemukan."));
 

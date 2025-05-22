@@ -1,6 +1,7 @@
 package propensi.amesta.payload.response;
 
 import java.util.Date;
+import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -17,7 +18,7 @@ import lombok.AllArgsConstructor;
 @SuperBuilder
 public class UserResponseDTO {
 
-    private String id;
+    private UUID id;
     private String name;
     private String username;
     private String email;

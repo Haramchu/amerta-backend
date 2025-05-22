@@ -2,6 +2,7 @@ package propensi.amesta.controller;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -57,7 +58,7 @@ public class UserController {
     }
 
     @GetMapping("/profile/{id}")
-    public ResponseEntity<?> getUserById(@PathVariable String id) {
+    public ResponseEntity<?> getUserById(@PathVariable UUID id) {
         BaseResponseDTO<UserResponseDTO> response = new BaseResponseDTO<>();
         try {
             UserResponseDTO user = userService.getById(id);
@@ -98,7 +99,7 @@ public class UserController {
 
     @PutMapping("/update-profile/{id}")
     public ResponseEntity<?> updateProfile(
-            @PathVariable("id") String id,
+            @PathVariable("id") UUID id,
             @RequestBody @Valid UpdateProfileRequestDTO request) {
 
         var baseResponseDTO = new BaseResponseDTO<UserResponseDTO>();
@@ -122,7 +123,7 @@ public class UserController {
     }
 
     @PutMapping("/update/{idEmployee}")
-    public ResponseEntity<?> updateEmployee(@PathVariable String idEmployee, @Valid @RequestBody UpdateEmployeeRequestDTO requestDTO) {
+    public ResponseEntity<?> updateEmployee(@PathVariable UUID idEmployee, @Valid @RequestBody UpdateEmployeeRequestDTO requestDTO) {
         BaseResponseDTO<UserResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
 
         try {

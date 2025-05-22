@@ -79,41 +79,14 @@ public class AmestaApplication {
             user.setRole(role);
             user.setCreatedDate(now);
             user.setUpdatedAt(now);
-
             user.setBirthDate(now);
             user.setEmployeeStatus(true);
-
-            String id = generateCustomUserId(user);
-            user.setId(id);
 
             userDb.save(user);
             System.out.println("User " + username + " berhasil ditambahkan.");
         } else {
             System.out.println("User " + username + " sudah ada, tidak ditambahkan.");
         }
-    }
-
-    private String generateCustomUserId(User user) {
-        // Ambil singkatan role
-        String roleCode = switch (user.getRole().toLowerCase()) {
-            case "admin" -> "ADM";
-            case "direktur" -> "DIR";
-            case "sales" -> "SAL";
-            case "general_manager" -> "GM";
-            case "kepala_gudang" -> "KG";
-            case "komisaris" -> "KOM";
-            default -> "UNK";
-        };
-
-        // Format tanggal entry
-        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyyMMdd");
-        String datePart = sdf.format(user.getEntryDate());
-
-        // Ambil 3 huruf terakhir username
-        String username = user.getUsername();
-        String suffix = username.length() >= 3 ? username.substring(username.length() - 3) : username;
-
-        return roleCode + "-" + datePart + "-" + suffix.toUpperCase();
     }
 
     private Gudang createGudangIfNotExists(String nama, String alamat, KepalaGudang kepalaGudang, GudangDb gudangDb) {

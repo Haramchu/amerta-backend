@@ -1,6 +1,7 @@
 package propensi.amesta.service;
 
 import java.util.List;
+import java.util.UUID;
 
 import propensi.amesta.model.EndUser.User;
 import propensi.amesta.payload.request.TambahKaryawanRequestDTO;
@@ -15,15 +16,15 @@ public interface UserService {
 
     User getUserByEmail(String email);
 
-    UserResponseDTO getById (String id);
+    UserResponseDTO getById (UUID id);
 
-    User getUserById(String id);
+    User getUserById(UUID id);
 
     String hashPassword(String password);
 
     UserResponseDTO addEmployee(TambahKaryawanRequestDTO karyawan);
 
-    UserResponseDTO updateEmployee(String idEmployee, UpdateEmployeeRequestDTO employee);
+    UserResponseDTO updateEmployee(UUID idEmployee, UpdateEmployeeRequestDTO employee);
 
-    UserResponseDTO updateProfile(String id, UpdateProfileRequestDTO request);
+    UserResponseDTO updateProfile(UUID id, UpdateProfileRequestDTO request);
 }
