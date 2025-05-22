@@ -3,6 +3,7 @@
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,101 +18,169 @@ import propensi.amesta.model.EndUser.Komisaris;
 import propensi.amesta.model.EndUser.Sales;
 import propensi.amesta.model.EndUser.User;
 import propensi.amesta.payload.request.TambahKaryawanRequestDTO;
+import propensi.amesta.payload.request.UpdateEmployeeRequestDTO;
+import propensi.amesta.payload.request.UpdateProfileRequestDTO;
 import propensi.amesta.payload.response.UserResponseDTO;
 import propensi.amesta.repository.EndUser.UserDb;
 import propensi.amesta.security.service.UserDetailsServiceImpl;
 
 @Service
-<span class="nc" id="L25">public class UserServiceImpl implements UserService {</span>
+<span class="nc" id="L28">public class UserServiceImpl implements UserService {</span>
 
     @Autowired
     private UserDb userDb;
 
     @Override
     public UserResponseDTO getCurrentUser() {
-<span class="nc" id="L32">        UserDetailsServiceImpl authentication = (UserDetailsServiceImpl) SecurityContextHolder.getContext()</span>
-<span class="nc" id="L33">                .getAuthentication().getPrincipal();</span>
-<span class="nc" id="L34">        Optional&lt;User&gt; userFromDb = userDb.findByEmail(authentication.getJwtClaims().getSubject());</span>
-<span class="nc" id="L35">        User user = userFromDb.orElseThrow(() -&gt; new NoSuchElementException(&quot;User not found&quot;));</span>
+<span class="nc" id="L35">        UserDetailsServiceImpl authentication = (UserDetailsServiceImpl) SecurityContextHolder.getContext()</span>
+<span class="nc" id="L36">                .getAuthentication().getPrincipal();</span>
+<span class="nc" id="L37">        Optional&lt;User&gt; userFromDb = userDb.findByEmail(authentication.getJwtClaims().getSubject());</span>
+<span class="nc" id="L38">        User user = userFromDb.orElseThrow(() -&gt; new NoSuchElementException(&quot;Employee tidak ditemukan&quot;));</span>
 
-<span class="nc" id="L37">        return userToUserResponseDTO(user);</span>
+<span class="nc" id="L40">        return userToUserResponseDTO(user);</span>
     }
 
     @Override
     public User getUserByEmail(String email) {
-<span class="nc" id="L42">        return userDb.findByEmail(email)</span>
-<span class="nc" id="L43">                .orElseThrow(() -&gt; new NoSuchElementException(&quot;User not found for the provided email&quot;));</span>
+<span class="nc" id="L45">        return userDb.findByEmail(email)</span>
+<span class="nc" id="L46">                .orElseThrow(() -&gt; new NoSuchElementException(&quot;Employee tidak ditemukan&quot;));</span>
+    }
+
+    @Override
+    public UserResponseDTO getById (UUID id){
+<span class="nc" id="L51">        User user = userDb.findById(id)</span>
+<span class="nc" id="L52">                .orElseThrow(() -&gt; new RuntimeException(&quot;Employee tidak ditemukan&quot;));</span>
+
+<span class="nc" id="L54">        return userToUserResponseDTO(user);</span>
+    }
+
+    @Override
+    public User getUserById(UUID id) {
+<span class="nc" id="L59">        return userDb.findById(id)</span>
+<span class="nc" id="L60">                .orElseThrow(() -&gt; new NoSuchElementException(&quot;Employee tidak ditemukan&quot;));</span>
     }
 
     @Override
     public String hashPassword(String password) {
-<span class="nc" id="L48">        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();</span>
-<span class="nc" id="L49">        return passwordEncoder.encode(password);</span>
+<span class="nc" id="L65">        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();</span>
+<span class="nc" id="L66">        return passwordEncoder.encode(password);</span>
     }
 
     @Override
     public List&lt;UserResponseDTO&gt; getUserByRole(String role) {
         List&lt;User&gt; userList;
-<span class="nc bnc" id="L55" title="All 2 branches missed.">        if (role.equals(&quot;all&quot;)) {</span>
-<span class="nc" id="L56">            userList = userDb.findAll();</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">        if (role.equals(&quot;all&quot;)) {</span>
+<span class="nc" id="L73">            userList = userDb.findAll();</span>
         } else {
-<span class="nc" id="L58">            userList = userDb.findByRole(role);</span>
+<span class="nc" id="L75">            userList = userDb.findByRole(role);</span>
         }
-<span class="nc" id="L60">        return userList.stream().map(this::userToUserResponseDTO).toList();</span>
+<span class="nc" id="L77">        return userList.stream().map(this::userToUserResponseDTO).toList();</span>
     }
 
     public UserResponseDTO userToUserResponseDTO(User user) {
-<span class="nc" id="L64">        return new UserResponseDTO(</span>
-<span class="nc" id="L65">                user.getId(),</span>
-<span class="nc" id="L66">                user.getName(),</span>
-<span class="nc" id="L67">                user.getUsername(),</span>
-<span class="nc" id="L68">                user.getEmail(),</span>
-<span class="nc" id="L69">                user.isGender(),</span>
-<span class="nc" id="L70">                user.getPhone(),</span>
-<span class="nc" id="L71">                user.getHomePhone(),</span>
-<span class="nc" id="L72">                user.getBusinessPhone(),</span>
-<span class="nc" id="L73">                user.getWhatsappNumber(),</span>
-<span class="nc" id="L74">                user.getEntryDate(),</span>
-<span class="nc" id="L75">                user.getKtpNumber(),</span>
-<span class="nc" id="L76">                user.getNotes(),</span>
-<span class="nc" id="L77">                user.getCreatedDate(),</span>
-<span class="nc" id="L78">                user.getUpdatedAt(),</span>
-<span class="nc" id="L79">                user.getRole());</span>
+<span class="nc" id="L81">        return new UserResponseDTO(</span>
+<span class="nc" id="L82">                user.getId(),</span>
+<span class="nc" id="L83">                user.getName(),</span>
+<span class="nc" id="L84">                user.getUsername(),</span>
+<span class="nc" id="L85">                user.getEmail(),</span>
+<span class="nc" id="L86">                user.isGender(),</span>
+<span class="nc" id="L87">                user.getPhone(),</span>
+<span class="nc" id="L88">                user.getHomePhone(),</span>
+<span class="nc" id="L89">                user.getBusinessPhone(),</span>
+<span class="nc" id="L90">                user.getWhatsappNumber(),</span>
+<span class="nc" id="L91">                user.getEntryDate(),</span>
+<span class="nc" id="L92">                user.getKtpNumber(),</span>
+<span class="nc" id="L93">                user.getNotes(),</span>
+<span class="nc" id="L94">                user.getBirthDate(),</span>
+<span class="nc" id="L95">                user.isEmployeeStatus(),</span>
+<span class="nc" id="L96">                user.getCreatedDate(),</span>
+<span class="nc" id="L97">                user.getUpdatedAt(),</span>
+<span class="nc" id="L98">                user.getRole());</span>
     }
 
     @Override
     public UserResponseDTO addEmployee(TambahKaryawanRequestDTO userRequest) {
-<span class="nc bnc" id="L84" title="All 2 branches missed.">        if (userDb.findByEmail(userRequest.getEmail()).isPresent()) {</span>
-<span class="nc" id="L85">            throw new IllegalArgumentException(&quot;Email sudah terdaftar.&quot;);</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        if (userDb.findByEmail(userRequest.getEmail()).isPresent()) {</span>
+<span class="nc" id="L104">            throw new IllegalArgumentException(&quot;Email sudah terdaftar.&quot;);</span>
         }
         User newUser;
-<span class="nc bnc" id="L88" title="All 7 branches missed.">        switch (userRequest.getRole().toLowerCase()) {</span>
-<span class="nc" id="L89">            case &quot;administrasi&quot; -&gt; newUser = new Administrasi();</span>
-<span class="nc" id="L90">            case &quot;direktur&quot; -&gt; newUser = new Direktur();</span>
-<span class="nc" id="L91">            case &quot;sales&quot; -&gt; newUser = new Sales();</span>
-<span class="nc" id="L92">            case &quot;general_manager&quot; -&gt; newUser = new GeneralManager();</span>
-<span class="nc" id="L93">            case &quot;kepala_gudang&quot; -&gt; newUser = new KepalaGudang();</span>
-<span class="nc" id="L94">            case &quot;komisaris&quot; -&gt; newUser = new Komisaris();</span>
-<span class="nc" id="L95">            default -&gt; throw new IllegalArgumentException(&quot;Role tidak valid: &quot; + userRequest.getRole());</span>
+<span class="nc bnc" id="L107" title="All 7 branches missed.">        switch (userRequest.getRole().toLowerCase()) {</span>
+<span class="nc" id="L108">            case &quot;administrasi&quot; -&gt; newUser = new Administrasi();</span>
+<span class="nc" id="L109">            case &quot;direktur&quot; -&gt; newUser = new Direktur();</span>
+<span class="nc" id="L110">            case &quot;sales&quot; -&gt; newUser = new Sales();</span>
+<span class="nc" id="L111">            case &quot;general_manager&quot; -&gt; newUser = new GeneralManager();</span>
+<span class="nc" id="L112">            case &quot;kepala_gudang&quot; -&gt; newUser = new KepalaGudang();</span>
+<span class="nc" id="L113">            case &quot;komisaris&quot; -&gt; newUser = new Komisaris();</span>
+<span class="nc" id="L114">            default -&gt; throw new IllegalArgumentException(&quot;Role tidak valid: &quot; + userRequest.getRole());</span>
         }
-<span class="nc" id="L97">        newUser.setName(userRequest.getName());</span>
-<span class="nc" id="L98">        newUser.setUsername(userRequest.getUsername());</span>
-<span class="nc" id="L99">        newUser.setEmail(userRequest.getEmail());</span>
-<span class="nc" id="L100">        newUser.setPassword(hashPassword(userRequest.getPassword()));</span>
-<span class="nc" id="L101">        newUser.setGender(userRequest.isGender());</span>
-<span class="nc" id="L102">        newUser.setPhone(userRequest.getPhone());</span>
-<span class="nc" id="L103">        newUser.setHomePhone(userRequest.getHomePhone());</span>
-<span class="nc" id="L104">        newUser.setBusinessPhone(userRequest.getBusinessPhone());</span>
-<span class="nc" id="L105">        newUser.setWhatsappNumber(userRequest.getWhatsappNumber());</span>
-<span class="nc" id="L106">        newUser.setEntryDate(userRequest.getEntryDate());</span>
-<span class="nc" id="L107">        newUser.setKtpNumber(userRequest.getKtpNumber());</span>
-<span class="nc" id="L108">        newUser.setNotes(userRequest.getNotes());</span>
-<span class="nc" id="L109">        newUser.setRole(userRequest.getRole());</span>
+<span class="nc" id="L116">        newUser.setName(userRequest.getName());</span>
+<span class="nc" id="L117">        newUser.setUsername(userRequest.getUsername());</span>
+<span class="nc" id="L118">        newUser.setEmail(userRequest.getEmail());</span>
+<span class="nc" id="L119">        newUser.setPassword(hashPassword(userRequest.getPassword()));</span>
+<span class="nc" id="L120">        newUser.setGender(userRequest.isGender());</span>
+<span class="nc" id="L121">        newUser.setPhone(userRequest.getPhone());</span>
+<span class="nc" id="L122">        newUser.setHomePhone(userRequest.getHomePhone());</span>
+<span class="nc" id="L123">        newUser.setBusinessPhone(userRequest.getBusinessPhone());</span>
+<span class="nc" id="L124">        newUser.setWhatsappNumber(userRequest.getWhatsappNumber());</span>
+<span class="nc" id="L125">        newUser.setEntryDate(userRequest.getEntryDate());</span>
+<span class="nc" id="L126">        newUser.setKtpNumber(userRequest.getKtpNumber());</span>
+<span class="nc" id="L127">        newUser.setNotes(userRequest.getNotes());</span>
+<span class="nc" id="L128">        newUser.setBirthDate(userRequest.getBirthDate());</span>
+<span class="nc" id="L129">        newUser.setEmployeeStatus(userRequest.isEmployeeStatus());</span>
+<span class="nc" id="L130">        newUser.setRole(userRequest.getRole());</span>
          
-<span class="nc" id="L111">        User userNew = userDb.save(newUser);</span>
+<span class="nc" id="L132">        User userNew = userDb.save(newUser);</span>
 
-<span class="nc" id="L113">        return userToUserResponseDTO(userNew);</span>
+<span class="nc" id="L134">        return userToUserResponseDTO(userNew);</span>
     }
 
+    @Override
+    public UserResponseDTO updateProfile(UUID id, UpdateProfileRequestDTO request) {
+<span class="nc" id="L139">        User currentUser = getUserById(id);</span>
+<span class="nc" id="L140">        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();</span>
+
+<span class="nc bnc" id="L142" title="All 4 branches missed.">        if (request.getPassword() != null &amp;&amp; !request.getPassword().isEmpty()) {</span>
+
+<span class="nc bnc" id="L144" title="All 4 branches missed.">            if (request.getOldPassword() == null || request.getOldPassword().isEmpty()) {</span>
+<span class="nc" id="L145">                throw new IllegalArgumentException(&quot;Password lama wajib diisi.&quot;);</span>
+            }
+
+<span class="nc bnc" id="L148" title="All 2 branches missed.">            if (!passwordEncoder.matches(request.getOldPassword(), currentUser.getPassword())) {</span>
+<span class="nc" id="L149">                throw new IllegalArgumentException(&quot;Password lama tidak sesuai.&quot;);</span>
+            }
+
+<span class="nc" id="L152">            List&lt;User&gt; allUsers = userDb.findAll();</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">            for (User u : allUsers) {</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">                if (!u.getId().equals(currentUser.getId())) {</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">                    if (passwordEncoder.matches(request.getPassword(), u.getPassword())) {</span>
+<span class="nc" id="L156">                        throw new IllegalArgumentException(&quot;Password sudah digunakan.&quot;);</span>
+                    }
+                }
+<span class="nc" id="L159">            }</span>
+
+<span class="nc" id="L161">            currentUser.setPassword(passwordEncoder.encode(request.getPassword()));</span>
+        }
+
+<span class="nc" id="L164">        User updated = userDb.save(currentUser);</span>
+<span class="nc" id="L165">        return userToUserResponseDTO(updated);</span>
+    }
+
+    @Override
+    public UserResponseDTO updateEmployee(UUID idEmployee, UpdateEmployeeRequestDTO request) {
+<span class="nc" id="L170">        User employee = userDb.findById(idEmployee)</span>
+<span class="nc" id="L171">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Employee tidak ditemukan.&quot;));</span>
+
+        // Update all allowed fields
+<span class="nc" id="L174">        employee.setPhone(request.getPhone());</span>
+<span class="nc" id="L175">        employee.setHomePhone(request.getHomePhone());</span>
+<span class="nc" id="L176">        employee.setBusinessPhone(request.getBusinessPhone());</span>
+<span class="nc" id="L177">        employee.setWhatsappNumber(request.getWhatsappNumber());</span>
+<span class="nc" id="L178">        employee.setNotes(request.getNotes());</span>
+<span class="nc" id="L179">        employee.setEmployeeStatus(request.isEmployeeStatus());</span>
+<span class="nc" id="L180">        employee.setRole(request.getRole());</span>
+
+<span class="nc" id="L182">        User updated = userDb.save(employee);</span>
+<span class="nc" id="L183">        return userToUserResponseDTO(updated);</span>
+    }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -93,6 +93,14 @@ public class User {
     @Column(name = &quot;notes&quot;)
     private String notes;
 
+    @Temporal(TemporalType.DATE)
+    @Column(name = &quot;birth_date&quot;)
+    private Date birthDate;
+
+    @NotNull
+    @Column(name = &quot;employee_status&quot;, nullable = false)
+    private boolean employeeStatus;
+
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = &quot;created_at&quot;, columnDefinition = &quot;TIMESTAMP&quot;, updatable = false, nullable = false)
@@ -107,7 +115,7 @@ public class User {
     private Date deletedAt;
 
     public String getRole() {
-<span class="nc" id="L110">        return this.role;</span>
+<span class="nc" id="L118">        return this.role;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

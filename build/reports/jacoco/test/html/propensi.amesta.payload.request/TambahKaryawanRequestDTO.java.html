@@ -55,6 +55,13 @@ import lombok.Setter;
     @Size(max = 50)
     private String ktpNumber;
 
+    @NotNull
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = &quot;yyyy-MM-dd&quot;, timezone = &quot;Asia/Jakarta&quot;)
+    private Date birthDate;
+
+    @NotNull
+    private boolean employeeStatus;
+
     @Size(max = 500)
     private String notes;
 

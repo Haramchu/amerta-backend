@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import propensi.amesta.model.Customer;
 import propensi.amesta.payload.request.CustomerRequestDTO;
-import propensi.amesta.payload.request.CustomerUpdateRequestDTO;
+import propensi.amesta.payload.request.UpdateCustomerRequestDTO;
 import propensi.amesta.payload.response.CustomerResponseDTO;
 import propensi.amesta.repository.CustomerDb;
 
@@ -64,7 +64,7 @@ public class CustomerServiceImpl implements CustomerService {
         return customerToCustomerResponseDTO(customer);
     }
 
-    public CustomerResponseDTO updateCustomer(UUID idCustomer, CustomerUpdateRequestDTO request) {
+    public CustomerResponseDTO updateCustomer(UUID idCustomer, UpdateCustomerRequestDTO request) {
         Customer customer = customerDb.findById(idCustomer)
                 .orElseThrow(() -> new IllegalArgumentException("Customer tidak ditemukan."));
 

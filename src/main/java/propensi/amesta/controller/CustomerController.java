@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import propensi.amesta.payload.request.CustomerRequestDTO;
-import propensi.amesta.payload.request.CustomerUpdateRequestDTO;
+import propensi.amesta.payload.request.UpdateCustomerRequestDTO;
 import propensi.amesta.payload.response.BaseResponseDTO;
 import propensi.amesta.payload.response.CustomerResponseDTO;
 import propensi.amesta.service.CustomerService;
@@ -100,7 +100,7 @@ public class CustomerController {
     }
 
     @PutMapping("/update/{idCustomer}")
-    public ResponseEntity<?> updateCustomer(@PathVariable("idCustomer") UUID idCustomer, @Valid @RequestBody CustomerUpdateRequestDTO requestDTO) {
+    public ResponseEntity<?> updateCustomer(@PathVariable("idCustomer") UUID idCustomer, @Valid @RequestBody UpdateCustomerRequestDTO requestDTO) {
         BaseResponseDTO<CustomerResponseDTO> baseResponseDTO = new BaseResponseDTO<>();
 
         try {

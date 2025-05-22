@@ -4,7 +4,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,13 +20,12 @@ import propensi.amesta.payload.request.Aset.TransferBarangRequestDTO;
 import propensi.amesta.payload.response.Aset.TransferBarangResponseDTO;
 import propensi.amesta.repository.Aset.BarangDb;
 import propensi.amesta.repository.Aset.GudangDb;
-import propensi.amesta.repository.Aset.KuantitasBarangPerTransferDb;
 import propensi.amesta.repository.Aset.StockBarangPerGudangDb;
 import propensi.amesta.repository.Aset.TransferBarangDb;
 
 @Service
 @Transactional
-<span class="nc" id="L30">public class TransferBarangServiceImpl implements TransferBarangService {</span>
+<span class="nc" id="L28">public class TransferBarangServiceImpl implements TransferBarangService {</span>
     @Autowired
     private TransferBarangDb transferBarangDb;
 
@@ -40,105 +38,100 @@ import propensi.amesta.repository.Aset.TransferBarangDb;
     @Autowired
     private StockBarangPerGudangDb stockBarangPerGudangDb;
 
-    @Autowired
-    private KuantitasBarangPerTransferDb kuantitasBarangPerTransferDb;
-
-
     @Override
     public TransferBarangResponseDTO addTransferBarang(TransferBarangRequestDTO request) {
 
         // Validasi Gudang Asal
-<span class="nc" id="L51">        Gudang gudangAsal = gudangDb.findById(request.getGudangAsal())</span>
-<span class="nc" id="L52">            .orElseThrow(() -&gt; new RuntimeException(&quot;Gudang asal tidak ditemukan: &quot; + request.getGudangAsal()));</span>
+<span class="nc" id="L45">        Gudang gudangAsal = gudangDb.findById(request.getGudangAsal())</span>
+<span class="nc" id="L46">            .orElseThrow(() -&gt; new RuntimeException(&quot;Gudang asal tidak ditemukan: &quot; + request.getGudangAsal()));</span>
 
         // Validasi Gudang Tujuan
-<span class="nc" id="L55">        Gudang gudangTujuan = gudangDb.findById(request.getGudangTujuan())</span>
-<span class="nc" id="L56">            .orElseThrow(() -&gt; new RuntimeException(&quot;Gudang tujuan tidak ditemukan: &quot; + request.getGudangTujuan()));</span>
+<span class="nc" id="L49">        Gudang gudangTujuan = gudangDb.findById(request.getGudangTujuan())</span>
+<span class="nc" id="L50">            .orElseThrow(() -&gt; new RuntimeException(&quot;Gudang tujuan tidak ditemukan: &quot; + request.getGudangTujuan()));</span>
 
         // Generate ID berdasarkan Tahun dan Bulan
-<span class="nc" id="L59">        SimpleDateFormat yearFormat = new SimpleDateFormat(&quot;yyyy&quot;);</span>
-<span class="nc" id="L60">        SimpleDateFormat monthFormat = new SimpleDateFormat(&quot;MM&quot;);</span>
-<span class="nc" id="L61">        int year = Integer.parseInt(yearFormat.format(request.getTanggalPemindahan()));</span>
-<span class="nc" id="L62">        int month = Integer.parseInt(monthFormat.format(request.getTanggalPemindahan()));</span>
-<span class="nc" id="L63">        int count = transferBarangDb.countByYearAndMonth(year, month) + 1;</span>
-<span class="nc" id="L64">        String sequence = String.format(&quot;%05d&quot;, count);</span>
-<span class="nc" id="L65">        String id = &quot;IT.&quot; + year + &quot;.&quot; + month + &quot;.&quot; + sequence;</span>
+<span class="nc" id="L53">        SimpleDateFormat yearFormat = new SimpleDateFormat(&quot;yyyy&quot;);</span>
+<span class="nc" id="L54">        SimpleDateFormat monthFormat = new SimpleDateFormat(&quot;MM&quot;);</span>
+<span class="nc" id="L55">        int year = Integer.parseInt(yearFormat.format(request.getTanggalPemindahan()));</span>
+<span class="nc" id="L56">        int month = Integer.parseInt(monthFormat.format(request.getTanggalPemindahan()));</span>
+<span class="nc" id="L57">        int count = transferBarangDb.countByYearAndMonth(year, month) + 1;</span>
+<span class="nc" id="L58">        String sequence = String.format(&quot;%05d&quot;, count);</span>
+<span class="nc" id="L59">        String id = &quot;IT.&quot; + year + &quot;.&quot; + month + &quot;.&quot; + sequence;</span>
 
         // Simpan TransferBarang
-<span class="nc" id="L68">        TransferBarang transferBarang = new TransferBarang();</span>
-<span class="nc" id="L69">        transferBarang.setId(id);</span>
-<span class="nc" id="L70">        transferBarang.setTanggalPemindahan(request.getTanggalPemindahan());</span>
-<span class="nc" id="L71">        transferBarang.setGudangAsal(gudangAsal);</span>
-<span class="nc" id="L72">        transferBarang.setGudangTujuan(gudangTujuan);</span>
-<span class="nc" id="L73">        transferBarang.setCreatedDate(new Date());</span>
+<span class="nc" id="L62">        TransferBarang transferBarang = new TransferBarang();</span>
+<span class="nc" id="L63">        transferBarang.setId(id);</span>
+<span class="nc" id="L64">        transferBarang.setTanggalPemindahan(request.getTanggalPemindahan());</span>
+<span class="nc" id="L65">        transferBarang.setGudangAsal(gudangAsal);</span>
+<span class="nc" id="L66">        transferBarang.setGudangTujuan(gudangTujuan);</span>
+<span class="nc" id="L67">        transferBarang.setCreatedDate(new Date());</span>
 
-<span class="nc" id="L75">        List&lt;KuantitasBarangPerTransfer&gt; listKuantitasBarang = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L69">        List&lt;KuantitasBarangPerTransfer&gt; listKuantitasBarang = new ArrayList&lt;&gt;();</span>
 
-<span class="nc bnc" id="L77" title="All 2 branches missed.">        for (BarangTransferDTO barangDTO : request.getListBarang()) {</span>
-<span class="nc" id="L78">            Barang barang = barangDb.findById(barangDTO.getId())</span>
-<span class="nc" id="L79">                .orElseThrow(() -&gt; new RuntimeException(&quot;Barang tidak ditemukan: &quot; + barangDTO.getId()));</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">        for (BarangTransferDTO barangDTO : request.getListBarang()) {</span>
+<span class="nc" id="L72">            Barang barang = barangDb.findById(barangDTO.getId())</span>
+<span class="nc" id="L73">                .orElseThrow(() -&gt; new RuntimeException(&quot;Barang tidak ditemukan: &quot; + barangDTO.getId()));</span>
 
             // Kurangi stok dari Gudang Asal
-<span class="nc" id="L82">            StockBarangPerGudang stockAsal = stockBarangPerGudangDb.findByBarangAndGudang(barang, gudangAsal)</span>
-<span class="nc" id="L83">                .orElseThrow(() -&gt; new RuntimeException(&quot;Stok barang tidak ditemukan di gudang asal: &quot; + barang.getNama()));</span>
+<span class="nc" id="L76">            StockBarangPerGudang stockAsal = stockBarangPerGudangDb.findByBarangAndGudang(barang, gudangAsal)</span>
+<span class="nc" id="L77">                .orElseThrow(() -&gt; new RuntimeException(&quot;Stok barang tidak ditemukan di gudang asal: &quot; + barang.getNama()));</span>
 
-<span class="nc bnc" id="L85" title="All 2 branches missed.">            if (stockAsal.getStock() &lt; barangDTO.getJumlah()) {</span>
-<span class="nc" id="L86">                throw new RuntimeException(&quot;Stok barang di gudang asal tidak mencukupi untuk pemindahan: &quot; + barang.getNama());</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">            if (stockAsal.getStock() &lt; barangDTO.getJumlah()) {</span>
+<span class="nc" id="L80">                throw new RuntimeException(&quot;Stok barang di gudang asal tidak mencukupi untuk pemindahan: &quot; + barang.getNama());</span>
             }
-<span class="nc" id="L88">            stockAsal.setStock(stockAsal.getStock() - barangDTO.getJumlah());</span>
-<span class="nc" id="L89">            stockBarangPerGudangDb.save(stockAsal);</span>
+<span class="nc" id="L82">            stockAsal.setStock(stockAsal.getStock() - barangDTO.getJumlah());</span>
+<span class="nc" id="L83">            stockBarangPerGudangDb.save(stockAsal);</span>
 
             // Tambahkan stok ke Gudang Tujuan
-<span class="nc" id="L92">            StockBarangPerGudang stockTujuan = stockBarangPerGudangDb.findByBarangAndGudang(barang, gudangTujuan)</span>
-<span class="nc" id="L93">                .orElseGet(() -&gt; new StockBarangPerGudang());</span>
-<span class="nc" id="L94">            stockTujuan.setBarang(barang);</span>
-<span class="nc" id="L95">            stockTujuan.setGudang(gudangTujuan);</span>
-<span class="nc" id="L96">            stockTujuan.setStock(stockTujuan.getStock() + barangDTO.getJumlah());</span>
-<span class="nc" id="L97">            stockBarangPerGudangDb.save(stockTujuan);</span>
+<span class="nc" id="L86">            StockBarangPerGudang stockTujuan = stockBarangPerGudangDb.findByBarangAndGudang(barang, gudangTujuan)</span>
+<span class="nc" id="L87">                .orElseGet(() -&gt; new StockBarangPerGudang());</span>
+<span class="nc" id="L88">            stockTujuan.setBarang(barang);</span>
+<span class="nc" id="L89">            stockTujuan.setGudang(gudangTujuan);</span>
+<span class="nc" id="L90">            stockTujuan.setStock(stockTujuan.getStock() + barangDTO.getJumlah());</span>
+<span class="nc" id="L91">            stockBarangPerGudangDb.save(stockTujuan);</span>
 
             // Simpan kuantitas barang per transfer
-<span class="nc" id="L100">            KuantitasBarangPerTransfer kuantitasBarang = new KuantitasBarangPerTransfer();</span>
-<span class="nc" id="L101">            kuantitasBarang.setTransferBarang(transferBarang);</span>
-<span class="nc" id="L102">            kuantitasBarang.setBarang(barang);</span>
-<span class="nc" id="L103">            kuantitasBarang.setJumlah(barangDTO.getJumlah());</span>
+<span class="nc" id="L94">            KuantitasBarangPerTransfer kuantitasBarang = new KuantitasBarangPerTransfer();</span>
+<span class="nc" id="L95">            kuantitasBarang.setTransferBarang(transferBarang);</span>
+<span class="nc" id="L96">            kuantitasBarang.setBarang(barang);</span>
+<span class="nc" id="L97">            kuantitasBarang.setJumlah(barangDTO.getJumlah());</span>
 
-<span class="nc" id="L105">            listKuantitasBarang.add(kuantitasBarang);</span>
-<span class="nc" id="L106">        }</span>
+<span class="nc" id="L99">            listKuantitasBarang.add(kuantitasBarang);</span>
+<span class="nc" id="L100">        }</span>
 
-<span class="nc" id="L108">        transferBarang.setKuantitasBarang(listKuantitasBarang);</span>
-<span class="nc" id="L109">        TransferBarang savedTransfer = transferBarangDb.save(transferBarang);</span>
+<span class="nc" id="L102">        transferBarang.setKuantitasBarang(listKuantitasBarang);</span>
+<span class="nc" id="L103">        TransferBarang savedTransfer = transferBarangDb.save(transferBarang);</span>
 
-<span class="nc" id="L111">        return transferBarangToTransferBarangResponseDTO(savedTransfer);</span>
+<span class="nc" id="L105">        return transferBarangToTransferBarangResponseDTO(savedTransfer);</span>
     }
 
     private TransferBarangResponseDTO transferBarangToTransferBarangResponseDTO(TransferBarang transferBarang) {
-<span class="nc" id="L115">        List&lt;BarangTransferDTO&gt; listBarangDTO = transferBarang.getKuantitasBarang().stream()</span>
-<span class="nc" id="L116">            .map(kbt -&gt; new BarangTransferDTO(kbt.getBarang().getId(), kbt.getJumlah()))</span>
-<span class="nc" id="L117">            .collect(Collectors.toList());</span>
+<span class="nc" id="L109">        List&lt;BarangTransferDTO&gt; listBarangDTO = transferBarang.getKuantitasBarang().stream()</span>
+<span class="nc" id="L110">            .map(kbt -&gt; new BarangTransferDTO(kbt.getBarang().getId(), kbt.getJumlah()))</span>
+<span class="nc" id="L111">            .collect(Collectors.toList());</span>
 
-<span class="nc" id="L119">        return new TransferBarangResponseDTO(</span>
-<span class="nc" id="L120">            transferBarang.getId(),</span>
-<span class="nc" id="L121">            transferBarang.getTanggalPemindahan(),</span>
-<span class="nc" id="L122">            transferBarang.getGudangAsal().getNama(),</span>
-<span class="nc" id="L123">            transferBarang.getGudangTujuan().getNama(),</span>
+<span class="nc" id="L113">        return new TransferBarangResponseDTO(</span>
+<span class="nc" id="L114">            transferBarang.getId(),</span>
+<span class="nc" id="L115">            transferBarang.getTanggalPemindahan(),</span>
+<span class="nc" id="L116">            transferBarang.getGudangAsal().getNama(),</span>
+<span class="nc" id="L117">            transferBarang.getGudangTujuan().getNama(),</span>
             listBarangDTO,
-<span class="nc" id="L125">            transferBarang.getCreatedDate()</span>
+<span class="nc" id="L119">            transferBarang.getCreatedDate()</span>
         );
     }
 
-
     @Override
     public List&lt;TransferBarangResponseDTO&gt; getAllTransferBarang() {
-<span class="nc" id="L132">        return transferBarangDb.findAll().stream()</span>
-<span class="nc" id="L133">            .map(this::transferBarangToTransferBarangResponseDTO)</span>
-<span class="nc" id="L134">            .collect(Collectors.toList());</span>
+<span class="nc" id="L125">        return transferBarangDb.findAll().stream()</span>
+<span class="nc" id="L126">            .map(this::transferBarangToTransferBarangResponseDTO)</span>
+<span class="nc" id="L127">            .collect(Collectors.toList());</span>
     }
 
     @Override
     public TransferBarangResponseDTO getTransferBarangByID(String id) {
-<span class="nc" id="L139">        TransferBarang transferBarang = transferBarangDb.findById(id)</span>
-<span class="nc" id="L140">            .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Transfer Barang dengan ID &quot; + id + &quot; tidak ditemukan&quot;));</span>
-<span class="nc" id="L141">        return transferBarangToTransferBarangResponseDTO(transferBarang);</span>
+<span class="nc" id="L132">        TransferBarang transferBarang = transferBarangDb.findById(id)</span>
+<span class="nc" id="L133">            .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Transfer Barang dengan ID &quot; + id + &quot; tidak ditemukan&quot;));</span>
+<span class="nc" id="L134">        return transferBarangToTransferBarangResponseDTO(transferBarang);</span>
     }
 
 }

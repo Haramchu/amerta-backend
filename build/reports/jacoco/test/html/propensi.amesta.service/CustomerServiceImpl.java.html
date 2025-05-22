@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import propensi.amesta.model.Customer;
 import propensi.amesta.payload.request.CustomerRequestDTO;
+import propensi.amesta.payload.request.CustomerUpdateRequestDTO;
 import propensi.amesta.payload.response.CustomerResponseDTO;
 import propensi.amesta.repository.CustomerDb;
 
@@ -11,47 +12,46 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-<span class="nc" id="L14">public class CustomerServiceImpl implements CustomerService {</span>
+<span class="nc" id="L15">public class CustomerServiceImpl implements CustomerService {</span>
 
     @Autowired
     private CustomerDb customerDb;
 
     public CustomerResponseDTO addCustomer(CustomerRequestDTO request) {
-<span class="nc" id="L20">        Customer existing = customerDb.findByEmail(request.getEmail());</span>
-<span class="nc bnc" id="L21" title="All 2 branches missed.">        if (existing != null) {</span>
-<span class="nc" id="L22">            throw new IllegalArgumentException(&quot;Email sudah terdaftar.&quot;);</span>
+<span class="nc" id="L21">        Customer existing = customerDb.findByEmail(request.getEmail());</span>
+<span class="nc bnc" id="L22" title="All 2 branches missed.">        if (existing != null) {</span>
+<span class="nc" id="L23">            throw new IllegalArgumentException(&quot;Email sudah terdaftar.&quot;);</span>
         }
 
-<span class="nc" id="L25">        Customer customer = new Customer();</span>
-<span class="nc" id="L26">        customer.setId(UUID.randomUUID());</span>
-<span class="nc" id="L27">        customer.setName(request.getName());</span>
-<span class="nc" id="L28">        customer.setPhone(request.getPhone());</span>
-<span class="nc" id="L29">        customer.setHandphone(request.getHandphone());</span>
-<span class="nc" id="L30">        customer.setWhatsapp(request.getWhatsapp());</span>
-<span class="nc" id="L31">        customer.setEmail(request.getEmail());</span>
-<span class="nc" id="L32">        customer.setAddress(request.getAddress());</span>
-<span class="nc" id="L33">        customer.setRole(request.getRole());</span>
+<span class="nc" id="L26">        Customer customer = new Customer();</span>
+<span class="nc" id="L27">        customer.setId(UUID.randomUUID());</span>
+<span class="nc" id="L28">        customer.setName(request.getName());</span>
+<span class="nc" id="L29">        customer.setPhone(request.getPhone());</span>
+<span class="nc" id="L30">        customer.setHandphone(request.getHandphone());</span>
+<span class="nc" id="L31">        customer.setWhatsapp(request.getWhatsapp());</span>
+<span class="nc" id="L32">        customer.setEmail(request.getEmail());</span>
+<span class="nc" id="L33">        customer.setAddress(request.getAddress());</span>
+<span class="nc" id="L34">        customer.setRole(request.getRole());</span>
 
-<span class="nc" id="L35">        Customer saved = customerDb.save(customer);</span>
+<span class="nc" id="L36">        Customer saved = customerDb.save(customer);</span>
 
-<span class="nc" id="L37">        return customerToCustomerResponseDTO(saved);</span>
+<span class="nc" id="L38">        return customerToCustomerResponseDTO(saved);</span>
     }
 
     private CustomerResponseDTO customerToCustomerResponseDTO(Customer customer) {
-<span class="nc" id="L41">        return new CustomerResponseDTO(</span>
-<span class="nc" id="L42">                customer.getId(),</span>
-<span class="nc" id="L43">                customer.getName(),</span>
-<span class="nc" id="L44">                customer.getPhone(),</span>
-<span class="nc" id="L45">                customer.getHandphone(),</span>
-<span class="nc" id="L46">                customer.getWhatsapp(),</span>
-<span class="nc" id="L47">                customer.getEmail(),</span>
-<span class="nc" id="L48">                customer.getAddress(),</span>
-<span class="nc" id="L49">                customer.getRole()</span>
+<span class="nc" id="L42">        return new CustomerResponseDTO(</span>
+<span class="nc" id="L43">                customer.getId(),</span>
+<span class="nc" id="L44">                customer.getName(),</span>
+<span class="nc" id="L45">                customer.getPhone(),</span>
+<span class="nc" id="L46">                customer.getHandphone(),</span>
+<span class="nc" id="L47">                customer.getWhatsapp(),</span>
+<span class="nc" id="L48">                customer.getEmail(),</span>
+<span class="nc" id="L49">                customer.getAddress(),</span>
+<span class="nc" id="L50">                customer.getRole()</span>
         );
     }
 
     public List&lt;CustomerResponseDTO&gt; getAllCustomer() {
-
 <span class="nc" id="L55">        List&lt;Customer&gt; customers = customerDb.findAll();</span>
         
 <span class="nc" id="L57">        return customers.stream()</span>
@@ -63,6 +63,28 @@ import java.util.UUID;
 <span class="nc" id="L63">        Customer customer = customerDb.findById(idCustomer).orElseThrow(() -&gt; new IllegalArgumentException(&quot;Customer tidak ditemukan.&quot;));</span>
 <span class="nc" id="L64">        return customerToCustomerResponseDTO(customer);</span>
     }
-    
+
+    public CustomerResponseDTO updateCustomer(UUID idCustomer, CustomerUpdateRequestDTO request) {
+<span class="nc" id="L68">        Customer customer = customerDb.findById(idCustomer)</span>
+<span class="nc" id="L69">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Customer tidak ditemukan.&quot;));</span>
+
+        // Check if email is being changed and if it's already taken
+<span class="nc bnc" id="L72" title="All 2 branches missed.">        if (!customer.getEmail().equals(request.getEmail())) {</span>
+<span class="nc" id="L73">            Customer existingWithEmail = customerDb.findByEmail(request.getEmail());</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">            if (existingWithEmail != null) {</span>
+<span class="nc" id="L75">                throw new IllegalArgumentException(&quot;Email sudah terdaftar.&quot;);</span>
+            }
+        }
+
+<span class="nc" id="L79">        customer.setName(request.getName());</span>
+<span class="nc" id="L80">        customer.setPhone(request.getPhone());</span>
+<span class="nc" id="L81">        customer.setHandphone(request.getHandphone());</span>
+<span class="nc" id="L82">        customer.setWhatsapp(request.getWhatsapp());</span>
+<span class="nc" id="L83">        customer.setEmail(request.getEmail());</span>
+<span class="nc" id="L84">        customer.setAddress(request.getAddress());</span>
+
+<span class="nc" id="L86">        Customer updated = customerDb.save(customer);</span>
+<span class="nc" id="L87">        return customerToCustomerResponseDTO(updated);</span>
+    }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

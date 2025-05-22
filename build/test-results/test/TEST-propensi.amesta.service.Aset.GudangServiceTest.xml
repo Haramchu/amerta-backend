@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="propensi.amesta.service.Aset.GudangServiceTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2025-05-01T21:16:41" hostname="MacBook-Air-Muhammad.local" time="0.206">
+<testsuite name="propensi.amesta.service.Aset.GudangServiceTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2025-05-22T19:18:39" hostname="MacBook-Air-Muhammad.local" time="0.22">
   <properties/>
-  <testcase name="testFilterGudang_WithEmptyKeywords()" classname="propensi.amesta.service.Aset.GudangServiceTest" time="0.176"/>
-  <testcase name="testUpdateGudang_Success()" classname="propensi.amesta.service.Aset.GudangServiceTest" time="0.004"/>
+  <testcase name="testFilterGudang_WithEmptyKeywords()" classname="propensi.amesta.service.Aset.GudangServiceTest" time="0.187"/>
+  <testcase name="testUpdateGudang_Success()" classname="propensi.amesta.service.Aset.GudangServiceTest" time="0.006"/>
   <testcase name="testAddGudang_KepalaGudangNotFound()" classname="propensi.amesta.service.Aset.GudangServiceTest" time="0.003"/>
-  <testcase name="testFilterGudang_WithKeywords()" classname="propensi.amesta.service.Aset.GudangServiceTest" time="0.002"/>
-  <testcase name="testGetGudangByName_NotFound()" classname="propensi.amesta.service.Aset.GudangServiceTest" time="0.002"/>
+  <testcase name="testFilterGudang_WithKeywords()" classname="propensi.amesta.service.Aset.GudangServiceTest" time="0.001"/>
+  <testcase name="testGetGudangByName_NotFound()" classname="propensi.amesta.service.Aset.GudangServiceTest" time="0.001"/>
   <testcase name="testUpdateGudang_WithNullKepalaGudangId()" classname="propensi.amesta.service.Aset.GudangServiceTest" time="0.002"/>
   <testcase name="testAlamatGudangToAlamatGudangResponseDTO()" classname="propensi.amesta.service.Aset.GudangServiceTest" time="0.001"/>
-  <testcase name="testFilterGudang_WithNullKeywords()" classname="propensi.amesta.service.Aset.GudangServiceTest" time="0.001"/>
-  <testcase name="testGudangToGudangResponseDTO_WithListBarang()" classname="propensi.amesta.service.Aset.GudangServiceTest" time="0.005"/>
+  <testcase name="testFilterGudang_WithNullKeywords()" classname="propensi.amesta.service.Aset.GudangServiceTest" time="0.002"/>
+  <testcase name="testGudangToGudangResponseDTO_WithListBarang()" classname="propensi.amesta.service.Aset.GudangServiceTest" time="0.006"/>
   <testcase name="testGetGudangByName_Success()" classname="propensi.amesta.service.Aset.GudangServiceTest" time="0.001"/>
-  <testcase name="testGetAllGudang()" classname="propensi.amesta.service.Aset.GudangServiceTest" time="0.002"/>
+  <testcase name="testGetAllGudang()" classname="propensi.amesta.service.Aset.GudangServiceTest" time="0.001"/>
   <testcase name="testKepalaGudangToKepalaGudangResponseDTO()" classname="propensi.amesta.service.Aset.GudangServiceTest" time="0.001"/>
   <testcase name="testUpdateGudang_NotFound()" classname="propensi.amesta.service.Aset.GudangServiceTest" time="0.002"/>
   <testcase name="testAddGudang_Success()" classname="propensi.amesta.service.Aset.GudangServiceTest" time="0.002"/>
