@@ -34,7 +34,7 @@ public class UserServiceImpl implements UserService {
         UserDetailsServiceImpl authentication = (UserDetailsServiceImpl) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
         Optional<User> userFromDb = userDb.findByEmail(authentication.getJwtClaims().getSubject());
-        User user = userFromDb.orElseThrow(() -> new NoSuchElementException("User not found"));
+        User user = userFromDb.orElseThrow(() -> new NoSuchElementException("Employee tidak ditemukan"));
 
         return userToUserResponseDTO(user);
     }
@@ -42,13 +42,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserByEmail(String email) {
         return userDb.findByEmail(email)
-                .orElseThrow(() -> new NoSuchElementException("User tidak ditemukan"));
+                .orElseThrow(() -> new NoSuchElementException("Employee tidak ditemukan"));
     }
 
     @Override
     public UserResponseDTO getById (String id){
         User user = userDb.findById(id)
-                .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
+                .orElseThrow(() -> new RuntimeException("Employee tidak ditemukan"));
 
         return userToUserResponseDTO(user);
     }
@@ -56,7 +56,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserById(String id) {
         return userDb.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("User tidak ditemukan"));
+                .orElseThrow(() -> new NoSuchElementException("Employee tidak ditemukan"));
     }
 
     @Override
@@ -185,7 +185,10 @@ public class UserServiceImpl implements UserService {
         String username = user.getUsername();
         String suffix = username.length() >= 3 ? username.substring(username.length() - 3) : username;
 
-        return roleCode + "-" + datePart + "-" + suffix.toUpperCase();
+        int randomNumber = new java.util.Random().nextInt(1000);
+        String randomSuffix = String.format("%03d", randomNumber);
+
+        return roleCode + "-" + datePart + "-" + suffix.toUpperCase() + randomSuffix;
     }
 
 
@@ -194,28 +197,18 @@ public class UserServiceImpl implements UserService {
         User employee = userDb.findById(idEmployee)
                 .orElseThrow(() -> new IllegalArgumentException("Employee tidak ditemukan."));
 
-        // Check if email is being changed and if it's already taken
-        if (!employee.getEmail().equals(request.getEmail())) {
-            Optional<User> existingWithEmail = userDb.findByEmail(request.getEmail());
-            if (existingWithEmail.isPresent()) {
-                throw new IllegalArgumentException("Email sudah terdaftar.");
-            }
-        }
-
         // Update all allowed fields
         employee.setName(request.getName());
-        employee.setUsername(request.getUsername());
-        employee.setEmail(request.getEmail());
         employee.setGender(request.isGender());
         employee.setPhone(request.getPhone());
         employee.setHomePhone(request.getHomePhone());
         employee.setBusinessPhone(request.getBusinessPhone());
         employee.setWhatsappNumber(request.getWhatsappNumber());
-        employee.setEntryDate(request.getEntryDate());
         employee.setKtpNumber(request.getKtpNumber());
         employee.setNotes(request.getNotes());
         employee.setBirthDate(request.getBirthDate());
         employee.setEmployeeStatus(request.isEmployeeStatus());
+        employee.setRole(request.getRole());
 
         User updated = userDb.save(employee);
         return userToUserResponseDTO(updated);
