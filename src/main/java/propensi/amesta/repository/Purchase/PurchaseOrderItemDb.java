@@ -9,5 +9,5 @@ import propensi.amesta.model.Purchase.PurchaseOrderItem;
 
 @Repository
 public interface PurchaseOrderItemDb extends JpaRepository<PurchaseOrderItem, UUID> {
-    
+    boolean existsByBarangIdAndPurchaseOrder_StatusNot(String id, String status);
 }
