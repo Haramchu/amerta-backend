@@ -460,7 +460,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         LocalDate invoiceDate = request.getInvoiceDate(); // ini input tanggal sendiri dari frontend
         LocalDate salesDate = salesOrder.getSalesDate();
 
-        if (invoiceDate.isBefore(salesDate) || invoiceDate.isBefore(LocalDate.now())) {
+        if (invoiceDate.isBefore(salesDate)) {
             throw new IllegalArgumentException("Tanggal invoice tidak boleh sebelum tanggal penjualan");
         }
 
