@@ -1,6 +1,7 @@
 package propensi.amesta.service.Sales;
 
 import java.util.List;
+import java.util.UUID;
 
 import propensi.amesta.payload.request.Sales.ShippingRequestDTO;
 import propensi.amesta.payload.request.Sales.SalesOrderInvoiceRequestDTO;
@@ -18,4 +19,5 @@ public interface SalesOrderService {
     SalesOrderResponseDTO confirmSalesOrder(String id, SalesOrderInvoiceRequestDTO request);
     SalesOrderResponseDTO paySalesOrder(String id, SalesPaymentRequestDTO request);
     SalesOrderResponseDTO shipSalesOrder(String id, ShippingRequestDTO request);
+    List<SalesOrderResponseDTO> getSalesOrdersByCustomer(UUID customerId);
 }

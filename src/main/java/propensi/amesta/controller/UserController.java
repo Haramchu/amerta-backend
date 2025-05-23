@@ -57,6 +57,23 @@ public class UserController {
         return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
     }
 
+    @GetMapping("/viewall")
+    public ResponseEntity<BaseResponseDTO<List<UserResponseDTO>>> getAllEmployee(
+            @RequestParam(value = "role", required = false) String role) {
+        var baseResponseDTO = new BaseResponseDTO<List<UserResponseDTO>>();
+        List<UserResponseDTO> userList = userService.getUserByRole(role);
+        if (role.equals("")) {
+            userList = userService.getUserByRole("all");
+        } else {
+            userList = userService.getUserByRole(role);
+        }
+        baseResponseDTO.setStatus(HttpStatus.OK.value());
+        baseResponseDTO.setData(userList);
+        baseResponseDTO.setMessage("User successfully retrieved!");
+        baseResponseDTO.setTimestamp(new Date());
+        return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+    }
+
     @GetMapping("/profile/{id}")
     public ResponseEntity<?> getUserById(@PathVariable UUID id) {
         BaseResponseDTO<UserResponseDTO> response = new BaseResponseDTO<>();

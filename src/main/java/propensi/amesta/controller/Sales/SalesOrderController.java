@@ -2,6 +2,7 @@ package propensi.amesta.controller.Sales;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,7 @@ import propensi.amesta.payload.request.Sales.SalesOrderInvoiceRequestDTO;
 import propensi.amesta.payload.request.Sales.SalesOrderRequestDTO;
 import propensi.amesta.payload.request.Sales.SalesPaymentRequestDTO;
 import propensi.amesta.payload.response.BaseResponseDTO;
+import propensi.amesta.payload.response.Purchase.PurchaseOrderResponseDTO;
 import propensi.amesta.payload.response.Sales.SalesOrderResponseDTO;
 import propensi.amesta.service.Sales.SalesOrderService;
 
@@ -272,6 +274,35 @@ public class SalesOrderController {
             baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + e.getMessage());
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/customer/{id}")
+    public ResponseEntity<?> getSOByCustomer(@PathVariable UUID id) {
+        try {
+            List<SalesOrderResponseDTO> salesOrderCustomer = salesOrderService.getSalesOrdersByCustomer(id);
+            
+            BaseResponseDTO<List<SalesOrderResponseDTO>> response = new BaseResponseDTO<>();
+            response.setStatus(HttpStatus.OK.value());
+            response.setMessage("Sales order berhasil diambil");
+            response.setTimestamp(new Date());
+            response.setData(salesOrderCustomer);
+            
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            BaseResponseDTO<List<SalesOrderResponseDTO>> errorResponse = new BaseResponseDTO<>();
+            errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorResponse.setMessage(e.getMessage());
+            errorResponse.setTimestamp(new Date());
+            errorResponse.setData(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        } catch (Exception e) {
+            BaseResponseDTO<List<SalesOrderResponseDTO>> errorResponse = new BaseResponseDTO<>();
+            errorResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            errorResponse.setMessage("Terjadi kesalahan saat mengambil detail sales order: " + e.getMessage());
+            errorResponse.setTimestamp(new Date());
+            errorResponse.setData(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 }

@@ -14,10 +14,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UpdateEmployeeRequestDTO {
 
-    @NotEmpty(message = "Email harus diisi")
-    @Email(message = "Format email tidak valid")
-    private String email;
-
     @Size(max = 20, message = "Nomor telepon maksimal 20 karakter")
     private String phone;
 

@@ -171,7 +171,6 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new IllegalArgumentException("Employee tidak ditemukan."));
 
         // Update all allowed fields
-        employee.setEmail(request.getEmail());
         employee.setPhone(request.getPhone());
         employee.setHomePhone(request.getHomePhone());
         employee.setBusinessPhone(request.getBusinessPhone());
