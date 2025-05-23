@@ -56,7 +56,7 @@ public class AuthController {
                 user.getRole());
         String userName = user.getName();
         baseResponseDTO.setStatus(HttpStatus.OK.value());
-        baseResponseDTO.setData(new LoginJwtResponseDTO(token, userName, user.getRole()));
+        baseResponseDTO.setData(new LoginJwtResponseDTO(token, userName, user.getRole(), user.getId()));
         baseResponseDTO.setMessage("Login berhasil!");
         baseResponseDTO.setTimestamp(new Date());
         return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);

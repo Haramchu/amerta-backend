@@ -47,7 +47,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDTO getById (UUID id){
+    public UserResponseDTO getById(UUID id){
         User user = userDb.findById(id)
                 .orElseThrow(() -> new RuntimeException("Employee tidak ditemukan"));
 
@@ -171,15 +171,11 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new IllegalArgumentException("Employee tidak ditemukan."));
 
         // Update all allowed fields
-        employee.setName(request.getName());
-        employee.setGender(request.isGender());
         employee.setPhone(request.getPhone());
         employee.setHomePhone(request.getHomePhone());
         employee.setBusinessPhone(request.getBusinessPhone());
         employee.setWhatsappNumber(request.getWhatsappNumber());
-        employee.setKtpNumber(request.getKtpNumber());
         employee.setNotes(request.getNotes());
-        employee.setBirthDate(request.getBirthDate());
         employee.setEmployeeStatus(request.isEmployeeStatus());
         employee.setRole(request.getRole());
 
