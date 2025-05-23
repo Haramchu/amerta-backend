@@ -93,6 +93,14 @@ public class User {
     @Column(name = "notes")
     private String notes;
 
+    @Temporal(TemporalType.DATE)
+    @Column(name = "birth_date")
+    private Date birthDate;
+
+    @NotNull
+    @Column(name = "employee_status", nullable = false)
+    private boolean employeeStatus;
+
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at", columnDefinition = "TIMESTAMP", updatable = false, nullable = false)

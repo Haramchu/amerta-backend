@@ -3,6 +3,7 @@ package propensi.amesta.service;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,6 +18,8 @@ import propensi.amesta.model.EndUser.Komisaris;
 import propensi.amesta.model.EndUser.Sales;
 import propensi.amesta.model.EndUser.User;
 import propensi.amesta.payload.request.TambahKaryawanRequestDTO;
+import propensi.amesta.payload.request.UpdateEmployeeRequestDTO;
+import propensi.amesta.payload.request.UpdateProfileRequestDTO;
 import propensi.amesta.payload.response.UserResponseDTO;
 import propensi.amesta.repository.EndUser.UserDb;
 import propensi.amesta.security.service.UserDetailsServiceImpl;
@@ -32,7 +35,7 @@ public class UserServiceImpl implements UserService {
         UserDetailsServiceImpl authentication = (UserDetailsServiceImpl) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
         Optional<User> userFromDb = userDb.findByEmail(authentication.getJwtClaims().getSubject());
-        User user = userFromDb.orElseThrow(() -> new NoSuchElementException("User not found"));
+        User user = userFromDb.orElseThrow(() -> new NoSuchElementException("Employee tidak ditemukan"));
 
         return userToUserResponseDTO(user);
     }
@@ -40,7 +43,21 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserByEmail(String email) {
         return userDb.findByEmail(email)
-                .orElseThrow(() -> new NoSuchElementException("User not found for the provided email"));
+                .orElseThrow(() -> new NoSuchElementException("Employee tidak ditemukan"));
+    }
+
+    @Override
+    public UserResponseDTO getById(UUID id){
+        User user = userDb.findById(id)
+                .orElseThrow(() -> new RuntimeException("Employee tidak ditemukan"));
+
+        return userToUserResponseDTO(user);
+    }
+
+    @Override
+    public User getUserById(UUID id) {
+        return userDb.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Employee tidak ditemukan"));
     }
 
     @Override
@@ -74,6 +91,8 @@ public class UserServiceImpl implements UserService {
                 user.getEntryDate(),
                 user.getKtpNumber(),
                 user.getNotes(),
+                user.getBirthDate(),
+                user.isEmployeeStatus(),
                 user.getCreatedDate(),
                 user.getUpdatedAt(),
                 user.getRole());
@@ -106,6 +125,8 @@ public class UserServiceImpl implements UserService {
         newUser.setEntryDate(userRequest.getEntryDate());
         newUser.setKtpNumber(userRequest.getKtpNumber());
         newUser.setNotes(userRequest.getNotes());
+        newUser.setBirthDate(userRequest.getBirthDate());
+        newUser.setEmployeeStatus(userRequest.isEmployeeStatus());
         newUser.setRole(userRequest.getRole());
          
         User userNew = userDb.save(newUser);
@@ -113,4 +134,52 @@ public class UserServiceImpl implements UserService {
         return userToUserResponseDTO(userNew);
     }
 
+    @Override
+    public UserResponseDTO updateProfile(UUID id, UpdateProfileRequestDTO request) {
+        User currentUser = getUserById(id);
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+        if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+
+            if (request.getOldPassword() == null || request.getOldPassword().isEmpty()) {
+                throw new IllegalArgumentException("Password lama wajib diisi.");
+            }
+
+            if (!passwordEncoder.matches(request.getOldPassword(), currentUser.getPassword())) {
+                throw new IllegalArgumentException("Password lama tidak sesuai.");
+            }
+
+            List<User> allUsers = userDb.findAll();
+            for (User u : allUsers) {
+                if (!u.getId().equals(currentUser.getId())) {
+                    if (passwordEncoder.matches(request.getPassword(), u.getPassword())) {
+                        throw new IllegalArgumentException("Password sudah digunakan.");
+                    }
+                }
+            }
+
+            currentUser.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
+
+        User updated = userDb.save(currentUser);
+        return userToUserResponseDTO(updated);
+    }
+
+    @Override
+    public UserResponseDTO updateEmployee(UUID idEmployee, UpdateEmployeeRequestDTO request) {
+        User employee = userDb.findById(idEmployee)
+                .orElseThrow(() -> new IllegalArgumentException("Employee tidak ditemukan."));
+
+        // Update all allowed fields
+        employee.setPhone(request.getPhone());
+        employee.setHomePhone(request.getHomePhone());
+        employee.setBusinessPhone(request.getBusinessPhone());
+        employee.setWhatsappNumber(request.getWhatsappNumber());
+        employee.setNotes(request.getNotes());
+        employee.setEmployeeStatus(request.isEmployeeStatus());
+        employee.setRole(request.getRole());
+
+        User updated = userDb.save(employee);
+        return userToUserResponseDTO(updated);
+    }
 }

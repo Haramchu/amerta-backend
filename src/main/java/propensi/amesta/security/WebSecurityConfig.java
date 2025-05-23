@@ -80,6 +80,8 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/gudang/update/{namaGudang}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang")
                 
                 // TODO: implement security untuk add customer.
+                .requestMatchers("/api/customer/add").hasAnyAuthority("direktur", "general_manager", "administrasi", "sales")
+                .requestMatchers("/api/customer/update/{idCustomer}").hasAnyAuthority("direktur", "general_manager", "administrasi", "sales")
 
                 .requestMatchers("/api/purchase-order/add").hasAnyAuthority("direktur", "sales", "general_manager", "administrasi")
                 .requestMatchers("/api/purchase-order/viewall").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
@@ -108,6 +110,9 @@ public class WebSecurityConfig {
 
                 .requestMatchers("/api/sales-invoice/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
                 .requestMatchers("/api/sales-invoice/viewall").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+
+                .requestMatchers("/api/user/all").hasAnyAuthority("direktur", "administrasi")
+                .requestMatchers("/api/user/register").hasAnyAuthority("direktur", "general_manager", "komisaris", "administrasi")
 
                 .anyRequest().authenticated()    
             )

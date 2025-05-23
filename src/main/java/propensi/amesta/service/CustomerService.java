@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import propensi.amesta.payload.request.CustomerRequestDTO;
+import propensi.amesta.payload.request.UpdateCustomerRequestDTO;
 import propensi.amesta.payload.response.CustomerResponseDTO;
 
 public interface CustomerService {
@@ -14,4 +15,5 @@ public interface CustomerService {
 
     CustomerResponseDTO getCustomerById (UUID idCustomer);
 
+    CustomerResponseDTO updateCustomer(UUID idCustomer, UpdateCustomerRequestDTO customer);
 }

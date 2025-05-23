@@ -1,6 +1,7 @@
 package propensi.amesta.service.Purchase;
 
 import java.util.List;
+import java.util.UUID;
 
 import propensi.amesta.payload.request.Purchase.DeliveryRequestDTO;
 import propensi.amesta.payload.request.Purchase.PurchaseOrderInvoiceRequestDTO;
@@ -18,4 +19,6 @@ public interface PurchaseOrderService {
     PurchaseOrderResponseDTO payPurchaseOrder(String id, PurchasePaymentRequestDTO request);
     PurchaseOrderResponseDTO deliverPurchaseOrder(String id, DeliveryRequestDTO request);
     PurchaseOrderResponseDTO completePurchaseOrder(String id);
+
+    List<PurchaseOrderResponseDTO> getPurchaseOrdersbyVendor(UUID vendorId);
 }

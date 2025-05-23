@@ -62,6 +62,8 @@ public class AmestaApplication {
     private void createUserIfNotExists(UserDb userDb, UserService userService, User user, String username, String email, String password, String role) {
         Optional<User> existingUser = userDb.findByUsername(username);
         if (existingUser.isEmpty()) {
+            Date now = new Date();
+
             user.setName(username);
             user.setUsername(username);
             user.setEmail(email);
@@ -71,12 +73,15 @@ public class AmestaApplication {
             user.setHomePhone("021567890");
             user.setBusinessPhone("021123456");
             user.setWhatsappNumber("08123456789");
-            user.setEntryDate(new Date());
+            user.setEntryDate(now);
             user.setKtpNumber("1234567890123456");
             user.setNotes("User dummy untuk testing");
             user.setRole(role);
-            user.setCreatedDate(new Date());
-            user.setUpdatedAt(new Date());
+            user.setCreatedDate(now);
+            user.setUpdatedAt(now);
+            user.setBirthDate(now);
+            user.setEmployeeStatus(true);
+
             userDb.save(user);
             System.out.println("User " + username + " berhasil ditambahkan.");
         } else {

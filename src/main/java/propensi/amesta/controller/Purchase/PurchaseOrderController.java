@@ -2,6 +2,7 @@ package propensi.amesta.controller.Purchase;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -275,6 +276,35 @@ public class PurchaseOrderController {
             baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + e.getMessage());
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/vendor/{id}")
+    public ResponseEntity<?> getPOByVendor(@PathVariable UUID id) {
+        try {
+            List<PurchaseOrderResponseDTO> purchaseOrderDetail = purchaseOrderService.getPurchaseOrdersbyVendor(id);
+            
+            BaseResponseDTO<List<PurchaseOrderResponseDTO>> response = new BaseResponseDTO<>();
+            response.setStatus(HttpStatus.OK.value());
+            response.setMessage("Purchase order berhasil diambil");
+            response.setTimestamp(new Date());
+            response.setData(purchaseOrderDetail);
+            
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            BaseResponseDTO<List<PurchaseOrderResponseDTO>> errorResponse = new BaseResponseDTO<>();
+            errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorResponse.setMessage(e.getMessage());
+            errorResponse.setTimestamp(new Date());
+            errorResponse.setData(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        } catch (Exception e) {
+            BaseResponseDTO<List<PurchaseOrderResponseDTO>> errorResponse = new BaseResponseDTO<>();
+            errorResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            errorResponse.setMessage("Terjadi kesalahan saat mengambil detail purchase order: " + e.getMessage());
+            errorResponse.setTimestamp(new Date());
+            errorResponse.setData(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 }
