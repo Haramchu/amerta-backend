@@ -126,6 +126,7 @@ public class DashboardServiceImpl implements DashboardService {
             case "purchase_order" -> "PurchaseOrder";
             case "purchase_order_item" -> "PurchaseOrderItem";
             case "purchase_payment" -> "PurchasePayment";
+            case "sales_payment" -> "SalesPayment";
             case "delivery" -> "Delivery";
             case "sales_invoice" -> "SalesInvoice";
             case "sales_order" -> "SalesOrder";
