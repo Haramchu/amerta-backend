@@ -622,4 +622,22 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
         return purchaseOrderToPurchaseOrderResponseDTO(purchaseOrderDb.save(purchaseOrder));
     }
+
+    @Override
+    public List<PurchaseOrderResponseDTO> getPurchaseOrdersbyVendor(UUID vendorId) {
+        Customer customer = customerDb.findById(vendorId)
+                .orElseThrow(() -> new IllegalArgumentException("Vendor tidak ditemukan."));
+        
+        if (!customer.getRole().equalsIgnoreCase("VENDOR")) {
+            throw new IllegalArgumentException("Role harus merupakan vendor.");
+        }
+    
+        List<PurchaseOrder> purchaseOrders = purchaseOrderDb.findByCustomerId(vendorId);
+        List<PurchaseOrderResponseDTO> purchaseOrderResponseDTOs = new ArrayList<>();
+        for (PurchaseOrder purchaseOrder : purchaseOrders) {
+            purchaseOrderResponseDTOs.add(purchaseOrderToPurchaseOrderResponseDTO(purchaseOrder));
+        }
+        return purchaseOrderResponseDTOs;
+       
+    }
 }
