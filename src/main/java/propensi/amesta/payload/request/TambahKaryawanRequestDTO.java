@@ -55,6 +55,13 @@ public class TambahKaryawanRequestDTO {
     @Size(max = 50)
     private String ktpNumber;
 
+    @NotNull
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Jakarta")
+    private Date birthDate;
+
+    @NotNull
+    private boolean employeeStatus;
+
     @Size(max = 500)
     private String notes;
 

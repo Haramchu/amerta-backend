@@ -21,6 +21,13 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public DashboardResponseDTO getDynamicDashboardData(DashboardRequestDTO request) {
+        if (request.getEntity().equalsIgnoreCase("barang")) {
+            return aggregateByBarang();
+        } else if (request.getEntity().equalsIgnoreCase("gudang")) {
+            return aggregateByGudang();
+        } else if (request.getEntity().equalsIgnoreCase("status")) {
+            return aggregateByStatus();
+        }
         String entityAlias = "e";
         StringBuilder jpql = new StringBuilder();
         List<String> whereClause = new ArrayList<>();
@@ -28,25 +35,34 @@ public class DashboardServiceImpl implements DashboardService {
 
         // Extract y field and join info
         JoinInfo joinInfo = extractJoinInfo(request.getY(), entityAlias);
-        String yField = joinInfo.field; // e.g., "s.shippingFee"
-        List<String> joins = joinInfo.joins; // e.g., ["JOIN e.shipping s"]
+        String yField = joinInfo.field;
+        List<String> joins = new ArrayList<>(joinInfo.joins);
+
+        // Cek apakah perlu join ke items
+        boolean isOrderEntity = request.getEntity().equalsIgnoreCase("sales_order")
+                || request.getEntity().equalsIgnoreCase("purchase_order");
+
+        FilterDashboardDTO filter = request.getFilter();
+        boolean filteringByBarang = filter != null && filter.getBarangIds() != null && !filter.getBarangIds().isEmpty();
+        boolean filteringByGudang = filter != null && filter.getGudangIds() != null && !filter.getGudangIds().isEmpty();
+
+        if (isOrderEntity && (filteringByBarang || filteringByGudang)) {
+            joins.add("JOIN " + entityAlias + ".items i");
+        }
 
         // Build SELECT
-        jpql.append("SELECT ");
-        jpql.append(formatGroupByX(request.getX(), entityAlias)).append(", ");
-        jpql.append(getAggregationFunction(request.getAggregation(), yField)).append(" ");
-        jpql.append("FROM ").append(getEntityClassName(request.getEntity())).append(" ").append(entityAlias)
+        jpql.append("SELECT ")
+                .append(formatGroupByX(request.getX(), entityAlias)).append(", ")
+                .append(getAggregationFunction(request.getAggregation(), yField)).append(" ")
+                .append("FROM ").append(getEntityClassName(request.getEntity())).append(" ").append(entityAlias)
                 .append(" ");
 
-        // Apply JOIN if any
         for (String join : joins) {
             jpql.append(join).append(" ");
         }
 
-        // WHERE clause: startDate, endDate, customer, status, barang, gudang
-        FilterDashboardDTO filter = request.getFilter();
+        // WHERE
         int paramIndex = 1;
-
         if (filter != null) {
             if (filter.getStartDate() != null && filter.getEndDate() != null) {
                 whereClause.add(
@@ -65,12 +81,12 @@ public class DashboardServiceImpl implements DashboardService {
                 parameters.add(filter.getStatusList());
                 paramIndex++;
             }
-            if (filter.getBarangIds() != null && !filter.getBarangIds().isEmpty()) {
+            if (filteringByBarang) {
                 whereClause.add("i.barang.id IN ?" + paramIndex);
                 parameters.add(filter.getBarangIds());
                 paramIndex++;
             }
-            if (filter.getGudangIds() != null && !filter.getGudangIds().isEmpty()) {
+            if (filteringByGudang) {
                 whereClause.add("i.gudangTujuan.nama IN ?" + paramIndex);
                 parameters.add(filter.getGudangIds());
                 paramIndex++;
@@ -81,7 +97,7 @@ public class DashboardServiceImpl implements DashboardService {
             jpql.append("WHERE ").append(String.join(" AND ", whereClause)).append(" ");
         }
 
-        // GROUP BY
+        // GROUP BY dan ORDER
         jpql.append("GROUP BY ").append(formatGroupByX(request.getX(), entityAlias)).append(" ");
         jpql.append("ORDER BY 1");
 
@@ -161,6 +177,68 @@ public class DashboardServiceImpl implements DashboardService {
 
         joins.add("JOIN " + entityAlias + "." + relation + " " + alias);
         return new JoinInfo(alias + "." + field, joins);
+    }
+
+    private DashboardResponseDTO aggregateByBarang() {
+        String queryStr = """
+                    SELECT i.barang.nama, SUM(i.quantity)
+                    FROM SalesOrder so JOIN so.items i
+                    GROUP BY i.barang.nama
+                    ORDER BY SUM(i.quantity) DESC
+                """;
+        List<Object[]> results = entityManager.createQuery(queryStr).getResultList();
+        List<DashboardDataPointDTO> data = new ArrayList<>();
+        for (Object[] row : results) {
+            data.add(new DashboardDataPointDTO(row[0].toString(), ((Number) row[1]).doubleValue()));
+        }
+        DashboardResponseDTO response = new DashboardResponseDTO();
+        response.setEntity("barang");
+        response.setX("nama");
+        response.setY("quantity");
+        response.setAggregation("sum");
+        response.setData(data);
+        return response;
+    }
+
+    private DashboardResponseDTO aggregateByGudang() {
+        String queryStr = """
+                    SELECT i.gudangTujuan.nama, SUM(i.quantity)
+                    FROM SalesOrder so JOIN so.items i
+                    GROUP BY i.gudangTujuan.nama
+                    ORDER BY SUM(i.quantity) DESC
+                """;
+        List<Object[]> results = entityManager.createQuery(queryStr).getResultList();
+        List<DashboardDataPointDTO> data = new ArrayList<>();
+        for (Object[] row : results) {
+            data.add(new DashboardDataPointDTO(row[0].toString(), ((Number) row[1]).doubleValue()));
+        }
+        DashboardResponseDTO response = new DashboardResponseDTO();
+        response.setEntity("gudang");
+        response.setX("nama");
+        response.setY("quantity");
+        response.setAggregation("sum");
+        response.setData(data);
+        return response;
+    }
+
+    private DashboardResponseDTO aggregateByStatus() {
+        String queryStr = """
+                    SELECT so.status, COUNT(so)
+                    FROM SalesOrder so
+                    GROUP BY so.status
+                """;
+        List<Object[]> results = entityManager.createQuery(queryStr).getResultList();
+        List<DashboardDataPointDTO> data = new ArrayList<>();
+        for (Object[] row : results) {
+            data.add(new DashboardDataPointDTO(row[0].toString(), ((Number) row[1]).doubleValue()));
+        }
+        DashboardResponseDTO response = new DashboardResponseDTO();
+        response.setEntity("status");
+        response.setX("status");
+        response.setY("count");
+        response.setAggregation("count");
+        response.setData(data);
+        return response;
     }
 
 }

@@ -460,7 +460,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         LocalDate invoiceDate = request.getInvoiceDate(); // ini input tanggal sendiri dari frontend
         LocalDate salesDate = salesOrder.getSalesDate();
 
-        if (invoiceDate.isBefore(salesDate) || invoiceDate.isBefore(LocalDate.now())) {
+        if (invoiceDate.isBefore(salesDate)) {
             throw new IllegalArgumentException("Tanggal invoice tidak boleh sebelum tanggal penjualan");
         }
 
@@ -641,4 +641,25 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
         return salesOrderToSalesOrderResponseDTO(salesOrderDb.save(salesOrder));
     }
+
+    @Override
+    public List<SalesOrderResponseDTO> getSalesOrdersByCustomer(UUID customerId) {
+        Customer customer = customerDb.findById(customerId)
+                .orElseThrow(() -> new RuntimeException("Customer tidak ditemukan"));
+
+        if (!customer.getRole().equalsIgnoreCase("CUSTOMER")) {
+            throw new IllegalArgumentException("Role harus merupakan customer");
+        }
+        List<SalesOrder> salesOrders = salesOrderDb.findByCustomerId(customerId);
+        List<SalesOrderResponseDTO> salesOrderResponseDTOs = new ArrayList<>();
+
+        for (SalesOrder salesOrder : salesOrders) {
+            SalesOrderResponseDTO salesOrderResponseDTO = salesOrderToSalesOrderResponseDTO(salesOrder);
+            salesOrderResponseDTOs.add(salesOrderResponseDTO);
+        }
+
+        return salesOrderResponseDTOs;
+    }
+
+    
 }
