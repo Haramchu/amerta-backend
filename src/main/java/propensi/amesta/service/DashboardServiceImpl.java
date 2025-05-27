@@ -148,6 +148,7 @@ public class DashboardServiceImpl implements DashboardService {
             case "sales_invoice" -> "SalesInvoice";
             case "sales_order" -> "SalesOrder";
             case "sales_order_item" -> "SalesOrderItem";
+            case "sales_payment" -> "SalesPayment";
             case "shipping" -> "Shipping";
             default -> throw new IllegalArgumentException("Entity tidak dikenali: " + entityKeyword);
         };
