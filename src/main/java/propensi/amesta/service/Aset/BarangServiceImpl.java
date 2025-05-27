@@ -19,6 +19,7 @@ import propensi.amesta.payload.response.Aset.BarangResponseDTO;
 import propensi.amesta.payload.response.Aset.StockBarangResponseDTO;
 import propensi.amesta.repository.Aset.BarangDb;
 import propensi.amesta.repository.Aset.GudangDb;
+import propensi.amesta.repository.Purchase.PurchaseOrderItemDb;
 
 @Service
 public class BarangServiceImpl implements BarangService {
@@ -28,6 +29,9 @@ public class BarangServiceImpl implements BarangService {
 
     @Autowired
     private GudangDb gudangDb;
+
+    @Autowired
+    private PurchaseOrderItemDb purchaseOrderItemDb;
 
     @Override
     public BarangResponseDTO addBarang(BarangRequestDTO barangRequestDTO) {
@@ -189,6 +193,15 @@ public class BarangServiceImpl implements BarangService {
         barang.setMerk(barangRequestDTO.getMerk().strip());
         barang.setHargaBeli(barangRequestDTO.getHargaBeli());
         barang.setHargaJual(barangRequestDTO.getHargaJual());
+        
+        if (!barangRequestDTO.isActive()) {
+            boolean existsInIncompletePO = purchaseOrderItemDb.existsByBarangIdAndPurchaseOrder_StatusNot(id, "COMPLETED");
+
+            if (existsInIncompletePO) {
+                throw new RuntimeException("Barang tidak dapat di-nonaktifkan karena masih digunakan dalam Purchase Order yang belum COMPLETED.");
+            }
+        }
+
         barang.setActive(barangRequestDTO.isActive());
     
         return barangToBarangResponseDTO(barangDb.save(barang));
