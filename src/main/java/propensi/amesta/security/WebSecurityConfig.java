@@ -54,7 +54,6 @@ public class WebSecurityConfig {
             .authorizeHttpRequests(requests -> requests
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() 
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/user/**").hasAnyAuthority("administrasi", "direktur")
 
                 .requestMatchers("/api/barang/add").hasAnyAuthority("direktur", "general_manager")
                 .requestMatchers("/api/barang/update/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang")
@@ -78,9 +77,10 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/gudang/").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
                 .requestMatchers("/api/gudang/{namaGudang}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
                 .requestMatchers("/api/gudang/update/{namaGudang}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang")
-                
-                // TODO: implement security untuk add customer.
+            
                 .requestMatchers("/api/customer/add").hasAnyAuthority("direktur", "general_manager", "administrasi", "sales")
+                .requestMatchers("/api/customer/viewall").hasAnyAuthority("komisaris", "direktur", "general_manager", "administrasi", "sales")
+                .requestMatchers("/api/customer/{id}").hasAnyAuthority("komisaris", "direktur", "general_manager", "administrasi", "sales")
                 .requestMatchers("/api/customer/update/{idCustomer}").hasAnyAuthority("direktur", "general_manager", "administrasi", "sales")
 
                 .requestMatchers("/api/purchase-order/add").hasAnyAuthority("direktur", "sales", "general_manager", "administrasi")
@@ -111,8 +111,11 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/sales-invoice/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
                 .requestMatchers("/api/sales-invoice/viewall").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
 
-                .requestMatchers("/api/user/all").hasAnyAuthority("direktur", "administrasi")
-                .requestMatchers("/api/user/register").hasAnyAuthority("direktur", "general_manager", "komisaris", "administrasi")
+                .requestMatchers("/api/user/all").hasAnyAuthority("direktur", "general_manager", "komisaris", "administrasi")
+                .requestMatchers("/api/user/register").hasAnyAuthority("direktur", "administrasi")
+                .requestMatchers("/api/user/profile/{id}").permitAll()
+                .requestMatchers("/api/user/update-profile/{id}").permitAll()
+                .requestMatchers("/api/user/update/{id}").hasAnyAuthority("direktur", "general_manager")
 
                 .anyRequest().authenticated()    
             )
