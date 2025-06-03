@@ -6,6 +6,7 @@ import java.util.UUID;
 import propensi.amesta.model.EndUser.User;
 import propensi.amesta.payload.request.TambahKaryawanRequestDTO;
 import propensi.amesta.payload.request.UpdateEmployeeRequestDTO;
+import propensi.amesta.payload.request.UpdatePasswordRequestDTO;
 import propensi.amesta.payload.request.UpdateProfileRequestDTO;
 import propensi.amesta.payload.response.UserResponseDTO;
 
@@ -27,4 +28,6 @@ public interface UserService {
     UserResponseDTO updateEmployee(UUID idEmployee, UpdateEmployeeRequestDTO employee);
 
     UserResponseDTO updateProfile(UUID id, UpdateProfileRequestDTO request);
+
+    UserResponseDTO updatePassword(UUID id, UpdatePasswordRequestDTO request);
 }

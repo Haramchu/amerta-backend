@@ -116,6 +116,7 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/user/profile/{id}").permitAll()
                 .requestMatchers("/api/user/update-profile/{id}").permitAll()
                 .requestMatchers("/api/user/update/{id}").hasAnyAuthority("direktur", "general_manager")
+                .requestMatchers("/api/user/update-password/{id}").hasAnyAuthority("administrasi")
 
                 .anyRequest().authenticated()    
             )
