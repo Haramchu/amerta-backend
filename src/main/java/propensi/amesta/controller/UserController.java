@@ -15,6 +15,7 @@ import jakarta.validation.Valid;
 import propensi.amesta.payload.request.TambahKaryawanRequestDTO;
 import propensi.amesta.payload.request.UpdateProfileRequestDTO;
 import propensi.amesta.payload.request.UpdateEmployeeRequestDTO;
+import propensi.amesta.payload.request.UpdatePasswordRequestDTO;
 import propensi.amesta.payload.response.BaseResponseDTO;
 import propensi.amesta.payload.response.UserResponseDTO;
 import propensi.amesta.service.UserService;
@@ -163,6 +164,31 @@ public class UserController {
             baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + e.getMessage());
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping("/update-password/{id}")
+    public ResponseEntity<?> updatePassword(
+            @PathVariable("id") UUID id,
+            @RequestBody @Valid UpdatePasswordRequestDTO request) {
+
+        var baseResponseDTO = new BaseResponseDTO<UserResponseDTO>();
+
+        try {
+            UserResponseDTO updatedUser = userService.updatePassword(id, request);
+            baseResponseDTO.setStatus(HttpStatus.OK.value());
+            baseResponseDTO.setData(updatedUser);
+            baseResponseDTO.setMessage("Profil berhasil diperbarui!");
+            baseResponseDTO.setTimestamp(new Date());
+
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new BaseResponseDTO<>(HttpStatus.BAD_REQUEST.value(), e.getMessage(), new Date(), null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new BaseResponseDTO<>(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            "Terjadi kesalahan saat update profil!", new Date(), null));
         }
     }
 }

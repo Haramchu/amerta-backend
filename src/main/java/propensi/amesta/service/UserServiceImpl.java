@@ -19,6 +19,7 @@ import propensi.amesta.model.EndUser.Sales;
 import propensi.amesta.model.EndUser.User;
 import propensi.amesta.payload.request.TambahKaryawanRequestDTO;
 import propensi.amesta.payload.request.UpdateEmployeeRequestDTO;
+import propensi.amesta.payload.request.UpdatePasswordRequestDTO;
 import propensi.amesta.payload.request.UpdateProfileRequestDTO;
 import propensi.amesta.payload.response.UserResponseDTO;
 import propensi.amesta.repository.EndUser.UserDb;
@@ -180,6 +181,28 @@ public class UserServiceImpl implements UserService {
         employee.setRole(request.getRole());
 
         User updated = userDb.save(employee);
+        return userToUserResponseDTO(updated);
+    }
+
+    @Override
+    public UserResponseDTO updatePassword(UUID id, UpdatePasswordRequestDTO request) {
+        User currentUser = getUserById(id);
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+        if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+            List<User> allUsers = userDb.findAll();
+            for (User u : allUsers) {
+                if (!u.getId().equals(currentUser.getId())) {
+                    if (passwordEncoder.matches(request.getPassword(), u.getPassword())) {
+                        throw new IllegalArgumentException("Password sudah digunakan.");
+                    }
+                }
+            }
+
+            currentUser.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
+
+        User updated = userDb.save(currentUser);
         return userToUserResponseDTO(updated);
     }
 }

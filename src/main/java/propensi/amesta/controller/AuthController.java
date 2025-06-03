@@ -39,8 +39,7 @@ public class AuthController {
     Validator validator;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(
-            @RequestBody @Valid LoginJwtRequestDTO loginRequest) {
+    public ResponseEntity<?> login(@RequestBody @Valid LoginJwtRequestDTO loginRequest) {
         var baseResponseDTO = new BaseResponseDTO<LoginJwtResponseDTO>();
         String email = loginRequest.getEmail();
         String password = loginRequest.getPassword();
@@ -52,15 +51,19 @@ public class AuthController {
                             new Date(), null));
         }
 
-        String token = jwtUtils.generateJwtToken(user.getId(), user.getName(), user.getUsername(), user.getEmail(),
-                user.getRole());
-        String userName = user.getName();
+        if (!user.isEmployeeStatus()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new BaseResponseDTO<>(HttpStatus.FORBIDDEN.value(), "Account inactive!",
+                            new Date(), null));
+        }
+
+        String token = jwtUtils.generateJwtToken(
+                user.getId(), user.getName(), user.getUsername(), user.getEmail(), user.getRole());
+
         baseResponseDTO.setStatus(HttpStatus.OK.value());
-        baseResponseDTO.setData(new LoginJwtResponseDTO(token, userName, user.getRole(), user.getId()));
+        baseResponseDTO.setData(new LoginJwtResponseDTO(token, user.getName(), user.getRole(), user.getId()));
         baseResponseDTO.setMessage("Login berhasil!");
         baseResponseDTO.setTimestamp(new Date());
         return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
-
     }
-
 }
