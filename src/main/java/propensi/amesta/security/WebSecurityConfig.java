@@ -66,12 +66,12 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/barang/all-gudang/{id}").hasAnyAuthority("direktur", "sales", "general_manager", "administrasi", "komisaris")
                 
                 .requestMatchers("/api/penerimaan/create").hasAnyAuthority("direktur", "administrasi")
-                .requestMatchers("/api/penerimaan/viewall").hasAnyAuthority("direktur", "komisaris")
-                .requestMatchers("/api/penerimaan/view/{id}").hasAnyAuthority("direktur", "komisaris")
+                .requestMatchers("/api/penerimaan/viewall").hasAnyAuthority("direktur", "komisaris", "administrasi")
+                .requestMatchers("/api/penerimaan/view/{id}").hasAnyAuthority("direktur", "komisaris", "administrasi")
 
                 .requestMatchers("/api/pengeluaran/create").hasAnyAuthority("direktur", "administrasi")
-                .requestMatchers("/api/pengeluaran/viewall").hasAnyAuthority("direktur", "komisaris")
-                .requestMatchers("/api/pengeluaran/view/{id}").hasAnyAuthority("direktur", "komisaris")
+                .requestMatchers("/api/pengeluaran/viewall").hasAnyAuthority("direktur", "komisaris", "administrasi")
+                .requestMatchers("/api/pengeluaran/view/{id}").hasAnyAuthority("direktur", "komisaris", "administrasi")
 
                 .requestMatchers("/api/gudang/add").hasAnyAuthority("direktur", "general_manager")
                 .requestMatchers("/api/gudang/").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
