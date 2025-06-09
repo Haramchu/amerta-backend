@@ -17,7 +17,6 @@ public class GudangRequestDTO {
     @NotEmpty(message = "Nama gudang harus diisi")
     private String nama;
     
-    @NotEmpty(message = "Deskripsi gudang harus diisi")
     private String deskripsi;
     
     @NotNull(message = "Kapasitas gudang harus diisi")
