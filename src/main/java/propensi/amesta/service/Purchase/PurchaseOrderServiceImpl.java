@@ -560,16 +560,6 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             throw new IllegalArgumentException("Tanggal pengiriman tidak boleh sebelum tanggal pembelian dan tanggal tagihan");
         }
 
-        // Tambah stok barang
-        for (PurchaseOrderItem item : purchaseOrder.getItems()) {
-            Barang barang = item.getBarang();
-            for (StockBarangPerGudang stock : barang.getListStockBarang()) {
-                if (stock.getGudang().getNama().equals(item.getGudangTujuan().getNama())) {
-                    stock.setStock(stock.getStock() + item.getQuantity());
-                }
-            }
-        }
-
         Delivery delivery = new Delivery();
         delivery.setId(generateDeliveryId(purchaseOrder.getItems()));
         delivery.setDeliveryDate(deliveryDate);
