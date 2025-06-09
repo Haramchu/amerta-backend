@@ -23,10 +23,20 @@ public class UserResponseDTO {
     private String username;
     private String email;
     private boolean gender;
+    private String phone;
+    private String homePhone;
+    private String businessPhone;
+    private String whatsappNumber;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Jakarta")
+    private Date entryDate;
+    private String ktpNumber;
+    private String notes;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Jakarta")
+    private Date birthDate;
+    private boolean employeeStatus;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Jakarta")
     private Date createdDate;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Jakarta")
     private Date updatedAt;
     private String role;
-
 }

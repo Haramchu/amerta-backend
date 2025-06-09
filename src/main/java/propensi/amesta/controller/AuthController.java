@@ -15,7 +15,7 @@ import jakarta.validation.Validator;
 import propensi.amesta.model.EndUser.User;
 import propensi.amesta.payload.request.LoginJwtRequestDTO;
 import propensi.amesta.payload.response.BaseResponseDTO;
-import propensi.amesta.payload.response.LoginJwtResponseDTO;
+import propensi.amesta.payload.response.Auth.LoginJwtResponseDTO;
 import propensi.amesta.security.jwt.JwtUtils;
 import propensi.amesta.service.UserService;
 
@@ -39,8 +39,7 @@ public class AuthController {
     Validator validator;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(
-            @RequestBody @Valid LoginJwtRequestDTO loginRequest) {
+    public ResponseEntity<?> login(@RequestBody @Valid LoginJwtRequestDTO loginRequest) {
         var baseResponseDTO = new BaseResponseDTO<LoginJwtResponseDTO>();
         String email = loginRequest.getEmail();
         String password = loginRequest.getPassword();
@@ -52,15 +51,19 @@ public class AuthController {
                             new Date(), null));
         }
 
-        String token = jwtUtils.generateJwtToken(user.getId(), user.getName(), user.getUsername(), user.getEmail(),
-                user.getRole());
-        String userType = user.getRole();
+        if (!user.isEmployeeStatus()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new BaseResponseDTO<>(HttpStatus.FORBIDDEN.value(), "Account inactive!",
+                            new Date(), null));
+        }
+
+        String token = jwtUtils.generateJwtToken(
+                user.getId(), user.getName(), user.getUsername(), user.getEmail(), user.getRole());
+
         baseResponseDTO.setStatus(HttpStatus.OK.value());
-        baseResponseDTO.setData(new LoginJwtResponseDTO(token, userType));
+        baseResponseDTO.setData(new LoginJwtResponseDTO(token, user.getName(), user.getRole(), user.getId()));
         baseResponseDTO.setMessage("Login berhasil!");
         baseResponseDTO.setTimestamp(new Date());
         return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
-
     }
-
 }

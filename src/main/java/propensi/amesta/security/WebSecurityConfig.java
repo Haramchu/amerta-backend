@@ -1,11 +1,13 @@
 package propensi.amesta.security;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,11 +19,12 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
 import propensi.amesta.security.jwt.JwtTokenFilter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 
 @Configuration
 @EnableWebSecurity
@@ -35,10 +38,103 @@ public class WebSecurityConfig {
     public SecurityFilterChain jwtFilterChain(HttpSecurity http) throws Exception {
         http.securityMatcher("/api/**")
             .csrf(AbstractHttpConfigurer::disable)
+            .cors(cors -> cors.configurationSource(request -> {
+                var corsConfig = new org.springframework.web.cors.CorsConfiguration();
+                corsConfig.setAllowedOrigins(List.of(
+                    "http://localhost:3000",
+                    "http://localhost:3002",
+                    "https://amsesman-staging.vercel.app",
+                    "https://amerta-frontend-six.vercel.app"
+                ));
+                corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                corsConfig.setAllowedHeaders(List.of("*"));
+                corsConfig.setAllowCredentials(true);
+                return corsConfig;
+            }))
             .authorizeHttpRequests(requests -> requests
-                .requestMatchers("/api/user/**").permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() 
                 .requestMatchers("/api/auth/**").permitAll()
+
+                .requestMatchers("/api/barang/add").hasAnyAuthority("direktur", "general_manager")
+                .requestMatchers("/api/barang/update/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang")
+                .requestMatchers("/api/barang/change-status/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang")
+                .requestMatchers("/api/barang/viewall").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/barang/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/barang/transfer").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi")
+                .requestMatchers("/api/barang/transfer/viewall").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
+                .requestMatchers("/api/barang/transfer/view/{id}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
+                .requestMatchers("/api/barang/all-gudang/{id}").hasAnyAuthority("direktur", "sales", "general_manager", "administrasi", "komisaris")
+                
+                .requestMatchers("/api/penerimaan/create").hasAnyAuthority("direktur", "administrasi")
+                .requestMatchers("/api/penerimaan/viewall").hasAnyAuthority("direktur", "komisaris", "administrasi")
+                .requestMatchers("/api/penerimaan/view/{id}").hasAnyAuthority("direktur", "komisaris", "administrasi")
+
+                .requestMatchers("/api/pengeluaran/create").hasAnyAuthority("direktur", "administrasi")
+                .requestMatchers("/api/pengeluaran/viewall").hasAnyAuthority("direktur", "komisaris", "administrasi")
+                .requestMatchers("/api/pengeluaran/view/{id}").hasAnyAuthority("direktur", "komisaris", "administrasi")
+
+                .requestMatchers("/api/gudang/add").hasAnyAuthority("direktur", "general_manager")
+                .requestMatchers("/api/gudang/").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
+                .requestMatchers("/api/gudang/{namaGudang}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang", "administrasi", "komisaris")
+                .requestMatchers("/api/gudang/update/{namaGudang}").hasAnyAuthority("direktur", "general_manager", "kepala_gudang")
+            
+                .requestMatchers("/api/customer/add").hasAnyAuthority("direktur", "general_manager", "administrasi", "sales")
+                .requestMatchers("/api/customer/viewall").hasAnyAuthority("komisaris", "direktur", "general_manager", "administrasi", "sales")
+                .requestMatchers("/api/customer/{id}").hasAnyAuthority("komisaris", "direktur", "general_manager", "administrasi", "sales")
+                .requestMatchers("/api/customer/update/{idCustomer}").hasAnyAuthority("direktur", "general_manager", "administrasi", "sales")
+
+                .requestMatchers("/api/purchase-order/add").hasAnyAuthority("direktur", "sales", "general_manager", "administrasi")
+                .requestMatchers("/api/purchase-order/viewall").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/purchase-order/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/purchase-order/confirm/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+                .requestMatchers("/api/purchase-order/payment/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+                .requestMatchers("/api/purchase-order/delivery/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+                .requestMatchers("/api/purchase-order/complete-delivery/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+
+                .requestMatchers("/api/sales-order/add").hasAnyAuthority("direktur", "sales", "general_manager", "administrasi")
+                .requestMatchers("/api/sales-order/viewall").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/sales-order/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/sales-order/confirm/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+                .requestMatchers("/api/sales-order/payment/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+                .requestMatchers("/api/sales-order/shipping/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+                .requestMatchers("/api/sales-order/confirm-shipping/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+
+
+                .requestMatchers("/api/sales-receipt/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/sales-receipt/viewall").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/purchase-receipt/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+                .requestMatchers("/api/purchase-receipt/viewall").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi", "komisaris")
+
+                .requestMatchers("/api/purchase-invoice/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+                .requestMatchers("/api/purchase-invoice/viewall").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+
+                .requestMatchers("/api/sales-invoice/{id}").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+                .requestMatchers("/api/sales-invoice/viewall").hasAnyAuthority("direktur", "general_manager", "sales", "administrasi")
+
+                .requestMatchers("/api/user/all").hasAnyAuthority("direktur", "general_manager", "komisaris", "administrasi")
+                .requestMatchers("/api/user/register").hasAnyAuthority("direktur", "administrasi")
+                .requestMatchers("/api/user/profile/{id}").permitAll()
+                .requestMatchers("/api/user/update-profile/{id}").permitAll()
+                .requestMatchers("/api/user/update/{id}").hasAnyAuthority("direktur", "general_manager")
+                .requestMatchers("/api/user/update-password/{id}").hasAnyAuthority("administrasi")
+
                 .anyRequest().authenticated()    
+            )
+            .formLogin(form -> form
+                .loginPage("/login")
+                .loginProcessingUrl("/login")
+                .permitAll()
+                .defaultSuccessUrl("/")
+            )
+
+            .logout(logout -> logout
+                .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+                .logoutSuccessUrl("/login")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+            )
+            .exceptionHandling(exceptionHandling -> exceptionHandling
+                .accessDeniedHandler(accessDeniedHandler())
             )
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
@@ -65,4 +161,15 @@ public class WebSecurityConfig {
     public BCryptPasswordEncoder encoder(){
         return new BCryptPasswordEncoder();
     }   
+
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        return new AccessDeniedHandler() {
+            @Override
+            public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException ex)
+                    throws IOException, ServletException {
+                response.sendRedirect("/access-denied");
+            }
+        };
+    }
 }

@@ -1,0 +1,14 @@
+package propensi.amesta.payload.response;
+
+import java.util.List;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+public class NamaGudangPerBarangResponseDTO {
+    private List<String> namaGudang;
+}
